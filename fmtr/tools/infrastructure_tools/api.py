@@ -30,8 +30,8 @@ class Api(api.Base):
         project = Project(name)
         project.stacks.channel[Constants.DEVELOPMENT].recreate()
 
-    async def build(self, name: str):
-        project = Project(name)
+    async def build(self, name: str, context: str = None):
+        project = Project(name, context=context)
         project.stacks.cls[ProductionPublic].build()
 
     async def release(self, name: str, pinned: str = None):

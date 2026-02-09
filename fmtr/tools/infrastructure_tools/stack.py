@@ -39,7 +39,7 @@ class Stack(Inherit[Project]):
 
     @cached_property
     def client(self):
-        return DockerClient(host=f"ssh://{self.hostname}", compose_files=self.path_compose)
+        return DockerClient(context=self.context, compose_files=self.path_compose)
 
     @classmethod
     def get_all(self):
@@ -210,6 +210,7 @@ class Compose(Inherit[Stack]):
                         f"{2200 + self.port}:22",
                         f"{8000 + self.port}:8080",
                         f"{8100 + self.port}:8180",
+                        f"{8500 + self.port}:8501",  # legacy streamlit
                     ],
                     user="1000:1000",
                 ),

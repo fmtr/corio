@@ -53,6 +53,10 @@ class Releaser(Inherit[Project]):
             stack.build()
             stack.push()
 
+        from fmtr.tools.infrastructure_tools.stack import ProductionPrivate
+        stack = self.stacks.cls[ProductionPrivate]
+        stack.build()
+
         self.package()
         self.release()
 
@@ -358,7 +362,7 @@ class ReleaseGithub(Release):
             return f'**Full Changelog**: [{self.versions.old} {Constants.ARROW_RIGHT} {self.versions.new}]({self.url})'
 
     def release(self):
-        url = f"https://api.github.com/repos/{self.org or Constants.ORG_NAME}/{self.paths.name_ns}/releases"  # todo add gh org to meta.json
+        url = f"https://api.github.com/repos/{Constants.ORG_NAME}/{self.paths.name_ns}/releases"  # todo add gh org to meta.json
         name = f'Release {self.tag}'
 
         headers = {

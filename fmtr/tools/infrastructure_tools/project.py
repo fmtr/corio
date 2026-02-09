@@ -14,7 +14,7 @@ class Project:
 
     """
 
-    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint=None, hostname='ws.lan', channel='dev', extras=None, nav=None, pinned=None):
+    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint=None, context='ws', channel='dev', extras=None, nav=None, pinned=None):
 
         # project settings:
         self.services = services or []
@@ -25,7 +25,7 @@ class Project:
         self.nav = nav
 
         # runtime:
-        self.hostname = hostname
+        self.context = context
         self.channel = channel
         self.extras = extras or ['all']
 
