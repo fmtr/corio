@@ -1,6 +1,7 @@
-import pygit2 as vcs
 from functools import cached_property
 from typing import Any
+
+import pygit2 as vcs
 
 from fmtr.tools.inherit_tools import Inherit
 from fmtr.tools.logging_tools import logger
@@ -48,11 +49,16 @@ class Repository(vcs.Repository):
     @logger.instrument('Pushing to repo {self.origin.url}...')
     def push(self):
         allowed_heads = {"refs/heads/main", "refs/heads/release"}
+        tag_ref = f"refs/tags/{self.project.tag}"
+
+        if tag_ref not in self.references:
+            raise RuntimeError(f"Local tag not found: {tag_ref}")
+
         specs = [
             f"{ref}:{ref}"
             for ref in self.references
-            if ref in allowed_heads or ref.startswith("refs/tags/")
-        ]
+                    if ref in allowed_heads
+                ] + [f"{tag_ref}:{tag_ref}"]
 
         return self.origin.push(specs, callbacks=self.callbacks)
 

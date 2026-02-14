@@ -12,6 +12,6 @@
     "services": [],
     "docs": {},
     "setup": {},
-    "is_pypi": false,
+    "is_pypi": true,
     "is_dockerhub": false
 }
