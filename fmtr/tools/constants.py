@@ -5,6 +5,7 @@ class Constants:
 
     ENCODING = 'UTF-8'
     ORG_NAME = 'fmtr'
+    ORG_NAME_FRIENDLY = 'Frontmatter AI'
     LIBRARY_NAME = f'{ORG_NAME}.tools'
     DATE_FILENAME_FORMAT = '%Y-%m-%d'
     TIME_FILENAME_FORMAT = '%H-%M-%S'

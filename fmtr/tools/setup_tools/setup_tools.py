@@ -15,7 +15,7 @@ class Setup(FromCallerMixin):
     Abstract canonical pacakge setup for setuptools.
 
     """
-    AUTHOR = 'Frontmatter'
+    AUTHOR = Constants.ORG_NAME_FRIENDLY
     AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
 
     REQUIREMENTS_ARG = 'requirements'
@@ -24,7 +24,7 @@ class Setup(FromCallerMixin):
     ENTRYPOINT_FUNCTION_SEP = '_'
     ENTRYPOINT_FUNC_NAME = 'main'
 
-    def __init__(self, dependencies, paths=None, org_singleton=Constants.ORG_NAME, org_github=Constants.ORG_NAME, client=None, do_setup=True, **kwargs):
+    def __init__(self, dependencies, paths=None, do_setup=True, **kwargs):
         """
 
         First check if commandline arguments for requirements output exist. If so, print them and return early.
@@ -43,14 +43,9 @@ class Setup(FromCallerMixin):
             self.print_requirements()
             return
 
-        self.org_singleton = org_singleton
-        self.org_github = org_github
-
         if not paths:
             paths = PackagePaths(path=self.from_caller())
         self.paths = paths
-
-        self.client = client  # todo: Do we need all of client/org_single/org_gh?
 
         if do_setup:
             self.setup()
@@ -149,20 +144,9 @@ class Setup(FromCallerMixin):
         Create appropriate author string
 
         """
-        if self.client:
-            return f'{self.AUTHOR} on behalf of {self.client}'
-        return self.AUTHOR
-
-    @property
-    def copyright(self) -> str:
-        """
-
-        Create appropriate copyright string
-
-        """
-        if self.client:
-            return self.client
-        return self.AUTHOR
+        if self.paths.metadata.is_client:
+            return f'{Constants.ORG_NAME_FRIENDLY} on behalf of {self.paths.metadata.org_friendly}'
+        return Constants.ORG_NAME_FRIENDLY
 
     @property
     def long_description(self) -> str:
@@ -226,7 +210,7 @@ class Setup(FromCallerMixin):
         Default to GitHub URL
 
         """
-        return f'https://github.com/{self.org_github}/{self.paths.name_ns}'
+        return f'https://github.com/{self.paths.metadata.org_github}/{self.paths.name_ns}'
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -241,7 +225,8 @@ class Setup(FromCallerMixin):
             author=self.author,
             author_email=self.AUTHOR_EMAIL,
             url=self.url,
-            license=f'Copyright © {datetime.now().year} {self.copyright}. All rights reserved.',
+            license=f'Copyright © {datetime.now().year} {self.paths.metadata.org_friendly}. All rights reserved.',
+            description=self.paths.metadata.description,
             long_description=self.long_description,
             long_description_content_type='text/markdown',
             packages=self.packages,
@@ -275,7 +260,7 @@ class Setup(FromCallerMixin):
         Show library name
 
         """
-        return f'{self.__class__.__name__}("{self.name}")'
+        return f'{self.__class__.__name__}("{self.paths.name_ns}")'
 
 class Tools:
     """
@@ -291,8 +276,6 @@ class Tools:
     def __str__(self):
         extras_str = ','.join(self.extras)
         return self.MASK.format(extras=extras_str)
-
-
 
 class Dependencies:
     ALL = 'all'

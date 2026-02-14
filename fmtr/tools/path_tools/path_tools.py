@@ -285,6 +285,13 @@ class Metadata:
     port: int | None = None
     entrypoint: str | None = None
     base: str = 'python'
+    description: str | None = None
+
+    org_singleton: str | None = None
+    org_github: str = Constants.ORG_NAME
+    org_friendly: str = Constants.ORG_NAME_FRIENDLY
+
+    is_client: bool = False
 
     scripts: list[str] = field(default_factory=list)
     services: list[str] = field(default_factory=list)
