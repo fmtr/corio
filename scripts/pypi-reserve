@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -euo pipefail
+
+. parse-args "$@"
+
+: "${NAME:?must be set}"
+: "${TOKEN:?must be set}"
+
+VERSION="${VERSION:-0.0.0-alpha000}"
+EMAIL="${EMAIL:-innovative.fowler@mask.pro.fmtr.dev}"
+
+BASE_DIR="/tmp/pypi"
+PKG_DIR="$BASE_DIR/$NAME"
+
+mkdir -p "$PKG_DIR/$NAME"
+touch "$PKG_DIR/$NAME/__init__.py"
+
+cat > "$PKG_DIR/pyproject.toml" <<EOF
+[project]
+name = "$NAME"
+authors = [
+    {name = "Frontmatter", email = "$EMAIL"},
+]
+version = "$VERSION"
+description = "Coming soon"
+EOF
+
+cd "$PKG_DIR"
+
+python -m build
+
+TWINE_USERNAME="__token__" TWINE_PASSWORD="$TOKEN" twine upload dist/*

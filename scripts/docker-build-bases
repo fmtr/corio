@@ -9,7 +9,7 @@ CONTEXT=${CONTEXT:-cloud}
 export DOCKER_CONTEXT=$CONTEXT
 echo "Using context $DOCKER_CONTEXT"
 
-docker buildx create --name multi --driver docker-container --use ${CONTEXT}
+docker buildx create --name multi --driver docker-container --use ${CONTEXT} || true
 echo $CONTAINER_INDEX_PUBLIC_TOKEN | docker login --username fmtr --password-stdin
 
 build() {
