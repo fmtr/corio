@@ -1,0 +1,9 @@
+{
+  "version": "1.4.80",
+  "description": "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML",
+  "port": 1,
+  "entrypoint": null,
+  "base": "python",
+  "scripts": [],
+  "services": []
+}

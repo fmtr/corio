@@ -45,8 +45,8 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
         os.environ["OTEL_EXPORTER_OTLP_INSECURE"] = str(False).lower()
 
     if not version:
-        from fmtr.tools import version_tools
-        version = version_tools.read()
+        from fmtr.tools.paths import paths
+        version = paths.metadata.version
 
     lev_name_otel = get_otel_level_name(level)
 

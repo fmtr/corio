@@ -61,7 +61,6 @@ DEPENDENCIES = {
 
 setup = Setup(
     dependencies=DEPENDENCIES,
-    description='Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML',
 )
 
 setup
