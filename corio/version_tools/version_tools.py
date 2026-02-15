@@ -20,7 +20,7 @@ def read_path(path) -> str:
     Read in version from specified path
 
     """
-    from corio.tools import Constants
+    from corio import Constants
     text = path.read_text(encoding=Constants.ENCODING).strip()
 
     text = get(text)
