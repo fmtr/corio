@@ -108,8 +108,8 @@ class Path(type(Path())):
         Write the specified object to the path as a JSON string
 
         """
-        from corio import json
-        json_str = json.to_json(obj)
+        from corio.json_tools import to_json
+        json_str = to_json(obj)
         return self.write_text(json_str, encoding=Constants.ENCODING)
 
     def read_json(self) -> Any:
