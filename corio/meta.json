@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0-alpha000",
+    "port": 1,
+    "entrypoint": null,
+    "base": "python",
+    "description": "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML",
+    "org_singleton": null,
+    "org_github": "fmtr",
+    "org_friendly": "Frontmatter AI",
+    "is_client": false,
+    "scripts": [],
+    "services": [],
+    "docs": {},
+    "setup": {},
+    "is_pypi": true,
+    "is_dockerhub": false
+}
