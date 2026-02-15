@@ -1,8 +1,4 @@
 import pydantic_ai
-from fmtr.tools import environment_tools as env
-from fmtr.tools.constants import Constants
-from fmtr.tools.logging_tools import logger
-from fmtr.tools.string_tools import truncate_mid
 from pydantic import PlainValidator
 from pydantic_ai import RunContext, ModelRetry
 from pydantic_ai._output import OutputDataT
@@ -12,6 +8,11 @@ from pydantic_ai.output import OutputSpec, NativeOutput, ToolOutput
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.tools import AgentDepsT
 from typing import List, Optional, Any, Annotated, Generic
+
+from corio import environment_tools as env
+from corio.constants import Constants
+from corio.logging_tools import logger
+from corio.string_tools import truncate_mid
 
 pydantic_ai.Agent.instrument_all()
 
@@ -179,7 +180,7 @@ StringDefaultNoneSpecified = Annotated[Optional[str], PlainValidator(default_pro
 
 if __name__ == '__main__':
     import asyncio
-    from fmtr.tools import dm
+    from corio import dm
 
 
     class TestOutput(dm.Base):

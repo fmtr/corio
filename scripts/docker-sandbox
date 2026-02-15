@@ -27,7 +27,7 @@ docker exec \
   --tty=true \
   --user=root \
   $CONTAINER_ID \
-  /opt/dev/repo/fmtr.tools/scripts/docker-sandbox-init --tools
+  /opt/dev/repo/corio/scripts/docker-sandbox-init --tools
 
 #Start an interactive bash session as user
 docker exec \

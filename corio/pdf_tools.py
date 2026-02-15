@@ -1,7 +1,8 @@
 import pymupdf as pm
 import pymupdf4llm
-from fmtr.tools import data_modelling_tools
 from typing import List, Tuple, Dict, Any, Self
+
+from corio import data_modelling_tools
 
 
 class BoundingBox(data_modelling_tools.Base):
@@ -217,7 +218,7 @@ class Document(pm.Document):
         return documents
 
 if __name__ == '__main__':
-    from fmtr.tools.path_tools import Path
+    from corio.path_tools import Path
 
     PATH_DATA = Path.data()
     # PATH_PDF=PATH_DATA/'chib.pdf'

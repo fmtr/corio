@@ -4,5 +4,5 @@ def main():
     Ensure YS binary is installed.
 
     """
-    from fmtr.tools import yaml
+    from corio import yaml
     yaml.install()

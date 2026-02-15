@@ -17,5 +17,5 @@ set-user-sudo --username=user
 set-secure-path
 
 if [ "$TOOLS" == "1" ]; then
-  sudo -u user /rs/s pip install --user fmtr.tools --upgrade
+  sudo -u user /rs/s pip install --user corio --upgrade
 fi

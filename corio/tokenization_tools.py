@@ -1,4 +1,3 @@
-from fmtr.tools.path_tools import Path
 from tokenizers import Tokenizer
 from tokenizers import normalizers
 from tokenizers import pre_tokenizers
@@ -8,6 +7,8 @@ from tokenizers.processors import TemplateProcessing
 from tokenizers.trainers import BpeTrainer
 from tokenizers.trainers import WordLevelTrainer
 from typing import List
+
+from corio.path_tools import Path
 
 
 class TokenConfig:

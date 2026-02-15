@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from fmtr.tools.path_tools.path_tools import Path
 from functools import cached_property
 from pytubefix import YouTube, Stream, extract, request
 from pytubefix.exceptions import RegexMatchError
 from typing import AsyncIterator, Iterator
 from urllib.error import HTTPError
+
+from corio.path_tools.path_tools import Path
 
 Stream = Stream
 

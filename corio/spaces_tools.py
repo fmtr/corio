@@ -2,8 +2,9 @@ import importlib
 import logging
 import subprocess
 import sys
-from fmtr.tools import netrc_tools
-from fmtr.tools.environment_tools import get
+
+from corio import netrc_tools
+from corio.environment_tools import get
 
 VARS = [
     (FMTR_LOG_LEVEL := 'FMTR_LOG_LEVEL'),

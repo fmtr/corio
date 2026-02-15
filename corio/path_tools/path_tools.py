@@ -4,14 +4,15 @@ import site
 import subprocess
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from fmtr.tools.constants import Constants
-from fmtr.tools.platform_tools import is_wsl
 from functools import cached_property
 from itertools import chain, product
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Self, Tuple
 from typing import Union, Any
+
+from corio.constants import Constants
+from corio.platform_tools import is_wsl
 
 WIN_PATH_PATTERN = r'''([a-z]:(\\|$)|\\\\)'''
 WIN_PATH_RX = re.compile(WIN_PATH_PATTERN, flags=re.IGNORECASE)
@@ -77,7 +78,7 @@ class Path(type(Path())):
         Get path to originating module (e.g. directory containing .py file).
 
         """
-        from fmtr.tools.inspection_tools import get_call_path
+        from corio.inspection_tools import get_call_path
         path = get_call_path(offset=2).absolute().parent
         return path
 
@@ -88,7 +89,7 @@ class Path(type(Path())):
         Get path to originating module (i.e. .py file).
 
         """
-        from fmtr.tools.inspection_tools import get_call_path
+        from corio.inspection_tools import get_call_path
         path = get_call_path(offset=2).absolute()
         return path
 
@@ -107,7 +108,7 @@ class Path(type(Path())):
         Write the specified object to the path as a JSON string
 
         """
-        from fmtr.tools import json
+        from corio import json
         json_str = json.to_json(obj)
         return self.write_text(json_str, encoding=Constants.ENCODING)
 
@@ -117,7 +118,7 @@ class Path(type(Path())):
         Read JSON from the file and return as a Python object
 
         """
-        from fmtr.tools import json
+        from corio import json
         json_str = self.read_text(encoding=Constants.ENCODING)
         obj = json.from_json(json_str)
         return obj
@@ -128,7 +129,7 @@ class Path(type(Path())):
         Write the specified object to the path as a JSON string
 
         """
-        from fmtr.tools import yaml
+        from corio import yaml
         yaml_str = yaml.to_yaml(obj)
         return self.write_text(yaml_str, encoding=Constants.ENCODING)
 
@@ -138,7 +139,7 @@ class Path(type(Path())):
         Read YAML from the file and return as a Python object
 
         """
-        from fmtr.tools import yaml
+        from corio import yaml
         yaml_str = self.read_text(encoding=Constants.ENCODING)
         obj = yaml.from_yaml(yaml_str)
         return obj
@@ -193,7 +194,7 @@ class Path(type(Path())):
         Convenience method for getting application paths
 
         """
-        from fmtr.tools import path
+        from corio import path
         return path.AppPaths()
 
     @property
@@ -205,7 +206,7 @@ class Path(type(Path())):
         """
         if not self.exists():
             return None
-        from fmtr.tools import path
+        from corio import path
         kind = path.guess(str(self.absolute()))
         return kind
 
@@ -271,7 +272,7 @@ class FromCallerMixin:
     """
 
     def from_caller(self):
-        from fmtr.tools.inspection_tools import get_call_path
+        from corio.inspection_tools import get_call_path
         path = get_call_path(offset=3).parent
         return path
 
@@ -315,7 +316,7 @@ class Metadata:
 
     @property
     def version_obj(self):
-        from fmtr.tools.version_tools import Version
+        from corio.version_tools import Version
         version = Version.parse(self.version)
         return version
 
@@ -596,7 +597,7 @@ class PathsSearchData:
 
     Package: The caller path is the package, like fmtr/tools or acme.
       Site Packages: The caller path is in site-packages, and root of the package. Here we find the site-packages dir we're in, and call it the root.
-      Dev: The caller path is a repo, like /opt/dev/repo/fmtr.tools/fmtr/tools. Here we also know we're in the package already, so can just find the root.
+      Dev: The caller path is a repo, like /opt/dev/repo/corio/fmtr/tools. Here we also know we're in the package already, so can just find the root.
     From package: We never need to look inside the package, as we already know where it is.
 
     Repo: The caller path is the repo root (e.g. setup.py). This is the only case we're not in the package already, so need to infer it. We can do this by calling find_package to find meta at relevant depths.

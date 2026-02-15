@@ -1,5 +1,5 @@
-from fmtr.tools import yaml_tools
-from fmtr.tools.tests.helpers import SERIALIZATION_DATA
+from corio import yaml_tools
+from corio.tests.helpers import SERIALIZATION_DATA
 
 
 def test_yaml():

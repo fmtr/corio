@@ -1,8 +1,9 @@
-from fmtr.tools import Constants
-from fmtr.tools.data_modelling_tools import CliRunMixin
-from fmtr.tools.path_tools import PackagePaths, Path
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
 from typing import ClassVar, Any
+
+from corio import Constants
+from corio.data_modelling_tools import CliRunMixin
+from corio.path_tools import PackagePaths, Path
 
 
 class YamlScriptConfigSettingsSource(YamlConfigSettingsSource):
@@ -80,5 +81,5 @@ class Base(BaseSettings, CliRunMixin):
         Read in version file.
 
         """
-        from fmtr.tools import version
+        from corio import version
         return version.read_path(self.paths.version)

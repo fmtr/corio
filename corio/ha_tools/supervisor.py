@@ -1,7 +1,7 @@
 import aiohasupervisor
 
-from fmtr.tools import environment_tools as env
-from fmtr.tools.ha_tools import constants
+from corio import environment_tools as env
+from corio.ha_tools import constants
 
 
 class Client(aiohasupervisor.SupervisorClient):

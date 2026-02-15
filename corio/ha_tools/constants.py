@@ -1,4 +1,4 @@
-from fmtr.tools.path_tools.path_tools import root
+from corio.path_tools.path_tools import root
 
 SUPERVISOR_TOKEN_KEY = 'SUPERVISOR_TOKEN'
 URL_SUPERVISOR_ADDON = "http://supervisor"

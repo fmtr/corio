@@ -1,9 +1,9 @@
 import pytest
 
-from fmtr.tools import datatype_tools
-from fmtr.tools.datatype_tools import TypeConversionFailed
-from fmtr.tools.tests import helpers
-from fmtr.tools.tools import Raise
+from corio import datatype_tools
+from corio.datatype_tools import TypeConversionFailed
+from corio.tests import helpers
+from corio.tools import Raise
 
 
 @helpers.parametrize(

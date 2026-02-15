@@ -1,4 +1,4 @@
-# `fmtr.tools`
+# `corio`
 
 A collection of high-level tools to simplify everyday development tasks, with a slight focus on full-stack AI/ML.
 
@@ -22,7 +22,7 @@ At the same time, I find that traditional tools collections inevitably become bl
 The base library can be installed like this:
 
 ```bash
-pip install fmtr.tools
+pip install corio
 ```
 
 ## Usage
@@ -32,10 +32,10 @@ Some simple import and usage examples
 ### Read an integer from an environment variable and write it to a (human-readable) JSON file
 
 ```python
-from fmtr import tools
-from fmtr.tools import Path
+import corio
+from corio import Path
 
-value=tools.env.get_int('MY_VALUE',default=None)
+value = corio.env.get_int('MY_VALUE', default=None)
 data=dict(value=value)
 Path('data.json').write_json(data)
 ```
@@ -45,11 +45,11 @@ Path('data.json').write_json(data)
 Install the extra:
 
 ```bash
-pip install fmtr.tools[parallel] --upgrade
+pip install corio[parallel] --upgrade
 ```
 
 ```python
-from fmtr.tools import parallel
+from corio import parallel
 
 def expensive_computation(n):
     import math
@@ -67,13 +67,13 @@ if __name__ == '__main__':
 Most tools require no additional dependencies, but for any that do, you can add them like this:
 
 ```bash
-pip install fmtr.tools[<extra>] --upgrade
+pip install corio[<extra>] --upgrade
 ```
 
 If you try to use a module without the required extras, you'll get a message telling you which one is needed:
 
 ```
-MissingExtraError: The current module is missing dependencies. To install them, run: `pip install fmtr.tools[logging] --upgrade`
+MissingExtraError: The current module is missing dependencies. To install them, run: `pip install corio[logging] --upgrade`
 ```
 
 ## Modules

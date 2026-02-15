@@ -6,11 +6,12 @@ Tools for handling environment variables etc.
 import os
 from collections.abc import Callable
 from datetime import date, datetime
-from fmtr.tools.constants import Constants
-from fmtr.tools.datatype_tools import to_bool
-from fmtr.tools.path_tools import Path
-from fmtr.tools.tools import identity, EMPTY
 from typing import Any, Dict
+
+from corio.constants import Constants
+from corio.datatype_tools import to_bool
+from corio.path_tools import Path
+from corio.tools import identity, EMPTY
 
 
 class MissingEnvironmentVariable(KeyError):

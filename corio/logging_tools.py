@@ -1,8 +1,8 @@
 import logging
 import os
 
-from fmtr.tools import environment_tools
-from fmtr.tools.constants import Constants
+from corio import environment_tools
+from corio.constants import Constants
 
 if environment_tools.IS_DEV:
     STREAM_DEFAULT = ENVIRONMENT_DEFAULT = Constants.DEVELOPMENT
@@ -45,7 +45,7 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
         os.environ["OTEL_EXPORTER_OTLP_INSECURE"] = str(False).lower()
 
     if not version:
-        from fmtr.tools.paths import paths
+        from corio.paths import paths
         version = paths.metadata.version
 
     lev_name_otel = get_otel_level_name(level)

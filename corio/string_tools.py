@@ -1,10 +1,11 @@
 import re
 from collections import namedtuple
 from dataclasses import dataclass
-from fmtr.tools.datatype_tools import is_none
 from string import Formatter
 from textwrap import dedent
 from typing import List
+
+from corio.datatype_tools import is_none
 
 ELLIPSIS = '…'
 formatter = Formatter()

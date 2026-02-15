@@ -1,8 +1,8 @@
 import json
 import json_repair
 
-from fmtr.tools.logging_tools import logger
-from fmtr.tools.tools import Raise
+from corio.logging_tools import logger
+from corio.tools import Raise
 
 
 def from_json(json_string, default=None):

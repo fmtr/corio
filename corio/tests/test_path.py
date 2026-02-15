@@ -1,9 +1,8 @@
 import pathlib
-
 import pytest
 
-from fmtr.tools import path_tools
-from fmtr.tools.tests.helpers import SERIALIZATION_DATA
+from corio import path_tools
+from corio.tests.helpers import SERIALIZATION_DATA
 
 
 @pytest.mark.parametrize(

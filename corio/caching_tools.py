@@ -2,9 +2,9 @@ import cachetools
 from datetime import timedelta, datetime
 from diskcache import Cache
 
-from fmtr.tools.constants import Constants
-from fmtr.tools.logging_tools import logger
-from fmtr.tools.path_tools.path_tools import Path
+from corio.constants import Constants
+from corio.logging_tools import logger
+from corio.path_tools.path_tools import Path
 
 
 class Dump(dict):

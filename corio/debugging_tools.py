@@ -1,7 +1,7 @@
 import dataclasses
 
-from fmtr.tools import environment_tools as env
-from fmtr.tools.constants import Constants
+from corio import environment_tools as env
+from corio.constants import Constants
 
 MASK = 'Starting debugger at tcp://{host}:{port}...'
 
@@ -27,7 +27,7 @@ class ShellDebug:
         Get debug info from path
 
         """
-        from fmtr.tools import Path
+        from corio import Path
         path = Path(path_str).absolute()
         data = {field.name: (path / f'{field.name}.log').read_text().strip() for field in dataclasses.fields(cls)}
         self = cls(**data)
@@ -57,7 +57,7 @@ def trace(is_debug=None, host=None, port=None, stdoutToServer=True, stderrToServ
     host = host or env.get(Constants.FMTR_REMOTE_DEBUG_HOST_KEY, Constants.FMTR_REMOTE_DEBUG_HOST_DEFAULT)
     port = port or Constants.FMTR_REMOTE_DEBUG_PORT_DEFAULT
 
-    from fmtr.tools import logger
+    from corio import logger
 
     msg = MASK.format(host=host, port=port)
     logger.info(msg)

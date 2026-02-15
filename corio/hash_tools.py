@@ -1,7 +1,8 @@
 import base64
 import hashlib
-from fmtr.tools.constants import Constants
 from zlib import crc32
+
+from corio.constants import Constants
 
 SPECIALS = {'O': '9', '=': '9', 'I': '9'}
 

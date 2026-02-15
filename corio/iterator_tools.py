@@ -1,6 +1,7 @@
-from fmtr.tools.datatype_tools import is_none
 from itertools import chain, batched
 from typing import List, Dict, Any, TypeVar, Generic, Iterable
+
+from corio.datatype_tools import is_none
 
 
 def enlist(value) -> List[Any]:

@@ -1,9 +1,9 @@
 import importlib
 
-from fmtr.tools import api_tools as api
-from fmtr.tools.constants import Constants
-from fmtr.tools.infrastructure_tools import Project
-from fmtr.tools.infrastructure_tools.stack import ProductionPublic
+from corio import api_tools as api
+from corio.constants import Constants
+from corio.infrastructure_tools import Project
+from corio.infrastructure_tools.stack import ProductionPublic
 
 
 class Api(api.Base):

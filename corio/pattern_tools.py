@@ -1,10 +1,11 @@
 import regex as re
 from dataclasses import dataclass, asdict
-from fmtr.tools import Constants
-from fmtr.tools.logging_tools import logger
-from fmtr.tools.string_tools import join
 from functools import cached_property
 from typing import List, Any
+
+from corio import Constants
+from corio.logging_tools import logger
+from corio.string_tools import join
 
 
 class RewriteCircularLoopError(Exception):

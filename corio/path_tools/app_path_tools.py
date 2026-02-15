@@ -1,6 +1,6 @@
 import appdirs
 
-from fmtr.tools.path_tools import Path
+from corio.path_tools import Path
 
 
 class AppPaths:

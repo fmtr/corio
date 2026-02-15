@@ -1,5 +1,5 @@
-from fmtr.tools import environment_tools, Constants
-from fmtr.tools.http_tools import client
+from corio import environment_tools, Constants
+from corio.http_tools import client
 
 
 def notify(title, body, url=None):

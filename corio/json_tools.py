@@ -1,6 +1,6 @@
 import json
 
-from fmtr.tools.constants import Constants
+from corio.constants import Constants
 
 
 def to_json(obj):

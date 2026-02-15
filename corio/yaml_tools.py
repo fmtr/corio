@@ -18,7 +18,7 @@ def install():
 
     """
     import subprocess
-    from fmtr.tools import logger, packaging
+    from corio import logger, packaging
 
     version = packaging.get_version('yamlscript')
     logger.warning(f"Installing YAML Script runtime binary version {version}...")

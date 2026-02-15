@@ -1,11 +1,12 @@
 import sys
 from datetime import datetime
-from fmtr.tools.constants import Constants
-from fmtr.tools.path_tools import PackagePaths
-from fmtr.tools.path_tools.path_tools import FromCallerMixin
 from functools import cached_property
 from itertools import chain
 from typing import List, Dict, Any, Callable, Optional
+
+from corio.constants import Constants
+from corio.path_tools import PackagePaths
+from corio.path_tools.path_tools import FromCallerMixin
 
 
 class Setup(FromCallerMixin):
@@ -163,7 +164,7 @@ class Setup(FromCallerMixin):
         Use the appropriate package finding function from setuptools
 
         """
-        from fmtr.tools import setup
+        from corio import setup
 
         if self.paths.is_namespace:
             return setup.find_namespace_packages
@@ -249,7 +250,7 @@ class Setup(FromCallerMixin):
 
         """
 
-        from fmtr.tools import setup
+        from corio import setup
 
         return setup.setup_setuptools(**self.data)
 
@@ -264,7 +265,7 @@ class Setup(FromCallerMixin):
 class Tools:
     """
 
-    Helper for downstream libraries to specify lists of `fmtr.tools` extras
+    Helper for downstream libraries to specify lists of `corio` extras
 
     """
     MASK = f'{Constants.LIBRARY_NAME}[{{extras}}]'

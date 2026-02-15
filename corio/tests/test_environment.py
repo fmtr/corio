@@ -1,10 +1,10 @@
 import pytest
 from datetime import datetime, date
 
-from fmtr.tools import environment_tools
-from fmtr.tools.path_tools import Path
-from fmtr.tools.tests import helpers
-from fmtr.tools.tools import EMPTY
+from corio import environment_tools
+from corio.path_tools import Path
+from corio.tests import helpers
+from corio.tools import EMPTY
 
 ENVIRONMENT_TEST_DATA = [
     ('BOOLEAN1', 'Y', environment_tools.get_bool, True),

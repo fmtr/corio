@@ -1,4 +1,4 @@
-from fmtr.tools.tools import MissingExtraError
+from corio.tools import MissingExtraError
 
 
 class MissingExtraMockModule:

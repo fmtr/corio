@@ -1,9 +1,10 @@
 import aiomqtt
 import logging
 from dataclasses import dataclass, asdict
-from fmtr.tools.logging_tools import logger, get_current_level, get_native_level_from_otel
 from paho.mqtt.client import CleanStartOption, MQTT_CLEAN_START_FIRST_ONLY
 from typing import Literal, Self
+
+from corio.logging_tools import logger, get_current_level, get_native_level_from_otel
 
 LOGGER = logging.getLogger("mqtt")
 LOGGER.handlers.clear()

@@ -1,4 +1,4 @@
-from fmtr.tools.import_tools import MissingExtraMockModule
+from corio.import_tools import MissingExtraMockModule
 
 try:
     from python_on_whales import DockerClient

@@ -1,171 +1,171 @@
-from fmtr.tools import ai_tools as ai
-from fmtr.tools import datetime_tools as dt
-from fmtr.tools import dns_tools as dns
-from fmtr.tools import docker_tools as docker
-from fmtr.tools import ha_tools as ha
-from fmtr.tools import infrastructure_tools as infra
-from fmtr.tools import interface_tools as interface
-from fmtr.tools import version_tools as version
-from fmtr.tools.constants import Constants
-from fmtr.tools.import_tools import MissingExtraMockModule
-from fmtr.tools.logging_tools import logger
+from corio import ai_tools as ai
+from corio import datetime_tools as dt
+from corio import dns_tools as dns
+from corio import docker_tools as docker
+from corio import ha_tools as ha
+from corio import infrastructure_tools as infra
+from corio import interface_tools as interface
+from corio import version_tools as version
+from corio.constants import Constants
+from corio.import_tools import MissingExtraMockModule
+from corio.logging_tools import logger
 # Submodules
-from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
-from fmtr.tools.paths import paths
-from fmtr.tools.setup_tools import Setup, Dependencies, Tools
+from corio.path_tools import Path, PackagePaths, AppPaths
+from corio.paths import paths
+from corio.setup_tools import Setup, Dependencies, Tools
 
 try:
-    from fmtr.tools import augmentation_tools as augmentation
+    from corio import augmentation_tools as augmentation
 except ModuleNotFoundError as exception:
     augmentation = MissingExtraMockModule('augmentation', exception)
 
 try:
-    from fmtr.tools import yaml_tools as yaml
+    from corio import yaml_tools as yaml
 except ModuleNotFoundError as exception:
     yaml = MissingExtraMockModule('yaml', exception)
 
 
 try:
-    from fmtr.tools import parallel_tools as parallel
+    from corio import parallel_tools as parallel
 except ModuleNotFoundError as exception:
     parallel = MissingExtraMockModule('parallel', exception)
 
 try:
-    from fmtr.tools import profiling_tools as profiling
-    from fmtr.tools.profiling_tools import Timer
+    from corio import profiling_tools as profiling
+    from corio.profiling_tools import Timer
 except ModuleNotFoundError as exception:
     profiling = Timer = MissingExtraMockModule('profiling', exception)
 
 try:
-    import fmtr.tools.process_tools as process
-    from fmtr.tools.process_tools import ContextProcess
+    import corio.process_tools as process
+    from corio.process_tools import ContextProcess
 except ModuleNotFoundError as exception:
     process = ContextProcess = MissingExtraMockModule('process', exception)
 
 try:
-    from fmtr.tools import tokenization_tools as tokenization
+    from corio import tokenization_tools as tokenization
 except ModuleNotFoundError as exception:
     tokenization = MissingExtraMockModule('tokenization', exception)
 
 try:
-    from fmtr.tools import unicode_tools as unicode
+    from corio import unicode_tools as unicode
 except ModuleNotFoundError as exception:
     unicode = MissingExtraMockModule('unicode', exception)
 
 try:
-    from fmtr.tools import netrc_tools as netrc
+    from corio import netrc_tools as netrc
 except ModuleNotFoundError as exception:
     netrc = MissingExtraMockModule('netrc', exception)
 
 try:
-    from fmtr.tools import spaces_tools as spaces
+    from corio import spaces_tools as spaces
 except ModuleNotFoundError as exception:
     spaces = MissingExtraMockModule('spaces', exception)
 
 try:
-    from fmtr.tools import hfh_tools as hfh
+    from corio import hfh_tools as hfh
 except ModuleNotFoundError as exception:
     hfh = MissingExtraMockModule('hfh', exception)
 
 try:
-    from fmtr.tools import merging_tools as merging
-    from fmtr.tools.merging_tools import merge
+    from corio import merging_tools as merging
+    from corio.merging_tools import merge
 except ModuleNotFoundError as exception:
     merging = merge = MissingExtraMockModule('merging', exception)
 
 try:
-    from fmtr.tools import api_tools as api
+    from corio import api_tools as api
 except ModuleNotFoundError as exception:
     api = MissingExtraMockModule('api', exception)
 
 try:
-    from fmtr.tools import data_modelling_tools as dm
+    from corio import data_modelling_tools as dm
 except ModuleNotFoundError as exception:
     dm = MissingExtraMockModule('dm', exception)
 
 try:
-    from fmtr.tools import json_fix_tools as json_fix
+    from corio import json_fix_tools as json_fix
 except ModuleNotFoundError as exception:
     json_fix = MissingExtraMockModule('json_fix', exception)
 
 try:
-    from fmtr.tools import semantic_tools as semantic
+    from corio import semantic_tools as semantic
 except ModuleNotFoundError as exception:
     semantic = MissingExtraMockModule('semantic', exception)
 
 try:
-    from fmtr.tools import metric_tools as metric
+    from corio import metric_tools as metric
 except ModuleNotFoundError as exception:
     metric = MissingExtraMockModule('metric', exception)
 
 try:
-    from fmtr.tools import html_tools as html
+    from corio import html_tools as html
 except ModuleNotFoundError as exception:
     html = MissingExtraMockModule('html', exception)
 
 try:
-    from fmtr.tools import openai_tools as openai
+    from corio import openai_tools as openai
 except ModuleNotFoundError as exception:
     openai = MissingExtraMockModule('openai', exception)
 
 try:
-    from fmtr.tools import google_api_tools as google_api
+    from corio import google_api_tools as google_api
 except ModuleNotFoundError as exception:
     google_api = MissingExtraMockModule('google.api', exception)
 
 try:
-    from fmtr.tools import caching_tools as caching
+    from corio import caching_tools as caching
 except ModuleNotFoundError as exception:
     caching = MissingExtraMockModule('caching', exception)
 
 try:
-    from fmtr.tools import pdf_tools as pdf
+    from corio import pdf_tools as pdf
 except ModuleNotFoundError as exception:
     pdf = MissingExtraMockModule('pdf', exception)
 
 try:
-    from fmtr.tools import tabular_tools as tabular
+    from corio import tabular_tools as tabular
 except ModuleNotFoundError as exception:
     tabular = MissingExtraMockModule('tabular', exception)
 
 try:
-    from fmtr.tools import debugging_tools as debug
+    from corio import debugging_tools as debug
 except ModuleNotFoundError as exception:
     debug = MissingExtraMockModule('debug', exception)
 
 try:
-    from fmtr.tools import settings_tools as sets
+    from corio import settings_tools as sets
 except ModuleNotFoundError as exception:
     sets = MissingExtraMockModule('sets', exception)
 
 try:
-    from fmtr.tools import pattern_tools as patterns
+    from corio import pattern_tools as patterns
 except ModuleNotFoundError as exception:
     patterns = MissingExtraMockModule('patterns', exception)
 
 try:
-    from fmtr.tools import http_tools as http
-    from fmtr.tools.http_tools import Client
+    from corio import http_tools as http
+    from corio.http_tools import Client
 except ModuleNotFoundError as exception:
     http = Client = MissingExtraMockModule('http', exception)
 
 try:
-    from fmtr.tools import webhook_tools as webhook
+    from corio import webhook_tools as webhook
 except ModuleNotFoundError as exception:
     webhook = MissingExtraMockModule('webhook', exception)
 
 try:
-    from fmtr.tools import mqtt_tools as mqtt
+    from corio import mqtt_tools as mqtt
 except ModuleNotFoundError as exception:
     mqtt = MissingExtraMockModule('mqtt', exception)
 
 try:
-    from fmtr.tools import av_tools as av
+    from corio import av_tools as av
 except ModuleNotFoundError as exception:
     av = MissingExtraMockModule('av', exception)
 
 try:
-    from fmtr.tools import youtube_tools as youtube
+    from corio import youtube_tools as youtube
 except ModuleNotFoundError as exception:
     youtube = MissingExtraMockModule('youtube', exception)
 

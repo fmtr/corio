@@ -4,5 +4,5 @@ def main():
     Test debugger connection
 
     """
-    from fmtr.tools import debug
+    from corio import debug
     debug.trace(is_debug=True)

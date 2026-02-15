@@ -1,6 +1,7 @@
-from fmtr.tools import environment_tools
 from functools import lru_cache
 from openai import OpenAI
+
+from corio import environment_tools
 
 OPENAI_TOKEN_KEY = 'FMTR_OPENAI_API_KEY'
 

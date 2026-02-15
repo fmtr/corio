@@ -1,3 +1,3 @@
 def main():
-    from fmtr import tools
-    tools.hfh.main()
+    import corio
+    corio.hfh.main()

@@ -4,9 +4,10 @@ from dataclasses import dataclass, field
 from dns import rcode as dnspython_rcode, reversename as dnspython_reversename
 from dns.message import Message, QueryMessage
 from dns.rrset import RRset
-from fmtr.tools.string_tools import join
 from functools import cached_property
 from typing import Self, Optional, List
+
+from corio.string_tools import join
 
 TTL_CODE_DEFAULTS = {
     dnspython_rcode.NOERROR: 300,  # Successful query

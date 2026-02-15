@@ -1,6 +1,6 @@
 from dataclasses import fields as get_fields_tuple
 
-from fmtr.tools.tools import EMPTY
+from corio.tools import EMPTY
 
 
 def get_fields(cls, **filters) -> dict:

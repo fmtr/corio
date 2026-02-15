@@ -1,9 +1,9 @@
 import os
 from dotenv import load_dotenv
 
-from fmtr.tools.ha_tools import constants
-from fmtr.tools.logging_tools import logger
-from fmtr.tools.string_tools import ELLIPSIS
+from corio.ha_tools import constants
+from corio.logging_tools import logger
+from corio.string_tools import ELLIPSIS
 
 
 def apply_addon_env():

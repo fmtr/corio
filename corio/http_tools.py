@@ -1,7 +1,8 @@
 import httpx
-from fmtr.tools import logging_tools
 from functools import cached_property
 from httpx_retries import RetryTransport, Retry
+
+from corio import logging_tools
 
 logging_tools.logger.instrument_httpx()
 

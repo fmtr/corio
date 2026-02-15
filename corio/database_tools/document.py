@@ -1,11 +1,12 @@
 import beanie
 from beanie.odm import actions
-from fmtr.tools import data_modelling_tools
-from fmtr.tools.constants import Constants
-from fmtr.tools.logging_tools import logger
 from functools import cached_property
 from pymongo import AsyncMongoClient
 from typing import List
+
+from corio import data_modelling_tools
+from corio.constants import Constants
+from corio.logging_tools import logger
 
 ModifyEvents = [
     actions.Insert,

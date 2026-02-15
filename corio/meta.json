@@ -4,7 +4,7 @@
     "entrypoint": null,
     "base": "python",
     "description": "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML",
-    "org_singleton": null,
+    "org_singleton": "fmtr",
     "org_github": "fmtr",
     "org_friendly": "Frontmatter AI",
     "is_client": false,

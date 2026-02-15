@@ -1,6 +1,7 @@
 import pandas as pd
-from fmtr.tools.logging_tools import logger
 from sentence_transformers import SentenceTransformer
+
+from corio.logging_tools import logger
 
 
 class SemanticManager:

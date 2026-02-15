@@ -1,9 +1,10 @@
-from fmtr.tools import version_tools
-from fmtr.tools.infrastructure_tools.repository import Repository
-from fmtr.tools.inherit_tools import Inherit
-from fmtr.tools.iterator_tools import IndexList
-from fmtr.tools.path_tools import PackagePaths
 from functools import cached_property
+
+from corio import version_tools
+from corio.infrastructure_tools.repository import Repository
+from corio.inherit_tools import Inherit
+from corio.iterator_tools import IndexList
+from corio.path_tools import PackagePaths
 
 
 class Project:
@@ -58,14 +59,14 @@ class Project:
 
     @cached_property
     def stacks(self):
-        from fmtr.tools.infrastructure_tools.stack import Stack, Development, ProductionPrivate, ProductionPublic
+        from corio.infrastructure_tools.stack import Stack, Development, ProductionPrivate, ProductionPublic
         classes = [Development, ProductionPrivate, ProductionPublic]
         stacks = IndexList[Stack](cls(self) for cls in classes)
         return stacks
 
     @cached_property
     def releaser(self):
-        from fmtr.tools.infrastructure_tools.releaser import Releaser
+        from corio.infrastructure_tools.releaser import Releaser
         return Releaser(self)
 
     @cached_property

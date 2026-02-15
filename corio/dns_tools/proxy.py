@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from fmtr.tools.dns_tools import server, client
-from fmtr.tools.dns_tools.dm import Exchange
-from fmtr.tools.logging_tools import logger
+from corio.dns_tools import server, client
+from corio.dns_tools.dm import Exchange
+from corio.logging_tools import logger
 
 
 @dataclass(kw_only=True, eq=False)

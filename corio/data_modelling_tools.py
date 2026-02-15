@@ -1,8 +1,4 @@
 import inspect
-from fmtr.tools.datatype_tools import is_optional, none_else
-from fmtr.tools.iterator_tools import get_class_lookup
-from fmtr.tools.string_tools import camel_to_snake
-from fmtr.tools.tools import Auto, Required, Empty
 from functools import cached_property
 from pydantic import BaseModel
 from pydantic import RootModel, ConfigDict
@@ -10,6 +6,11 @@ from pydantic.fields import FieldInfo
 from pydantic.json_schema import SkipJsonSchema
 from pydantic_core import PydanticUndefined, PydanticUndefinedType
 from typing import ClassVar, List, Any, Dict
+
+from corio.datatype_tools import is_optional, none_else
+from corio.iterator_tools import get_class_lookup
+from corio.string_tools import camel_to_snake
+from corio.tools import Auto, Required, Empty
 
 
 class Field(FieldInfo):
@@ -136,7 +137,7 @@ def to_df(*objs, name_value='value'):
     DataFrame representation of Data Models as rows.
 
     """
-    from fmtr.tools import tabular
+    from corio import tabular
 
     rows = []
     for obj in objs:
@@ -169,7 +170,7 @@ class MixinFromJson:
         Error-tolerant deserialization
 
         """
-        from fmtr.tools import json_fix
+        from corio import json_fix
         data = json_fix.from_json(json_str, default={})
 
         if type(data) is dict:
@@ -258,7 +259,7 @@ class Base(BaseModel, MixinFromJson, CliRunMixin):
         DataFrame representation of Data Model.
 
         """
-        from fmtr.tools import tabular
+        from corio import tabular
 
         data = self.model_dump(**kwargs)
         df = tabular.pd.json_normalize(data, sep='_')
@@ -271,7 +272,7 @@ class Base(BaseModel, MixinFromJson, CliRunMixin):
         Empty DataFrame
 
         """
-        from fmtr.tools import tabular
+        from corio import tabular
 
         row = {name: None for name in cls.model_fields.keys()}
         df = tabular.pd.DataFrame([row])
@@ -296,7 +297,7 @@ class Root(RootModel, MixinFromJson):
         DataFrame representation of Data Model.
 
         """
-        from fmtr.tools import tabular
+        from corio import tabular
 
         data = [item.model_dump(**kwargs) for item in self.items]
         dfs = [tabular.pd.json_normalize(datum, sep='_') for datum in data]

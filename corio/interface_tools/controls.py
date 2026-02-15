@@ -3,9 +3,10 @@ from dataclasses import dataclass
 from flet.core.gesture_detector import TapEvent
 from flet.core.page import Page
 from flet.core.types import ColorValue, IconValue
-from fmtr.tools.logging_tools import logger
 from functools import cached_property
 from typing import Optional
+
+from corio.logging_tools import logger
 
 
 class SliderSteps(ft.Slider):

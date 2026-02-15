@@ -1,9 +1,10 @@
 import pygit2 as vcs
-from fmtr.tools.inherit_tools import Inherit
-from fmtr.tools.logging_tools import logger
-from fmtr.tools.path_tools import Path
 from functools import cached_property
 from typing import Any
+
+from corio.inherit_tools import Inherit
+from corio.logging_tools import logger
+from corio.path_tools import Path
 
 
 class Repository(vcs.Repository):

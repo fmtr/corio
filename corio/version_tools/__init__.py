@@ -1,6 +1,6 @@
-from fmtr.tools.import_tools import MissingExtraMockModule
+from corio.import_tools import MissingExtraMockModule
 
-from fmtr.tools.version_tools.version_tools import read, read_path, get
+from corio.version_tools.version_tools import read, read_path, get
 
 try:
     import semver

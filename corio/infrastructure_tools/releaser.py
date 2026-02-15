@@ -2,22 +2,21 @@ import build
 import pygit2 as vcs
 import shutil
 import twine.settings
-from fmtr.tools.iterator_tools import IndexList
 from functools import cached_property
 from mkdocs.__main__ import cli
 from twine.commands.upload import upload as twine_upload
 
+from corio.iterator_tools import IndexList
+
 gh_deploy = cli.commands["gh-deploy"].callback
 
-
-
-from fmtr.tools import environment_tools as env
-from fmtr.tools import http_tools as http
-from fmtr.tools.constants import Constants
-from fmtr.tools.infrastructure_tools.project import Project
-from fmtr.tools.inherit_tools import Inherit
-from fmtr.tools.logging_tools import logger
-from fmtr.tools.path_tools import Path
+from corio import environment_tools as env
+from corio import http_tools as http
+from corio.constants import Constants
+from corio.infrastructure_tools.project import Project
+from corio.inherit_tools import Inherit
+from corio.logging_tools import logger
+from corio.path_tools import Path
 
 
 class Releaser(Inherit[Project]):
@@ -46,7 +45,7 @@ class Releaser(Inherit[Project]):
         self.repo.fetch()
 
         if self.paths.metadata.is_dockerhub:
-            from fmtr.tools.infrastructure_tools.stack import ProductionPublic
+            from corio.infrastructure_tools.stack import ProductionPublic
             stack = self.stacks.cls[ProductionPublic]
             stack.build()
             stack.push()

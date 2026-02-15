@@ -1,6 +1,7 @@
 import time
-from fmtr.tools.logging_tools import logger
 from multiprocessing import Queue, Process
+
+from corio.logging_tools import logger
 
 
 class ContextProcess:

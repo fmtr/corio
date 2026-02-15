@@ -1,6 +1,6 @@
-from fmtr.tools import environment_tools as env
-from fmtr.tools.constants import Constants
-from fmtr.tools.inspection_tools import get_call_path
+from corio import environment_tools as env
+from corio.constants import Constants
+from corio.inspection_tools import get_call_path
 
 
 def read() -> str:
@@ -20,7 +20,7 @@ def read_path(path) -> str:
     Read in version from specified path
 
     """
-    from fmtr.tools.tools import Constants
+    from corio.tools import Constants
     text = path.read_text(encoding=Constants.ENCODING).strip()
 
     text = get(text)
@@ -38,8 +38,8 @@ def get(text) -> str:
         return text
 
     import datetime
-    from fmtr.tools.tools import Constants
-    from fmtr.tools.version_tools import parse
+    from corio.tools import Constants
+    from corio.version_tools import parse
 
     timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(Constants.DATETIME_SEMVER_BUILD_FORMAT)
 

@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from dns import query as dnspython_query, message as dnspython_message, rdatatype as dnspython_rdatatype, rcode as dnspython_rcode
-from fmtr.tools import http_tools as http
-from fmtr.tools.dns_tools.dm import Exchange, Response
-from fmtr.tools.logging_tools import logger
 from functools import cached_property
 from httpx_retries import Retry, RetryTransport
 from typing import Optional
+
+from corio import http_tools as http
+from corio.dns_tools.dm import Exchange, Response
+from corio.logging_tools import logger
 
 RETRY_STRATEGY = Retry(
     total=2,  # initial + 1 retry

@@ -2,11 +2,12 @@ import dask
 import dask.bag as db
 from contextlib import nullcontext as NullContext
 from dask.diagnostics import ProgressBar
-from fmtr.tools.iterator_tools import dict_records_to_lists
-from fmtr.tools.logging_tools import logger
-from fmtr.tools.path_tools import Path
 from multiprocessing import cpu_count
 from typing import List, Callable, Any, Union
+
+from corio.iterator_tools import dict_records_to_lists
+from corio.logging_tools import logger
+from corio.path_tools import Path
 
 
 class ParallelConfig:

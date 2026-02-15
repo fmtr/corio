@@ -2,7 +2,7 @@ import deepdiff
 import numpy as np
 import pandas as pd
 
-from fmtr.tools.iterator_tools import dedupe
+from corio.iterator_tools import dedupe
 
 Table = DataFrame = pd.DataFrame
 Series = pd.Series

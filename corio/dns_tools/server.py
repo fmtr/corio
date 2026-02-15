@@ -2,11 +2,12 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import timedelta
 from dns import rcode as dnspython_rcode
-from fmtr.tools import caching_tools as caching
-from fmtr.tools.dns_tools.dm import Exchange
-from fmtr.tools.logging_tools import logger
 from functools import cached_property
 from typing import Optional
+
+from corio import caching_tools as caching
+from corio.dns_tools.dm import Exchange
+from corio.logging_tools import logger
 
 
 @dataclass(kw_only=True, eq=False)
