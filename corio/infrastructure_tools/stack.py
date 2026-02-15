@@ -153,7 +153,7 @@ class ProductionPublic(ProductionPrivate):
 
     @cached_property
     def tags_public(self):
-        return [f'{Constants.ORG_NAME}/{self.name}:latest', f'{Constants.ORG_NAME}/{self.name}:{self.tag}']
+        return [f'{Constants.ORG_NAME}/{self.name}:latest', f'{Constants.ORG_NAME}/{self.name}:{self.tag}']  # todo only push to latest if no pre-release.
 
     @cached_property
     def tags_image(self):
