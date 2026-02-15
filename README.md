@@ -80,79 +80,92 @@ MissingExtraError: The current module is missing dependencies. To install them, 
 
 The included modules, plus any extra requirements, are as follows:
 
-- `tools.ai`: Manages bulk inference for LLMs using dynamic batching. Includes classes for managing prompt encoding, generating outputs, and handling tool calls, with support for both local and remote models. Uses Pytorch and Transformers for model operations, and provides functionality for encoding prompts, generating responses, and applying tool functions.
+-
+`corio.ai`: Manages bulk inference for LLMs using dynamic batching. Includes classes for managing prompt encoding, generating outputs, and handling tool calls, with support for both local and remote models. Uses Pytorch and Transformers for model operations, and provides functionality for encoding prompts, generating responses, and applying tool functions.
   - Extras: `ai`
-- `tools.config`: Base config class with overridable field processors.
+- `corio.config`: Base config class with overridable field processors.
     - Extras: None
 -
-`tools.settings`: A base configuration system built on Pydantic Settings that provides a flexible way to manage application settings from multiple sources, based on a standard
+
+`corio.settings`: A base configuration system built on Pydantic Settings that provides a flexible way to manage application settings from multiple sources, based on a standard
   - Extras: `sets`
 `path.PackagePaths` project layout.
   - Extras: `sets`
-- `tools.dataclass`: Utilities for extracting and filtering fields and metadata from dataclasses, with support for applying filters and retrieving enabled fields based on metadata attributes.
+-
+`corio.dataclass`: Utilities for extracting and filtering fields and metadata from dataclasses, with support for applying filters and retrieving enabled fields based on metadata attributes.
     - Extras: None
-- `tools.datatype`
+- `corio.datatype`
     - Extras: None
-- `tools.dm`: Defines custom data modelling base classes for creating Pydantic models with error-tolerant deserialization from JSON (e.g. when output from an LLM).
+-
+`corio.dm`: Defines custom data modelling base classes for creating Pydantic models with error-tolerant deserialization from JSON (e.g. when output from an LLM).
   - Extras: `dm`
-- `tools.environment`: Tools for managing environment variables, including functions to retrieve variables with type conversions and default values. Features include environment variable fetching, handling missing variables, and creating type-specific getters for integers, floats, booleans, dates, and paths.
+-
+`corio.environment`: Tools for managing environment variables, including functions to retrieve variables with type conversions and default values. Features include environment variable fetching, handling missing variables, and creating type-specific getters for integers, floats, booleans, dates, and paths.
     - Extras: None
-- `tools.env`: Alias of `tools.environment`.
+- `corio.env`: Alias of `corio.environment`.
     - Extras: None
-- `tools.function`: Utilities for combining and splitting arguments and keyword arguments.
+- `corio.function`: Utilities for combining and splitting arguments and keyword arguments.
     - Extras: None
-- `tools.hash`: String hashing
+- `corio.hash`: String hashing
     - Extras: None
-- `tools.hfh`: Utilities for caching and managing Hugging Face model repositories: setting tokens, downloading snapshots, tagging repositories, and retrieving local cache paths.
+-
+`corio.hfh`: Utilities for caching and managing Hugging Face model repositories: setting tokens, downloading snapshots, tagging repositories, and retrieving local cache paths.
   - Extras: `hfh`
-- `tools.html`: Utilities for converting HTML documents to plain text.
+- `corio.html`: Utilities for converting HTML documents to plain text.
   - Extras: `html`
-- `tools.interface`: Provides a base class for building Flutter/Flet apps.
+- `corio.interface`: Provides a base class for building Flutter/Flet apps.
   - Extras: `interface`
-- `tools.iterator`: Pivoting/unpivoting data structures
+- `corio.iterator`: Pivoting/unpivoting data structures
     - Extras: None
-- `tools.json`: Serialisation/deserialisation to human-readable, unicode JSON.
+- `corio.json`: Serialisation/deserialisation to human-readable, unicode JSON.
     - Extras: None
-- `tools.merge`: Utility for recursively merging multiple dictionaries or objects using the DeepMerge library.
+- `corio.merge`: Utility for recursively merging multiple dictionaries or objects using the DeepMerge library.
   - Extras: `merge`
-- `tools.name`: Generates random memorable names (similar to Docker Container names) by combining an adjective with a surname.
+-
+`corio.name`: Generates random memorable names (similar to Docker Container names) by combining an adjective with a surname.
   - Extras: None
-- `tools.openai`: Utilities for interacting with the OpenAI API, simple text-to-text output, etc.
+- `corio.openai`: Utilities for interacting with the OpenAI API, simple text-to-text output, etc.
   - Extras: `openai.api`
-- `tools.Path`: Enhanced
+- `corio.Path`: Enhanced
   `pathlib.Path` object with additional functionality for Windows-to-Unix path conversion in WSL environments, reading/writing JSON and YAML files with proper encoding.
     - Extras: None
 -
-`tools.PackagePaths` class for managing canonical package paths, like settings files, artifact directories, version files.
+`corio.PackagePaths` class for managing canonical package paths, like settings files, artifact directories, version files.
   - Extras: None
-- `tools.AppPaths` Wrapper around `appdirs` for application paths.
+- `corio.AppPaths` Wrapper around `appdirs` for application paths.
   - Extras: `paths.app`
-- `tools.platform`: Detecting if host is WSL, Docker etc.
+- `corio.platform`: Detecting if host is WSL, Docker etc.
     - Extras: None
-- `tools.ContextProcess`: Manages a function running in a separate process using a context manager. Provides methods to start, stop, and restart the process, with configurable restart delays. Useful for ensuring clean process management and automatic stopping when the context manager exits.
+-
+`corio.ContextProcess`: Manages a function running in a separate process using a context manager. Provides methods to start, stop, and restart the process, with configurable restart delays. Useful for ensuring clean process management and automatic stopping when the context manager exits.
     - Extras: None
-- `tools.random`: Provides additional functions for random number generation and selection, useful for data augmentation.
+-
+`corio.random`: Provides additional functions for random number generation and selection, useful for data augmentation.
     - Extras: None
-- `tools.semantic`: Manages semantic similarity operations using Sentence Transformers: loading a pre-trained model, vectorizing a text corpus, and retrieving the top matches based on similarity scores for a given query string.
+-
+`corio.semantic`: Manages semantic similarity operations using Sentence Transformers: loading a pre-trained model, vectorizing a text corpus, and retrieving the top matches based on similarity scores for a given query string.
   - Extras: `semantic`
-- `tools.string`: Provides utilities for handling string formatting.
+- `corio.string`: Provides utilities for handling string formatting.
     - Extras: None
-- `tools.logging`: Configures and initializes a logger using the Logfire library to log to an OpenTelemetry consumer.
+- `corio.logging`: Configures and initializes a logger using the Logfire library to log to an OpenTelemetry consumer.
     - Extras: `logging`
-- `tools.logger`: Prefabricated
+- `corio.logger`: Prefabricated
   `logger` object, suitable for most projects: service name, colour-coded, timestamped, etc.
     - Extras: `logging`
-- `tools.augmentation`: Data augmentation stub.
+- `corio.augmentation`: Data augmentation stub.
     - Extras: `augmentation`
-- `tools.Container`: Runs a Docker container within a context manager, ensuring the container is stopped and removed when the context is exited.
+-
+`corio.Container`: Runs a Docker container within a context manager, ensuring the container is stopped and removed when the context is exited.
     - Extras: `docker.api`
-- `tools.parallel`: Provides utilities for parallel computation using Dask. Supports executing functions across multiple workers or processes, handles different data formats, and options for progress display and parallelism configuration.
+-
+`corio.parallel`: Provides utilities for parallel computation using Dask. Supports executing functions across multiple workers or processes, handles different data formats, and options for progress display and parallelism configuration.
     - Extras: `parallel`
-- `tools.profiling`: Context-based code timing.
+- `corio.profiling`: Context-based code timing.
     - Extras: `profiling`
-- `tools.tokenization`: Provides utilities for creating and configuring tokenizers using the Tokenizers library. Iincludes functions for training both word-level and byte-pair encoding (BPE) tokenizers, applying special formatting and templates, and managing tokenizer configurations such as padding, truncation, and special tokens.
+-
+`corio.tokenization`: Provides utilities for creating and configuring tokenizers using the Tokenizers library. Iincludes functions for training both word-level and byte-pair encoding (BPE) tokenizers, applying special formatting and templates, and managing tokenizer configurations such as padding, truncation, and special tokens.
     - Extras: `tokenization`
-- `tools.unicode`: Simple unicode decoding (via `Unidecode`).
+- `corio.unicode`: Simple unicode decoding (via `Unidecode`).
   - Extras: `unicode`
 
 ## Contribution
