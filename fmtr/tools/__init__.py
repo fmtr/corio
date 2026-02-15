@@ -32,6 +32,7 @@ from fmtr.tools.import_tools import MissingExtraMockModule
 from fmtr.tools.logging_tools import logger
 # Submodules
 from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
+from fmtr.tools.paths import paths
 from fmtr.tools.setup_tools import Setup, Dependencies, Tools
 
 try:
@@ -202,4 +203,4 @@ def get_version():
     Defer reading version
 
     """
-    return version.read()
+    return paths.metadata.version
