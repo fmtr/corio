@@ -1,4 +1,4 @@
-# `corio`
+# `Core IO`
 
 A collection of high-level tools to simplify everyday development tasks, with a slight focus on full-stack AI/ML.
 

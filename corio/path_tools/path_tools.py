@@ -597,7 +597,7 @@ class PathsSearchData:
 
     Package: The caller path is the package, like fmtr/tools or acme.
       Site Packages: The caller path is in site-packages, and root of the package. Here we find the site-packages dir we're in, and call it the root.
-      Dev: The caller path is a repo, like /opt/dev/repo/corio/fmtr/tools. Here we also know we're in the package already, so can just find the root.
+      Dev: The caller path is a repo, like /opt/dev/repo/fmtr.dns/fmtr/dns. Here we also know we're in the package already, so can just find the root.
     From package: We never need to look inside the package, as we already know where it is.
 
     Repo: The caller path is the repo root (e.g. setup.py). This is the only case we're not in the package already, so need to infer it. We can do this by calling find_package to find meta at relevant depths.
