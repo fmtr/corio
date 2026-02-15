@@ -118,9 +118,9 @@ class Path(type(Path())):
         Read JSON from the file and return as a Python object
 
         """
-        from corio import json
+        from corio.json_tools import from_json
         json_str = self.read_text(encoding=Constants.ENCODING)
-        obj = json.from_json(json_str)
+        obj = from_json(json_str)
         return obj
 
     def write_yaml(self, obj) -> int:

@@ -11,7 +11,6 @@ from corio.import_tools import MissingExtraMockModule
 from corio.logging_tools import logger
 # Submodules
 from corio.path_tools import Path, PackagePaths, AppPaths
-from corio.paths import paths
 from corio.setup_tools import Setup, Dependencies, Tools
 
 try:
@@ -182,4 +181,5 @@ def get_version():
     Defer reading version
 
     """
+    from corio.paths import paths
     return paths.metadata.version

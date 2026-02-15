@@ -26,8 +26,8 @@ class Api(api.Base):
         mod = importlib.reload(mod)
         return mod.Project(**kwargs)
 
-    async def recreate(self, name: str):
-        project = Project(name)
+    async def recreate(self, name: str, extra: str = 'all'):
+        project = Project(name, extras=[extra])
         project.stacks.channel[Constants.DEVELOPMENT].recreate()
 
     async def build(self, name: str, extra: str = 'all', context: str = None):
