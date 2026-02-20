@@ -11,8 +11,8 @@ sudo mkdir -p /opt/dev/ve /rs
 sudo chown ${USERNAME}:${USERNAME} -R /opt/dev
 
 sudo apt update --yes
-sudo apt install python3-venv --yes
-python3 -m venv /opt/dev/ve/shell
+sudo apt install python3-venv python-is-python3 --yes
+python -m venv /opt/dev/ve/shell
 
 /opt/dev/ve/shell/bin/pip install corio
 sudo ln -s /opt/dev/ve/shell/bin/run-script /rs/s
