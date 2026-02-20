@@ -1,0 +1,12 @@
+#!/bin/bash
+. parse-args "$@"
+set -euo pipefail
+: "${HOST:?Set HOST}"
+BASE_DIR="/opt/dev/repo/shell/other/tasmota"
+FILE="$BASE_DIR/${FILE:-$HOST}.json"
+
+if [[ "${DUMP:-0}" == "1" ]]; then
+  decode-config.py --source "$HOST" --backup-file "$FILE"
+else
+  decode-config.py --source "$HOST" --restore-file "$FILE"
+fi
