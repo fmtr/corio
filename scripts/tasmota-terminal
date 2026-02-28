@@ -1,0 +1,10 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+set -ex
+
+PORT=${PORT:-/dev/ttyUSB0}
+
+echo "Starting terminal. Ctrl-A then Ctrl-X to exit..."
+picocom $PORT -b 115200 --imap lfcrlf --omap crcrlf --echo

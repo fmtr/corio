@@ -53,8 +53,8 @@ DEPENDENCIES = {
     'doc': ['mkdocs', 'mkdocs-material', 'mkdocstrings[python]', 'mike', 'mkdocs-include-dir-to-nav'],
     'youtube': ['pytubefix'],
     'infra': ['version.dev', 'logging', 'setup', 'doc', 'sets', 'build', 'twine', 'packaging', 'vcs', 'docker.client', 'merging', 'http', 'api'],
-    'deploy': ['infra'],  # todo: remove alias
     'vcs': ['pygit2'],
+    'tasmota': ['decode-config', 'esptool'],
 
 
 }
