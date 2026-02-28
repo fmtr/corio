@@ -1,4 +1,4 @@
-from fmtr.tools import Setup
+from corio import Setup
 
 DEPENDENCIES = {
     'dev': ['logging', 'version.dev', 'debug', 'sets', 'yaml', 'db.document'],
