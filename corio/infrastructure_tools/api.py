@@ -21,7 +21,7 @@ class Api(api.Base):
 
         return endpoints
 
-    def get_project(self, name: str, **kwargs) -> Project:
+    def get_project(self, name: str, **kwargs) -> Project:  # todo allow pre-project override
         mod = importlib.import_module(f"{name}.project")
         mod = importlib.reload(mod)
         return mod.Project(**kwargs)
@@ -34,10 +34,10 @@ class Api(api.Base):
         project = Project(name, context=context, extras=[extra])
         project.stacks.cls[ProductionPublic].build()
 
-    async def release(self, name: str, pinned: str = None):
+    async def release(self, name: str, pinned: str = None, increment: bool = True, build: bool = False, release: bool = True):
         project = Project(name, pinned=pinned)
 
-        project.releaser.run()
+        project.releaser.run(increment=increment, build=build, release=release)
 
 
 if __name__ == '__main__':

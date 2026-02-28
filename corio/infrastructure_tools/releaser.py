@@ -1,8 +1,9 @@
+import shutil
+from functools import cached_property
+
 import build
 import pygit2 as vcs
-import shutil
 import twine.settings
-from functools import cached_property
 from mkdocs.__main__ import cli
 from twine.commands.upload import upload as twine_upload
 
@@ -38,20 +39,30 @@ class Releaser(Inherit[Project]):
     """
 
     @logger.instrument("Releasing {self.paths.name_ns}...")
-    def run(self):
-        self.repo.fetch()
-        self.increment()
-        self.repo.push()
-        self.repo.fetch()
+    def run(self, increment: bool = True, build: bool = False, release: bool = True):
 
+        from corio.infrastructure_tools.stack import ProductionPrivate, ProductionPublic
+
+        if increment:
+            self.repo.fetch()
+            self.increment()
+            self.repo.push()
+            self.repo.fetch()
+
+        stack_types = []
+        if build:
+            stack_types.append(ProductionPrivate)
         if self.paths.metadata.is_dockerhub:
-            from corio.infrastructure_tools.stack import ProductionPublic
-            stack = self.stacks.cls[ProductionPublic]
+            stack_types.append(ProductionPublic)
+
+        for stack_type in stack_types:
+            stack = self.stacks.cls[stack_type]
             stack.build()
             stack.push()
 
-        self.package()
-        self.release()
+        if release:
+            self.package()
+            self.release()
 
     @property
     def message(self):

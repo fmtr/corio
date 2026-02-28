@@ -75,7 +75,7 @@ class Stack(Inherit[Project]):
         # f"{self.org}-{self.package}-{self.entrypoint}" todo allow entrypoint from self.paths.entrypoints.
         return self.name_dash
 
-    @logger.instrument('Building image for project {self.name} on channel {self.channel}...')
+    @logger.instrument('Building image for project {self.name} on context {self.context} on channel {self.channel}...')
     def build(self):
         """
 
@@ -153,7 +153,13 @@ class ProductionPublic(ProductionPrivate):
 
     @cached_property
     def tags_public(self):
-        return [f'{Constants.ORG_NAME}/{self.name}:latest', f'{Constants.ORG_NAME}/{self.name}:{self.tag}']  # todo only push to latest if no pre-release.
+
+        tags = [f'{Constants.ORG_NAME}/{self.name}:{self.tag}']
+
+        if not self.versions.is_pre:
+            tags.append(f'{Constants.ORG_NAME}/{self.name}:latest')
+
+        return tags
 
     @cached_property
     def tags_image(self):
