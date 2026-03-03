@@ -15,7 +15,7 @@ echo $CONTAINER_INDEX_PUBLIC_TOKEN | docker login --username fmtr --password-std
 build() {
   local NAME="$1"
 
-  docker buildx build --progress=plain --builder multi /opt/dev/repo/scripts/base/${NAME} \
+  docker buildx build --progress=plain --builder multi /opt/dev/repo/infrastructure/base/${NAME} \
     --build-arg VERSION=${VERSION} \
     --tag fmtr/${NAME}:v${VERSION} --tag fmtr/${NAME}:latest \
     --platform linux/amd64,linux/arm64 \

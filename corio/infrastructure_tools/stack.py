@@ -8,7 +8,7 @@ from corio.inherit_tools import Inherit
 from corio.iterator_tools import IndexList
 from corio.logging_tools import logger
 from corio.merging_tools import merge
-from corio.path_tools import Path
+from corio.path_tools import Path, PackagePaths
 
 
 class Stack(Inherit[Project]):
@@ -71,6 +71,10 @@ class Stack(Inherit[Project]):
         ]
 
     @cached_property
+    def path_dockerfile(self):
+        return PackagePaths.dev_repo / 'infrastructure' / 'compose' / 'Dockerfile'
+
+    @cached_property
     def entrypoint(self):
         # f"{self.org}-{self.package}-{self.entrypoint}" todo allow entrypoint from self.paths.entrypoints.
         return self.name_dash
@@ -100,7 +104,7 @@ class Stack(Inherit[Project]):
 
         for line in self.client.build(
                 build_contexts=contexts,
-                file="Dockerfile",
+                file=str(self.path_dockerfile),
                 context_path=self.paths.repo,
                 build_args=build_args,
                 tags=self.tags_image,
@@ -177,6 +181,7 @@ class ProductionPublic(ProductionPrivate):
 
         self
 
+
 class Compose(Inherit[Stack]):
     """
 
@@ -249,7 +254,22 @@ class ComposeDocumentDatabase(Compose):
 
     @property
     def data(self):
-        data = dict(
-            # todo
-        )
+        data = {
+            "services": {
+                "db.document": dict(
+                    image="mongo:7",
+                    container_name=f"{self.paths.name_ns}.document.db",
+                    volumes=["dev:/opt/dev/repo"],
+                    command=f"--dbpath /opt/dev/repo/{self.paths.name_ns}/data/db/document",
+                    restart="unless-stopped",
+                    environment=dict(
+                        MONGO_INITDB_DATABASE="default",
+                    ),
+                    ports=[
+                        f"{27000 + self.port}:27017",
+                    ],
+                    user="1000:1000",
+                )
+            }
+        }
         return data

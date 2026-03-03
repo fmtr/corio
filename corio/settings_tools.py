@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
 from typing import ClassVar, Any
+
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
 
 from corio import Constants
 from corio.data_modelling_tools import CliRunMixin
@@ -81,5 +82,4 @@ class Base(BaseSettings, CliRunMixin):
         Read in version file.
 
         """
-        from corio import version
-        return version.read_path(self.paths.version)
+        return self.paths.metadata.version

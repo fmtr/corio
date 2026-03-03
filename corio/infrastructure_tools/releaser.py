@@ -504,7 +504,7 @@ class ReleaseDocumentation(Release):
                 {"pymdownx.tabbed": {"alternate_style": True}},
                 {"pymdownx.emoji": {"emoji_index": twemoji, "emoji_generator": to_svg}},
             ],
-            nav=self.nav or [
+            nav=self.paths.metadata.docs.get('nav') or [
                 {"Home": "index.md"},
                 {"Changelog": "changelog/"},
             ],

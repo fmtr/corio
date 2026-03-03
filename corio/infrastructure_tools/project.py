@@ -14,15 +14,15 @@ class Project:
 
     """
 
-    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint=None, context='ws', channel='dev', extras=None, nav=None, pinned=None):
+    def __init__(self, name, context='ws', channel='dev', extras=None, pinned=None):
+        self.paths = PackagePaths(PackagePaths.dev_repo / name)
 
         # project settings:
-        self.services = services or []
-        self.scripts = scripts or []
-        self.base = base
-        self.port = port
-        self.entrypoint = entrypoint
-        self.nav = nav
+        self.services = self.paths.metadata.services
+        self.scripts = self.paths.metadata.scripts
+        self.base = self.paths.metadata.base
+        self.port = self.paths.metadata.port
+        self.entrypoint = self.paths.metadata.entrypoint
 
         # runtime:
         self.context = context
@@ -30,8 +30,6 @@ class Project:
         self.extras = extras or ['all']
 
         self.name = name
-
-        self.paths = PackagePaths(PackagePaths.dev_repo / name)
 
         self.versions = Versions(self, pinned=pinned)
 
