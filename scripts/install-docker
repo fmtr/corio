@@ -1,0 +1,11 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+sudo sh /tmp/get-docker.sh
+sudo usermod -aG docker $USER
+
+docker run --rm --privileged tonistiigi/binfmt --install all
+docker buildx create --use
+docker buildx inspect --bootstrap

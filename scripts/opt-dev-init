@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# Requires user to be a sudoer: `usermod -aG sudo <username>`
+# Requires:
+# useradd --uid 1000 --create-home --shell /bin/bash <username>
+# usermod -aG sudo <username>
 # curl --location https://fmtr.link/dev/init | bash
+
 
 set -ex
 
