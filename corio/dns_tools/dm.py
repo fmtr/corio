@@ -1,11 +1,12 @@
+from dataclasses import dataclass, field
+from functools import cached_property
+from typing import Self, Optional, List, Dict
+
 import dns
 import httpx
-from dataclasses import dataclass, field
 from dns import rcode as dnspython_rcode, reversename as dnspython_reversename
 from dns.message import Message, QueryMessage
 from dns.rrset import RRset
-from functools import cached_property
-from typing import Self, Optional, List
 
 from corio.string_tools import join
 
@@ -37,8 +38,8 @@ class BaseDNSData:
         return dns.message.from_wire(self.wire)
 
     @classmethod
-    def from_message(cls, message: Message) -> Self:
-        return cls(message.to_wire())
+    def from_message(cls, message: Message, **kwargs) -> Self:
+        return cls(message.to_wire(), **kwargs)
 
 @dataclass
 class Response(BaseDNSData):
@@ -50,6 +51,7 @@ class Response(BaseDNSData):
 
     http: Optional[httpx.Response] = None
     blocked_by: Optional[str] = None
+    ttl_defaults: Dict[str, int] | None = None
 
     @classmethod
     def from_http(cls, response: httpx.Response) -> Self:
@@ -93,7 +95,8 @@ class Response(BaseDNSData):
             ttl = min(ttls)
             return ttl
 
-        ttl = TTL_CODE_DEFAULTS.get(self.rcode, dnspython_rcode.NXDOMAIN)
+        defaults = TTL_CODE_DEFAULTS | {dnspython_rcode.from_text(key): value for key, value in (self.ttl_defaults or {}).items()}
+        ttl = defaults.get(self.rcode, defaults[dnspython_rcode.NXDOMAIN])
         return ttl
 
 

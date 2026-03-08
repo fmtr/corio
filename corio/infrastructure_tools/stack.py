@@ -222,6 +222,8 @@ class Compose(Inherit[Stack]):
                         f"{8000 + self.port}:8080",
                         f"{8100 + self.port}:8180",
                         f"{8500 + self.port}:8501",  # legacy streamlit
+                        f"{5300 + self.port}:5354/tcp",  # dns
+                        f"{5300 + self.port}:5354/udp",  # dns
                     ],
                     user="1000:1000",
                 ),

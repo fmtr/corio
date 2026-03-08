@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from dns import query as dnspython_query, message as dnspython_message, rdatatype as dnspython_rdatatype, rcode as dnspython_rcode
 from functools import cached_property
+from typing import Optional, Dict
+
+from dns import query as dnspython_query, message as dnspython_message, rdatatype as dnspython_rdatatype, rcode as dnspython_rcode
 from httpx_retries import Retry, RetryTransport
-from typing import Optional
 
 from corio import http_tools as http
 from corio.dns_tools.dm import Exchange, Response
@@ -39,12 +40,13 @@ class Plain:
     host: str
     port: int = 53
     ttl_min: Optional[int] = None
+    ttl_defaults: Dict[str, int] | None = None
 
     def resolve(self, exchange: Exchange):
 
         with logger.span(f'UDP {self.host}:{self.port}'):
             response_plain = dnspython_query.udp(q=exchange.query_last, where=self.host, port=self.port)
-            response = Response.from_message(response_plain)
+            response = Response.from_message(response_plain, ttl_defaults=self.ttl_defaults)
             for answer in response.message.answer:
                 answer.ttl = max(answer.ttl, self.ttl_min or answer.ttl)
 
