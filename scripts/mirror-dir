@@ -1,0 +1,16 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+rsync \
+  --archive \
+  --hard-links \
+  --acls \
+  --xattrs \
+  --numeric-ids \
+  --info=progress2 \
+  "$FROM" \
+  "$TO"
+
+
+

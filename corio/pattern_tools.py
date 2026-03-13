@@ -1,7 +1,8 @@
-import regex as re
 from dataclasses import dataclass, asdict
 from functools import cached_property
 from typing import List, Any
+
+import regex as re
 
 from corio import Constants
 from corio.logging_tools import logger
@@ -115,7 +116,7 @@ class Transformer:
     """
     
     Pattern-based, dictionary-like mapper.
-    Compiles an complex set of rules into single regex pattern, and determines which rule matched.
+    Compiles a complex set of rules into single regex pattern, and determines which rule matched.
     Inputs are then transformed according to the matching rule.
     Works like a pattern-based dictionary when is_recursive==False.
     Works something like an FSA/transducer when is_recursive=True.
