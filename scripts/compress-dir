@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -ex
+
+. parse-args "$@"
+
+TO=$(realpath -- "$TO")
+
+DIRNAME=$(basename "$TO")
+PARENT_DIR=$(dirname "$TO")
+tar --create --file - "$TO" | gzip --best > "${PARENT_DIR}/${DIRNAME}.tar.gz"
