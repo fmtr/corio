@@ -38,8 +38,14 @@ class ShellDebug:
         return env.get_dict()
 
 
-
-def trace(is_debug=None, host=None, port=None, stdoutToServer=True, stderrToServer=True, **kwargs):
+def trace(
+        is_debug=None,
+        host=env.get(Constants.FMTR_REMOTE_DEBUG_HOST_KEY, Constants.FMTR_REMOTE_DEBUG_HOST_DEFAULT),
+        port=Constants.FMTR_REMOTE_DEBUG_PORT_DEFAULT,
+        stdoutToServer=True,
+        stderrToServer=True,
+        **kwargs
+):
     """
 
     Connect to PyCharm debugger if enabled
@@ -50,12 +56,6 @@ def trace(is_debug=None, host=None, port=None, stdoutToServer=True, stderrToServ
 
     if not is_debug:
         return
-
-    if is_debug is True and not host:
-        host = Constants.FMTR_REMOTE_DEBUG_HOST_DEFAULT
-
-    host = host or env.get(Constants.FMTR_REMOTE_DEBUG_HOST_KEY, Constants.FMTR_REMOTE_DEBUG_HOST_DEFAULT)
-    port = port or Constants.FMTR_REMOTE_DEBUG_PORT_DEFAULT
 
     from corio import logger
 
