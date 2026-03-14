@@ -256,22 +256,35 @@ class ComposeDocumentDatabase(Compose):
 
     @property
     def data(self):
+        ns = self.paths.name_ns
+        dbpath = f"/opt/dev/repo/{ns}/data/db/document"
+
         data = {
             "services": {
+                "db.document.init": dict(
+                    image="mongo:7",
+                    container_name=f"{ns}.document.db.init",
+                    volumes=["dev:/opt/dev/repo"],
+                    entrypoint=["sh", "-lc"],
+                    command=[f"mkdir -p {dbpath}"],
+                    restart="no",
+                    user="1000:1000",
+                ),
                 "db.document": dict(
                     image="mongo:7",
-                    container_name=f"{self.paths.name_ns}.document.db",
+                    container_name=f"{ns}.document.db",
                     volumes=["dev:/opt/dev/repo"],
-                    command=f"--dbpath /opt/dev/repo/{self.paths.name_ns}/data/db/document",
+                    command=f"--dbpath {dbpath}",
                     restart="unless-stopped",
                     environment=dict(
                         MONGO_INITDB_DATABASE="default",
                     ),
-                    ports=[
-                        f"{27000 + self.port}:27017",
-                    ],
+                    ports=[f"{27000 + self.port}:27017"],
                     user="1000:1000",
-                )
+                    depends_on={
+                        "db.document.init": dict(condition="service_completed_successfully")
+                    },
+                ),
             }
         }
         return data
