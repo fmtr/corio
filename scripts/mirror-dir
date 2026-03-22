@@ -2,7 +2,10 @@
 
 . parse-args "$@"
 
+set -x
+
 rsync \
+  --compress \
   --archive \
   --hard-links \
   --acls \

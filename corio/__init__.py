@@ -195,6 +195,16 @@ try:
 except ModuleNotFoundError as exception:
     vcs = MissingExtraMockModule('vcs', exception)
 
+try:
+    from corio import encryption_tools as encrypt
+except ModuleNotFoundError as exception:
+    encrypt = MissingExtraMockModule('encrypt', exception)
+
+try:
+    from corio import secrets_tools as secrets
+except ModuleNotFoundError as exception:
+    secrets = MissingExtraMockModule('secrets', exception)
+
 
 
 def get_version():

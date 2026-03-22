@@ -48,13 +48,17 @@ DEPENDENCIES = {
     'db.document': ['beanie[odm]'],
     'mqtt': ['aiomqtt'],
     'av': ['av'],
-    'ha': ['dotenv'],
+    'env': [],
+    'env.io': ['dotenv'],
+    'ha': ['env.io'],
     'ha.api': ['ha', 'homeassistant_api', 'aiohasupervisor'],
     'doc': ['mkdocs', 'mkdocs-material', 'mkdocstrings[python]', 'mike', 'mkdocs-include-dir-to-nav'],
     'youtube': ['pytubefix'],
     'infra': ['version.dev', 'logging', 'setup', 'doc', 'sets', 'build', 'twine', 'packaging', 'vcs', 'docker.client', 'merging', 'http', 'api'],
     'vcs': ['pygit2'],
     'tasmota': ['decode-config', 'esptool'],
+    'encrypt': ['pyrage'],
+    'secrets': ['encrypt', 'env.io'],
 
 
 }

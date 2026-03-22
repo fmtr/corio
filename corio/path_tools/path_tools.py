@@ -33,6 +33,10 @@ class Path(type(Path())):
 
     """
 
+    SUFFIXES_JSON = {'.json'}
+    SUFFIXES_YAML = {'.yaml', '.yml'}
+    SUFFIX_ENV = '.env'
+
     def __new__(cls, *segments: Union[str, Path], convert_wsl: bool = True, **kwargs):
         """
 
@@ -144,6 +148,48 @@ class Path(type(Path())):
         obj = yaml.from_yaml(yaml_str)
         return obj
 
+    def read_env(self) -> Any:
+        """
+
+
+
+        """
+
+        from dotenv import dotenv_values  # todo move to env.io
+        data = dotenv_values(self)
+        data = dict(data)
+        return data
+
+    def write_env(self, obj) -> int:
+        """
+
+
+
+        """
+        raise NotImplementedError
+
+    def read_data(self):
+        if self.suffix in self.SUFFIXES_JSON:
+            return self.read_json()
+
+        if self.suffix in self.SUFFIXES_YAML:
+            return self.read_yaml()
+        if self.SUFFIX_ENV in {self.name, self.suffix}:
+            return self.read_env()
+
+        raise ValueError(f"Can't infer deserializer for file type '{self.suffix}'")
+
+    def write_data(self, obj) -> int:
+        if self.suffix in self.SUFFIXES_JSON:
+            return self.write_json(obj)
+
+        if self.suffix in self.SUFFIXES_YAML:
+            return self.write_yaml(obj)
+        if self.SUFFIX_ENV in {self.name, self.suffix}:
+            return self.write_env(obj)
+
+        raise ValueError(f"Can't infer serializer for file type '{self.suffix}'")
+        
     def mkdirf(self):
         """
 
