@@ -58,7 +58,7 @@ DEPENDENCIES = {
     'vcs': ['pygit2'],
     'tasmota': ['decode-config', 'esptool'],
     'encrypt': ['pyrage'],
-    'secrets': ['encrypt', 'env.io'],
+    'secrets': ['encrypt', 'env.io', 'yaml'],
 
 
 }
