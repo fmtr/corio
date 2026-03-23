@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Generator, Self
 
-from corio.encryption_tools import EncryptorValuesSelect
+from corio.encryption_tools import EncryptorValuesSelect, EncryptorValues
 from corio.logging_tools import logger
 from corio.path_tools import Path
 
@@ -14,7 +14,6 @@ class Definition:
     Pair of lists of files - and the nodes to encrypt within those files
 
     """
-
     files: list[str]
     nodes: list[str]
 
@@ -106,6 +105,53 @@ class SecretsDefinitions:
 
     @classmethod
     def from_cwd(cls):
+        """
+
+        Encrypt secrets from repo root
+
+        """
         self = cls.from_path()
         paths = list(self.encrypt(Path.cwd()))
         return paths
+
+
+def decrypt(base: Path | None = None):
+    """
+
+    Encrypt secrets from repo root
+
+    """
+
+    base = base or Path.cwd()
+
+    encryptor = EncryptorValues()
+
+    paths_black = []
+    for path_black in base.glob('**/*.black.yml'):
+        paths_black.append(path_black)
+
+    for path_black in paths_black:
+
+        black = path_black.read_data()
+        red = encryptor.decrypt(black)
+
+        if path_black.name == '.env.black.yml':
+            path_red = path_black.parent / '.env'
+        else:
+            path_red = path_black.parent / Path(path_black.stem).with_suffix(f'.red.yml')
+
+        if path_red.exists():
+
+            is_older = path_black.modified < path_red.modified
+            if is_older:
+                logger.info(f'Skipping {path_black=}, as it is older than {path_red=}')
+                continue
+
+            red_old = path_red.read_data()
+            if red_old == red:
+                logger.info(f'No change: {path_red=}')
+                continue
+
+        logger.info(f'Writing new red: {path_red=}')
+        path_red.write_data(red)
+        yield path_red

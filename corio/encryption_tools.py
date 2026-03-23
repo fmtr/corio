@@ -22,7 +22,9 @@ class Encryptor:
 
     """
 
-    PREFIX = '<BLACK>'
+    PREFIX = ''
+    PARENS = '⁂' * 2
+    LEFT, RIGHT = PARENS
 
     def __init__(self, key: str | None = None):
         """
@@ -80,8 +82,10 @@ class Encryptor:
         Compile regular expression to match header using `PREFIX`
 
         """
+        left = re.escape(self.LEFT)
+        right = re.escape(self.RIGHT)
         rx = re.compile(
-            fr"^{self.PREFIX}\[(.*)\]$",
+            fr"^{self.PREFIX}{left}(.*){right}$",
             re.DOTALL
         )
         return rx
@@ -92,7 +96,7 @@ class Encryptor:
         Add header
 
         """
-        return f"{self.PREFIX}[{value}]"
+        return f"{self.PREFIX}{self.LEFT}{value}{self.RIGHT}"
 
     def dehead(self, value: str) -> str:
         """
