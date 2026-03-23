@@ -4,11 +4,12 @@ import site
 import subprocess
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from functools import cached_property
 from itertools import chain, product
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Self, Tuple
+from typing import Self, Tuple, Callable
 from typing import Union, Any
 
 from corio.constants import Constants
@@ -32,10 +33,6 @@ class Path(type(Path())):
     Custom path object aware of WSL paths, with some additional read/write methods
 
     """
-
-    SUFFIXES_JSON = {'.json'}
-    SUFFIXES_YAML = {'.yaml', '.yml'}
-    SUFFIX_ENV = '.env'
 
     def __new__(cls, *segments: Union[str, Path], convert_wsl: bool = True, **kwargs):
         """
@@ -148,10 +145,10 @@ class Path(type(Path())):
         obj = yaml.from_yaml(yaml_str)
         return obj
 
-    def read_env(self) -> Any:
+    def read_env(self) -> dict[str, str]:
         """
 
-
+        Read .env file
 
         """
 
@@ -160,35 +157,67 @@ class Path(type(Path())):
         data = dict(data)
         return data
 
-    def write_env(self, obj) -> int:
+    def write_env(self, obj: dict[str, str]):
         """
 
-
+        Write to .env file
 
         """
-        raise NotImplementedError
+        from dotenv import set_key  # todo move to env.io
+        self.write_text("")
+        for key, value in obj.items():
+            set_key(self, str(key), str(value), quote_mode="auto")
+
 
     def read_data(self):
-        if self.suffix in self.SUFFIXES_JSON:
-            return self.read_json()
+        """
 
-        if self.suffix in self.SUFFIXES_YAML:
-            return self.read_yaml()
-        if self.SUFFIX_ENV in {self.name, self.suffix}:
-            return self.read_env()
+        Read data inferring format from file extension.
 
-        raise ValueError(f"Can't infer deserializer for file type '{self.suffix}'")
+        """
+        read_data, write_data = self.get_serializers()
+        return read_data()
 
     def write_data(self, obj) -> int:
-        if self.suffix in self.SUFFIXES_JSON:
-            return self.write_json(obj)
+        """
 
-        if self.suffix in self.SUFFIXES_YAML:
-            return self.write_yaml(obj)
-        if self.SUFFIX_ENV in {self.name, self.suffix}:
-            return self.write_env(obj)
+        Write data inferring format from file extension.
 
-        raise ValueError(f"Can't infer serializer for file type '{self.suffix}'")
+        """
+
+        read_data, write_data = self.get_serializers()
+        return write_data(obj)
+
+    def get_serializers(self) -> tuple[Callable, Callable]:
+        """
+
+        Get write/read methods for the file extension.
+
+        """
+        dotenv_name = '.env'
+        if self.name == dotenv_name:
+            suffix = dotenv_name
+        else:
+            suffix = self.suffix
+
+        ext = suffix.lstrip('.')
+
+        return self.serializers[ext]
+
+    @cached_property
+    def serializers(self) -> dict[str, tuple[Callable, Callable]]:
+        """
+
+        Map file extensions to write/read methods.
+
+        """
+        return dict(
+            json=(self.read_json, self.write_json),
+            yaml=(self.read_yaml, self.write_yaml),
+            yml=(self.read_yaml, self.write_yaml),
+            env=(self.read_env, self.write_env),
+        )
+        
         
     def mkdirf(self):
         """
@@ -266,6 +295,53 @@ class Path(type(Path())):
         if not self.is_dir():
             return None
         return sorted(self.iterdir(), key=lambda x: x.is_dir(), reverse=True)
+
+    def _timestamp_utc(self, ts: float) -> datetime:
+        """
+
+        Convert a timestamp to UTC datetime.
+
+        """
+        return datetime.fromtimestamp(ts, tz=timezone.utc)
+
+    @property
+    def accessed(self) -> datetime:
+        """
+
+        Access datetime.
+
+        """
+        return self._timestamp_utc(self.stat().st_atime)
+
+    @property
+    def modified(self) -> datetime:
+        """
+
+        Modified datetime.
+
+        """
+        return self._timestamp_utc(self.stat().st_mtime)
+
+    @property
+    def metadata_changed(self) -> datetime:
+        """
+
+        Metadata changed datetime.
+
+        """
+        return self._timestamp_utc(self.stat().st_ctime)
+
+    @property
+    def created(self) -> datetime | None:
+        """
+
+        Created datetime.
+
+        """
+        st = self.stat()
+        if not hasattr(st, "st_birthtime"):
+            return None
+        return self._timestamp_utc(st.st_birthtime)
 
     @classmethod
     def __get_pydantic_core_schema__(cls, source, handler):
