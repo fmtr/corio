@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import os
 import re
 import site
 import subprocess
+import typing
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from functools import cached_property
 from itertools import chain, product
 from pathlib import Path
@@ -14,6 +16,10 @@ from typing import Union, Any
 
 from corio.constants import Constants
 from corio.platform_tools import is_wsl
+
+if typing.TYPE_CHECKING:
+    from datetime import datetime, timezone
+
 
 WIN_PATH_PATTERN = r'''([a-z]:(\\|$)|\\\\)'''
 WIN_PATH_RX = re.compile(WIN_PATH_PATTERN, flags=re.IGNORECASE)
@@ -302,6 +308,7 @@ class Path(type(Path())):
         Convert a timestamp to UTC datetime.
 
         """
+        from datetime import datetime, timezone
         return datetime.fromtimestamp(ts, tz=timezone.utc)
 
     @property

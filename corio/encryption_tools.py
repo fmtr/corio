@@ -109,6 +109,17 @@ class Encryptor:
             return value
         return match.group(1)
 
+    def is_encrypted(self, value: Any) -> bool:
+        """
+
+        Test if value is encrypted
+
+        """
+        if not isinstance(value, str):
+            return False
+        is_encrypted = bool(self.header_rx.match(value))
+        return is_encrypted
+
     def encrypt(self, data: Serializable) -> str:
         """
 

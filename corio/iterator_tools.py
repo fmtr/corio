@@ -1,5 +1,5 @@
 from itertools import chain, batched
-from typing import List, Dict, Any, TypeVar, Generic, Iterable
+from typing import List, Dict, Any, TypeVar, Generic, Iterable, Mapping, Sequence
 
 from corio.datatype_tools import is_none
 
@@ -83,8 +83,42 @@ def get_class_lookup(*classes, name_function=lambda cls: cls.__name__):
     return {name_function(cls): cls for cls in classes}
 
 
-IndexListT = TypeVar('IndexListT')  # Generic type for list items
+def flatten_tree(data, node=None, flat=None, sep=None):
+    """
 
+    Flatten a nested dictionary or list into a single level dictionary, with Paths as keys
+
+    """
+
+    if sep is not None:
+        data = flatten_tree(data)
+        data = {
+            sep.join(path.parts): value
+            for path, value in data.items()
+        }
+        return data
+
+    from corio import Path
+
+    node = node or Path()
+    if flat is None:
+        flat = {}
+
+    if isinstance(data, Mapping):
+        for k, v in data.items():
+            flatten_tree(v, node=node / str(k), flat=flat)
+        return flat
+
+    if isinstance(data, Sequence) and not isinstance(data, (str, bytes, bytearray)):
+        for i, v in enumerate(data):
+            flatten_tree(v, node=node / f'[{i}]', flat=flat)
+        return flat
+
+    flat[node] = data
+    return flat
+
+
+IndexListT = TypeVar('IndexListT')  # Generic type for list items
 
 class IndexList(list[IndexListT], Generic[IndexListT]):
     """

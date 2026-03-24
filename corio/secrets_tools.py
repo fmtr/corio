@@ -3,6 +3,7 @@ from functools import cached_property
 from typing import Generator, Self
 
 from corio.encryption_tools import EncryptorValuesSelect, EncryptorValues
+from corio.iterator_tools import flatten_tree
 from corio.logging_tools import logger
 from corio.path_tools import Path
 
@@ -26,10 +27,26 @@ class Definition:
         """
         return EncryptorValuesSelect(nodes=self.nodes)
 
+    def is_keys_values_aligned(self, black_robin: dict) -> bool:
+        """
+
+        Check if the keys that should be encrypted are encrypted, and vice versa, in the existing black on disk. If they aren't, we need to re-encrypt the file.
+
+        """
+        black_flat = flatten_tree(black_robin)
+
+        for path, value in black_flat.items():
+            is_key_encrypted = any(path.match(node) for node in self.nodes)
+            is_value_encrypted = self.encryptor.is_encrypted(value)
+            if is_key_encrypted != is_value_encrypted:
+                return False
+
+        return True
+
     def encrypt(self, base: Path) -> Generator[Path, None, None]:
         """
 
-        For each file, check whether its contents have changed since it was last encrypted, and re-encrypt if so.
+        Iterate over the files specified in the definition, and encrypt them.
 
         """
 
@@ -38,26 +55,37 @@ class Definition:
             paths_red += list(base.glob(path_red))
 
         for path_red in paths_red:
+            path = self.encrypt_file(path_red)
+            if path:
+                yield path
 
-            red = path_red.read_data()
-            black = self.encryptor.encrypt(red)
-            red_robin = self.encryptor.decrypt(black)
+    def encrypt_file(self, path_red: Path) -> Path | None:
+        """
 
-            if red != red_robin:
-                raise ValueError(f'Round-robin mismatch: {path_red=}')
+        For each file, check whether its contents, or the encrypted nodes lists, have changed since it was last encrypted - and re-encrypt if so.
 
-            path_black = path_red.parent / Path(path_red.stem).with_suffix(f'.black.yml')
+        """
 
-            if path_black.exists():
-                black_robin = path_black.read_data()
-                red_robin = self.encryptor.decrypt(black_robin)
-                if red_robin == red:
-                    logger.info(f'No change: {path_black=}')
-                    continue
+        red = path_red.read_data()
+        black = self.encryptor.encrypt(red)
+        red_robin = self.encryptor.decrypt(black)
 
-            logger.info(f'Writing new black: {path_black=}')
-            path_black.write_yaml(black)
-            yield path_black
+        if red != red_robin:
+            raise ValueError(f'Round-robin mismatch: {path_red=}')
+
+        path_black = path_red.parent / f'{path_red.name}.black.yml'
+
+        if path_black.exists():
+            black_robin = path_black.read_data()
+            red_robin = self.encryptor.decrypt(black_robin)
+            is_aligned = self.is_keys_values_aligned(black_robin)
+            if red_robin == red and is_aligned:
+                logger.info(f'No change: {path_black=}')
+                return None
+
+        logger.info(f'Writing new black: {path_black=}')
+        path_black.write_yaml(black)
+        return path_black
 
     @classmethod
     def from_data(cls, data: dict) -> Self:
@@ -78,7 +106,7 @@ class SecretsDefinitions:
 
     """
 
-    FILENAME = 'secrets.yml'
+    FILENAME = '.secrets.yml'
     definitions: list[Definition]
 
     def encrypt(self, base: Path) -> Generator[Path, None, None]:
@@ -135,10 +163,7 @@ def decrypt(base: Path | None = None):
         black = path_black.read_data()
         red = encryptor.decrypt(black)
 
-        if path_black.name == '.env.black.yml':
-            path_red = path_black.parent / '.env'
-        else:
-            path_red = path_black.parent / Path(path_black.stem).with_suffix(f'.red.yml')
+        path_red = path_black.parent / Path(path_black.stem).stem
 
         if path_red.exists():
 
@@ -147,8 +172,8 @@ def decrypt(base: Path | None = None):
                 logger.info(f'Skipping {path_black=}, as it is older than {path_red=}')
                 continue
 
-            red_old = path_red.read_data()
-            if red_old == red:
+            red_robin = path_red.read_data()
+            if red == red_robin:
                 logger.info(f'No change: {path_red=}')
                 continue
 
