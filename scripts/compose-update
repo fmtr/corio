@@ -2,7 +2,7 @@
 
 . parse-args "$@"
 
-PROJECT_DIR=/opt/dev/repo/infrastructure/${CONTEXT-gex}/docker/${SERVICE}
+PROJECT_DIR=/opt/dev/repo/infrastructure/docker/${SERVICE}/${CONTEXT}
 CONTEXT=${CONTEXT-gex}
 
 docker --context "$CONTEXT" compose --project-directory "$PROJECT_DIR" pull
