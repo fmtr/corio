@@ -1,0 +1,9 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+set -eux
+
+docker buildx build --progress=plain ${NO_CACHE:+--no-cache} /opt/dev/repo/infrastructure/base/python \
+    --tag fmtr/python:dev
+

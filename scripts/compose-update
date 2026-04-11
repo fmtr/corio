@@ -2,6 +2,8 @@
 
 . parse-args "$@"
 
+set -ex
+
 PROJECT_DIR=/opt/dev/repo/infrastructure/docker/${SERVICE}/${CONTEXT}
 CONTEXT=${CONTEXT-gex}
 
