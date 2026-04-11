@@ -6,4 +6,6 @@ set -eux
 
 mkdir -p /tmp/deps
 python /tmp/repo/setup.py requirements ${EXTRAS} > /tmp/deps/requirements.txt
+
+source /ve/p/.venv/bin/activate
 uv pip install -r /tmp/deps/requirements.txt
