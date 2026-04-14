@@ -6,6 +6,5 @@ set -eux
 
 mkdir -p /tmp/deps
 python /tmp/repo/setup.py requirements ${EXTRAS} > /tmp/deps/requirements.txt
+/python -m pip install -r /tmp/deps/requirements.txt --no-cache-dir
 
-source /ve/p/.venv/bin/activate
-uv pip install -r /tmp/deps/requirements.txt
