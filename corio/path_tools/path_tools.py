@@ -208,6 +208,11 @@ class Path(type(Path())):
 
         ext = suffix.lstrip('.')
 
+        serializers = self.serializers.get(ext)
+
+        if serializers is None:
+            return self.serializers['txt']
+
         return self.serializers[ext]
 
     @cached_property
@@ -222,6 +227,7 @@ class Path(type(Path())):
             yaml=(self.read_yaml, self.write_yaml),
             yml=(self.read_yaml, self.write_yaml),
             env=(self.read_env, self.write_env),
+            txt=(self.read_text, self.write_text),
         )
         
         

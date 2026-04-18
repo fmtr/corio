@@ -216,8 +216,12 @@ class EncryptorValuesSelect(EncryptorValues):
     def include_node(self, node: Path) -> bool:
         """
 
-        Include node if it matches any of the nodes specified
+        Include node if it matches any of the nodes specified. If node is root (e.g. the input tree is actually just a string), then always encrypt.
 
         """
+
+        if node == Path():
+            return True
+
         include = any(node.match(field) for field in self.nodes)
         return include

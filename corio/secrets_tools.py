@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Generator, Self
 
@@ -16,7 +16,7 @@ class Definition:
 
     """
     files: list[str]
-    nodes: list[str]
+    nodes: list[str] = field(default_factory=list)
 
     @cached_property
     def encryptor(self) -> EncryptorValuesSelect:
@@ -36,7 +36,7 @@ class Definition:
         black_flat = flatten_tree(black_robin)
 
         for path, value in black_flat.items():
-            is_key_encrypted = any(path.match(node) for node in self.nodes)
+            is_key_encrypted = self.encryptor.include_node(path)
             is_value_encrypted = self.encryptor.is_encrypted(value)
             if is_key_encrypted != is_value_encrypted:
                 return False
@@ -53,6 +53,8 @@ class Definition:
         paths_red = []
         for path_red in self.files:
             paths_red += list(base.glob(path_red))
+
+        paths_red = [path for path in paths_red if path.is_file() and not path.name.endswith('.black.yml')]
 
         for path_red in paths_red:
             path = self.encrypt_file(path_red)
