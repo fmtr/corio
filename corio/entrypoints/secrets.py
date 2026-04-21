@@ -1,3 +1,6 @@
+token_hex = None
+
+
 def main():
     """
 
@@ -5,8 +8,8 @@ def main():
 
     """
     from corio import secrets
-    for path in secrets.SecretsDefinitions.from_cwd():
-        print(str(path))
+    config = secrets.Config()
+    config.run()
 
 
 if __name__ == '__main__':

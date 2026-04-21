@@ -55,10 +55,19 @@ class Base(BaseSettings, CliRunMixin):
             init_settings,
             CliSettingsSource(settings_cls, cli_parse_args=True),
             EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix(), env_nested_delimiter=cls.ENV_NESTED_DELIMITER),
-            YamlScriptConfigSettingsSource(settings_cls, yaml_file=cls.paths.settings),
+            YamlScriptConfigSettingsSource(settings_cls, yaml_file=cls.find_yaml_file()),
         )
 
         return sources
+
+    @classmethod
+    def find_yaml_file(self) -> Path:
+        """
+
+        Overridable find YAML config file method
+
+        """
+        return self.paths.settings
 
     @classmethod
     def get_env_prefix(cls):

@@ -400,6 +400,27 @@ class Path(type(Path())):
         """
         return chdir(self)
 
+    def find_up(self, name) -> Self:
+
+        """
+
+        Walk up the directory tree looking for the file name
+
+        """
+
+        current = self
+
+        while True:
+            path = current / name
+            if path.exists():
+                return path
+
+            parent = current.parent
+            if parent == current:
+                raise FileNotFoundError(f'Could not find {name} in "{self}" or any parent directory')
+
+            current = parent
+
 class FromCallerMixin:
     """
 
