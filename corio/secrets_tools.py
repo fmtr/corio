@@ -13,7 +13,9 @@ from corio.encryption_tools import EncryptorValuesSelect, EncryptorValues
 from corio.iterator_tools import flatten_tree, strip_none, IndexList
 from corio.logging_tools import logger
 from corio.path_tools import Path
+from corio.string_tools import join_natural, MASK_QUOTE
 
+ALL = '+'
 
 class Definition(dm.Base):
     """
@@ -146,6 +148,28 @@ class Command(dm.Base):
         """
         return path.name.endswith('.black.yml')
 
+    @cached_property
+    def patterns(self) -> list[str]:
+        """
+
+        Fetch all the path patterns covered by any run-time-specified contexts
+
+        """
+        patterns = []
+
+        if ALL in self.context:
+            return ['**']
+
+        for context in self.context:
+            for pattern in self.config.contexts.name[context].files:
+                pattern = f'{self.config.path_repo}/{pattern}'
+                patterns.append(pattern)
+
+        return patterns
+
+    def is_included_self_suffix(self, path: Path) -> bool:
+        raise NotImplementedError
+
     def filter(self, path: Path) -> Path | None:
         """
 
@@ -159,13 +183,21 @@ class Command(dm.Base):
         if not self.is_included_self_suffix(path):
             return
 
-        for context in self.context:
-            for pattern in self.config.contexts.name[context].files:
-                pattern = f'{self.config.path_repo}/{pattern}'
-                if path.full_match(pattern):
-                    return path
+        for pattern in self.patterns:
+            if path.full_match(pattern):
+                return path
 
         return
+
+    @property
+    def span(self):
+        """
+
+        Contextual logging span
+
+        """
+        contexts = join_natural(self.context, mask=MASK_QUOTE)
+        return logger.span(f'{self.__class__.__name__}ing secrets with contexts {contexts} in repo "{self.config.path_repo}"...')
 
 
 class Encrypt(Command):
@@ -175,6 +207,8 @@ class Encrypt(Command):
 
     """
 
+    context: list[str] = Field(default_factory=lambda: [ALL])
+
     def run(self):
         """
 
@@ -183,9 +217,10 @@ class Encrypt(Command):
         """
         super().run()
 
-        for definition in self.config.definitions:
-            for path in self.process_definition(definition):
-                path  # todo add to repo.
+        with self.span:
+            for definition in self.config.definitions:
+                for path in self.process_definition(definition):
+                    path  # todo add to repo.
 
     def is_included_self_suffix(self, path: Path) -> bool:
         """
@@ -266,13 +301,15 @@ class Decrypt(Command):
         """
         super().run()
 
-        paths = self.get_paths()
-        paths = strip_none(*[self.filter(path) for path in paths])
+        with self.span:
 
-        for path in paths:
-            path = self.process_file(path)
-            if path:
-                path
+            paths = self.get_paths()
+            paths = strip_none(*[self.filter(path) for path in paths])
+
+            for path in paths:
+                path = self.process_file(path)
+                if path:
+                    path
 
     @cached_property
     def encryptor(self) -> EncryptorValues:
@@ -309,7 +346,7 @@ class Decrypt(Command):
 
             is_older = path_black.modified < path_red.modified
             if is_older:
-                logger.info(f'Skipping {path_black=}, as it is older than {path_red}')
+                logger.info(f'Skipping {path_black}, as it is older than {path_red}')
                 return
 
             red_robin = path_red.read_data()

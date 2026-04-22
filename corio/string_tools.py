@@ -174,7 +174,11 @@ def join(strings, sep=' '):
     return text
 
 
-def join_natural(items, sep=', ', conj='and'):
+MASK_IDENTITY = '{}'
+MASK_QUOTE = '"{}"'
+
+
+def join_natural(items, sep=', ', conj='and', mask=MASK_IDENTITY):
     """
 
     Natural language list
@@ -185,8 +189,10 @@ def join_natural(items, sep=', ', conj='and'):
     if not items:
         return ""
     if len(items) == 1:
-        return items[0]
+        return mask.format(items[0])
     firsts, last = items[:-1], items[-1]
+    firsts = [mask.format(item) for item in firsts]
+    last = mask.format(last)
     firsts_str = join(firsts, sep=sep)
     text = f"{firsts_str} {conj} {last}"
     return text
