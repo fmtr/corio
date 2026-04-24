@@ -1,8 +1,10 @@
 import logging
-import uvicorn
 from dataclasses import dataclass
+from functools import cached_property
+from typing import Callable, List, Optional, Union, Self
+
+import uvicorn
 from fastapi import FastAPI, Request
-from typing import Callable, List, Optional, Union
 
 from corio import environment_tools
 from corio.iterator_tools import enlist
@@ -21,7 +23,7 @@ class Endpoint:
 
     """
     method: Callable
-    path: str
+    path: str | None = None
     tags: Optional[Union[str, List[str]]] = None
     method_http: Optional[Callable] = None
 
@@ -40,7 +42,8 @@ class Base:
     PORT = 8080
     SWAGGER_PARAMS = dict(tryItOutEnabled=True)
     URL = None
-    URL_DOCS = '/docs'
+    URL_DOCS = '/'
+    URL_PREFIX = None
 
     def add_endpoint(self, endpoint: Endpoint):
         """
@@ -50,9 +53,10 @@ class Base:
         """
         method_http = endpoint.method_http or self.app.post
         doc = (endpoint.method.__doc__ or '').strip() or None
+        path = endpoint.path or f'/{endpoint.method.__name__}'
 
         method_http(
-            endpoint.path,
+            path=path,
             tags=endpoint.tags,
             description=doc,
             summary=doc
@@ -67,6 +71,30 @@ class Base:
 
         if environment_tools.IS_DEV:
             self.app.exception_handler(Exception)(self.handle_exception)
+
+        for child in self.children:
+            self.app.mount(child.url_prefix, child.app)
+
+    @cached_property
+    def children(self) -> List[Self]:
+        """
+
+        Initialise any sub-APIs
+
+        """
+        return []
+
+    @cached_property
+    def url_prefix(self) -> str:
+        """
+
+        Get a default sub-API prefix.
+
+        """
+        if self.URL_PREFIX:
+            self.URL_PREFIX
+
+        return f'/{self.__class__.__name__.lower()}'
 
     def get_endpoints(self) -> List[Endpoint]:
         """
