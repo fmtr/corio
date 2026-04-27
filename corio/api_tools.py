@@ -58,8 +58,8 @@ class Base:
         method_http(
             path=path,
             tags=endpoint.tags,
-            description=doc,
-            summary=doc
+            summary=doc,
+            operation_id=endpoint.method.__name__,
         )(endpoint.method)
 
     def __init__(self):

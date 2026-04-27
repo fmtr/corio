@@ -1,0 +1,10 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+set -euo pipefail
+
+
+auth_b64="$(printf '%s' "${CREDS}" | base64 -w 0)"
+
+printf '{\n  "Authorization": "Basic %s"\n}\n' "$auth_b64"
