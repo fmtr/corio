@@ -271,17 +271,22 @@ class IncrementorChangelogSymlink(Incrementor):
 
 
 class IncrementorChangelog(IncrementorChangelogSymlink):
+    DESC = 'Changelog'
 
     @property
     def src(self):
         return self.paths.changelog
 
 
-    @logger.instrument('Incrementing Changelog "{self.path}"...')
+    @logger.instrument('Incrementing {self.DESC} "{self.path}"...')
     def apply(self) -> Path | list[Path] | None:
         path = self.paths.docs_changelog
         if not path.exists():
             logger.info(f"New changelog not found: {path}. Skipping.")
+            return None
+
+        if self.versions.is_pre:
+            logger.warning(f"Release is pre-release ({self.version.prerelease}). Skipping {self.DESC}.")
             return None
 
         logger.info(f"Version tagging Changelog: {path} {Constants.ARROW_RIGHT} {self.dest}")
