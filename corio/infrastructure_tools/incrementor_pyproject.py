@@ -5,6 +5,7 @@ from itertools import chain
 
 from corio.constants import Constants
 from corio.infrastructure_tools.releaser import Incrementor
+from corio.iterator_tools import dedupe
 from corio.logging_tools import logger
 from corio.path_tools import Path
 from corio.toml_tools import ensure_table
@@ -110,10 +111,10 @@ class IncrementorPyproject(Incrementor):
                     values_resolved += resolve_values(value)
             return values_resolved
 
-        install = resolve_values("install") if "install" in dependencies else []
-        extras = {key: resolve_values(key) for key in dependencies}
+        install = dedupe(resolve_values("install")) if "install" in dependencies else []
+        extras = {key: dedupe(resolve_values(key)) for key in dependencies}
         extras.pop("install", None)
-        extras["all"] = list(dict.fromkeys(chain.from_iterable(extras.values())))
+        extras["all"] = dedupe(list(chain.from_iterable(extras.values())))
         return install, extras
 
     def _get_dependencies(self, data) -> dict[str, list[str]]:
@@ -157,6 +158,10 @@ class IncrementorPyproject(Incrementor):
         project["authors"] = [dict(name=self._author, email=self.AUTHOR_EMAIL)]
         project["license"] = "Apache-2.0"
         project["license-files"] = ["LICENSE"]
+
+        if "dev" in extras:
+            dependency_groups = ensure_table(data, ("dependency-groups",))
+            dependency_groups["dev"] = list(extras["dev"])
 
         urls = ensure_table(project, ("urls",))
         urls["Homepage"] = self._url
