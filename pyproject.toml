@@ -74,7 +74,7 @@ corio = ["version", "meta.json"]
 
 [project]
 name = "corio"
-version = "2.1.0-alpha001"
+version = "2.1.0-alpha002"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
