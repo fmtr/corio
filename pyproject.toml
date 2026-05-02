@@ -62,7 +62,7 @@ encrypt = ["pyrage"]
 secrets = ["encrypt", "env.io", "yaml", "logging", "sets", "vcs"]
 
 [tool.corio.metadata]
-version = "2.1.0-alpha006"
+version = "2.1.0-alpha007"
 port = 1
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -92,7 +92,7 @@ corio = ["pyproject.toml"]
 
 [project]
 name = "corio"
-version = "2.1.0-alpha006"
+version = "2.1.0-alpha007"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
