@@ -19,6 +19,7 @@ import corio.platform_tools as platform
 import corio.random_tools as random
 import corio.setup_tools as setup
 import corio.string_tools as string
+import corio.toml_tools as toml
 
 from corio import ai_tools as ai
 from corio import datetime_tools as dt
@@ -33,7 +34,6 @@ from corio.import_tools import MissingExtraMockModule
 from corio.logging_tools import logger
 # Submodules
 from corio.path_tools import Path, PackagePaths, AppPaths
-from corio.setup_tools import Setup, Dependencies, Tools
 
 try:
     from corio import augmentation_tools as augmentation

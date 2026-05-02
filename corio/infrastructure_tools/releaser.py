@@ -144,9 +144,12 @@ class Releaser(Inherit[Project]):
 
     @cached_property
     def incrementors(self):
+        from corio.infrastructure_tools.incrementor_pyproject import IncrementorPyproject
+
         return IndexList[Incrementor](
             [
                 IncrementorVersion(self),
+                IncrementorPyproject(self),
                 IncrementorHomeAssistantAddon(self),
                 IncrementorChangelog(self),
             ]

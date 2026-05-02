@@ -151,6 +151,29 @@ class Path(type(Path())):
         obj = yaml.from_yaml(yaml_str)
         return obj
 
+    def write_toml(self, obj) -> int:
+        """
+
+        Write the specified object to the path as a TOML string.
+
+        """
+        from corio.toml_tools import to_toml
+
+        toml_str = to_toml(obj)
+        return self.write_text(toml_str, encoding=Constants.ENCODING)
+
+    def read_toml(self) -> Any:
+        """
+
+        Read TOML from the file and return as a Python object.
+
+        """
+        from corio.toml_tools import from_toml
+
+        toml_str = self.read_text(encoding=Constants.ENCODING)
+        obj = from_toml(toml_str)
+        return obj
+
     def read_env(self) -> dict[str, str]:
         """
 
@@ -224,6 +247,7 @@ class Path(type(Path())):
         """
         return dict(
             json=(self.read_json, self.write_json),
+            toml=(self.read_toml, self.write_toml),
             yaml=(self.read_yaml, self.write_yaml),
             yml=(self.read_yaml, self.write_yaml),
             env=(self.read_env, self.write_env),
