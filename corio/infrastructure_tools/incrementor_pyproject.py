@@ -1,5 +1,4 @@
 from copy import deepcopy
-from dataclasses import asdict
 from functools import cached_property
 from itertools import chain
 
@@ -129,39 +128,34 @@ class IncrementorPyproject(Incrementor):
         return {str(key): [str(value) for value in values] for key, values in table.items()}
 
     def _enrich_toml(self, data):
-        dependencies = self._get_dependencies(data)
-        if not dependencies:
-            logger.info(f'No dependencies section found in "{self.path}". Skipping.')
-            return None
-
         old = self.versions.old
         new = self._bump(old)
         logger.info(f'Incrementing version "{self.path}" {old} {Constants.ARROW_RIGHT} {new}...')
         self.paths.metadata.version = str(new)
 
-        install, extras = self._flatten_dependencies(dependencies)
-
         metadata = ensure_table(data, ("tool", "corio", "metadata"))
-        metadata_obj = asdict(self.paths.metadata)
-        metadata_obj.pop("path", None)
-        metadata_obj = {key: value for key, value in metadata_obj.items() if value is not None}
-        metadata.clear()
-        metadata.update(metadata_obj)
+        metadata["version"] = self.paths.metadata.version
 
         project = ensure_table(data, ("project",))
         project["name"] = self.paths.name_ns
         project["version"] = self.paths.metadata.version
         project["description"] = self.paths.metadata.description
         project["readme"] = self.paths.readme.name
-        project["dependencies"] = install
-        project["optional-dependencies"] = extras
         project["authors"] = [dict(name=self._author, email=self.AUTHOR_EMAIL)]
         project["license"] = "Apache-2.0"
         project["license-files"] = ["LICENSE"]
 
-        if "dev" in extras:
-            dependency_groups = ensure_table(data, ("dependency-groups",))
-            dependency_groups["dev"] = list(extras["dev"])
+        dependencies = self._get_dependencies(data)
+        if dependencies:
+            install, extras = self._flatten_dependencies(dependencies)
+            project["dependencies"] = install
+            project["optional-dependencies"] = extras
+
+            if "dev" in extras:
+                dependency_groups = ensure_table(data, ("dependency-groups",))
+                dependency_groups["dev"] = list(extras["dev"])
+        else:
+            logger.info(f'No dependencies section found in "{self.path}". Skipping dependency enrichment.')
 
         urls = ensure_table(project, ("urls",))
         urls["Homepage"] = self._url
