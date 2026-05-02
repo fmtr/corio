@@ -1,4 +1,3 @@
-from datetime import datetime
 from copy import deepcopy
 from functools import cached_property
 from itertools import chain
@@ -142,9 +141,8 @@ class IncrementorPyproject(Incrementor):
         project["dependencies"] = install
         project["optional-dependencies"] = extras
         project["authors"] = [dict(name=self._author, email=self.AUTHOR_EMAIL)]
-        project["license"] = dict(
-            text=f'Copyright © {datetime.now().year} {self.paths.metadata.org_friendly}. All rights reserved.'
-        )
+        project["license"] = "Apache-2.0"
+        project["license-files"] = ["LICENSE"]
 
         urls = self._ensure_table(project, "urls")
         urls["Homepage"] = self._url

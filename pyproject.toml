@@ -78,6 +78,8 @@ version = "2.1.0-alpha000"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 
 [project.optional-dependencies]
 dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "yamlscript", "pyyaml", "beanie[odm]"]
@@ -141,9 +143,6 @@ all = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings"
 [[project.authors]]
 name = "Frontmatter AI"
 email = "innovative.fowler@mask.pro.fmtr.dev"
-
-[project.license]
-text = "Copyright © 2026 Frontmatter AI. All rights reserved."
 
 [project.urls]
 Homepage = "https://github.com/fmtr/corio"
