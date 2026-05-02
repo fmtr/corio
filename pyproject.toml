@@ -61,6 +61,24 @@ tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
 secrets = ["encrypt", "env.io", "yaml", "logging", "sets", "vcs"]
 
+[tool.corio.metadata]
+version = "2.1.0-alpha003"
+port = 1
+base = "python"
+description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
+org_singleton = "fmtr"
+org_github = "fmtr"
+org_friendly = "Frontmatter AI"
+is_client = false
+scripts = []
+services = []
+is_pypi = true
+is_dockerhub = false
+
+[tool.corio.metadata.docs]
+
+[tool.corio.metadata.setup]
+
 [tool.setuptools]
 script-files = ["scripts/opt-dev-init", "scripts/docker-prune", "scripts/vlc-tn", "scripts/ha-addon-launch", "scripts/install-ys", "scripts/tasmota-config", "scripts/download", "scripts/run-script", "scripts/ssh-auth", "scripts/cru", "scripts/docs-serve", "scripts/ssh-serve", "scripts/set-secure-path", "scripts/vm-launch", "scripts/auth-token", "scripts/set-user-sudo", "scripts/docker-build-bases", "scripts/fmtr-test-script", "scripts/compose-update", "scripts/add-ve-shell", "scripts/apt-headless", "scripts/snips-install", "scripts/install-ts", "scripts/tasmota-flash", "scripts/docs-deploy", "scripts/infra-sync", "scripts/parse-args", "scripts/docker-install-deps", "scripts/pypi-reserve", "scripts/install-docker", "scripts/set-password", "scripts/tasmota-terminal", "scripts/mirror-dir", "scripts/compress-dir", "scripts/pypi-check", "scripts/git-clone", "scripts/docker-sandbox", "scripts/docker-install-prod", "scripts/docker-sandbox-init", "scripts/install-browser", "scripts/docker-build-bases-dev", "scripts/apt-essentials", "scripts/encrypt-secrets", "scripts/add-user-path", "scripts/infra", "scripts/add-service"]
 
@@ -70,7 +88,7 @@ include = ["corio*"]
 namespaces = false
 
 [tool.setuptools.package-data]
-corio = ["version", "meta.json"]
+corio = ["pyproject.toml"]
 
 [project]
 name = "corio"

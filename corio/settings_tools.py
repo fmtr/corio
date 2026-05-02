@@ -88,7 +88,7 @@ class Base(BaseSettings, CliRunMixin):
     def version(self):
         """
 
-        Read in version file.
+        Read version from package metadata.
 
         """
         return self.paths.metadata.version

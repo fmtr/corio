@@ -136,7 +136,7 @@ class Releaser(Inherit[Project]):
 
     @cached_property
     def path(self):
-        return Path.temp() / self.name
+        return Path.temp() / f"{self.name}-dist"
 
     @cached_property
     def token(self):
@@ -148,7 +148,6 @@ class Releaser(Inherit[Project]):
 
         return IndexList[Incrementor](
             [
-                IncrementorVersion(self),
                 IncrementorPyproject(self),
                 IncrementorHomeAssistantAddon(self),
                 IncrementorChangelog(self),
@@ -199,32 +198,6 @@ class Incrementor(Inherit[Releaser]):
     def apply(self) -> Path | list[Path] | None:
         raise NotImplementedError
 
-
-class IncrementorVersion(Incrementor):
-
-    @cached_property
-    def path(self):
-        return self.paths.metadata.path
-
-
-    def apply(self) -> Path | list[Path] | None:
-        old = self.versions.old
-        new = self.bump(old)
-
-        logger.info(f'Incrementing metadata file "{self.path}" {old} {Constants.ARROW_RIGHT} {new}...')
-
-        self.paths.metadata.version = str(new)
-        self.paths.metadata.write()
-        return self.path
-
-    def bump(self, version):
-
-        if self.versions.pinned:
-            return self.versions.pinned
-
-        if version.prerelease:
-            return version.bump_prerelease()
-        return version.bump_patch()
 
 class IncrementorHomeAssistantAddon(Incrementor):
     DESC = 'Home Assistant Add-On config file'

@@ -50,8 +50,7 @@ class Constants:
     DIR_NAME_CACHE = 'cache'
     DIR_NAME_ARTIFACT = 'artifact'
     DIR_NAME_SOURCE = 'source'
-    FILENAME_VERSION = 'version'
-    FILENAME_META = 'meta.json'
+    FILENAME_PYPROJECT = 'pyproject.toml'
     DIR_NAME_HF = 'hf'
 
     ENTRYPOINT = 'entrypoint'

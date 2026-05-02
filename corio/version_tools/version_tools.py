@@ -1,17 +1,19 @@
 from corio import environment_tools as env
-from corio.constants import Constants
 from corio.inspection_tools import get_call_path
+from corio.path_tools import PackagePaths, Path
 
 
 def read() -> str:
     """
 
-    Read a generic version file from the calling package path.
+    Read version from the calling package metadata.
 
     """
 
-    path = get_call_path(offset=2).parent / Constants.FILENAME_VERSION
-    return read_path(path)
+    path_package = Path(get_call_path(offset=2).parent)
+    paths = PackagePaths(path_package)
+    text = paths.metadata.version
+    return get(text)
 
 
 def read_path(path) -> str:

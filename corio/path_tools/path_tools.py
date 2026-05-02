@@ -8,7 +8,7 @@ import typing
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
-from itertools import chain, product
+from itertools import chain
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Self, Tuple, Callable
@@ -459,6 +459,8 @@ class FromCallerMixin:
 
 @dataclass
 class Metadata:
+    TABLE_PATH = ("tool", "corio", "metadata")
+
     path: Path = field(init=False)
 
     version: str
@@ -483,16 +485,16 @@ class Metadata:
 
     @classmethod
     def read(cls, path: Path) -> Self:
-        data = path.read_json()
-        self = cls(**data)
+        from corio.toml_tools import get_table
+
+        data = path.read_data()
+        metadata = get_table(data, cls.TABLE_PATH)
+        if metadata is None:
+            raise KeyError(f"Missing metadata table in {path}: {'.'.join(cls.TABLE_PATH)}")
+
+        self = cls(**metadata)
         self.path = path
         return self
-
-    def write(self):
-        from dataclasses import asdict
-        data = asdict(self)
-        data.pop('path')
-        return self.path.write_json(data)
 
     @property
     def version_obj(self):
@@ -532,7 +534,25 @@ class PackagePaths(FromCallerMixin):
         Package metadata
 
         """
-        return Metadata.read(self.path / Constants.FILENAME_META)
+        return Metadata.read(self.pyproject)
+
+    @property
+    def pyproject(self) -> Path:
+        """
+
+        Path of package-local pyproject (typically symlinked to repo pyproject).
+
+        """
+        return self.path / Constants.FILENAME_PYPROJECT
+
+    @property
+    def pyproject_repo(self) -> Path:
+        """
+
+        Path of repository pyproject.
+
+        """
+        return self.repo / Constants.FILENAME_PYPROJECT
 
     @property
     def is_dev(self) -> bool:
@@ -564,16 +584,6 @@ class PackagePaths(FromCallerMixin):
             return f'{self.org}.{self.name}'
         else:
             return self.name
-
-
-    @property
-    def version(self) -> Path:
-        """
-
-        Path of version file.
-
-        """
-        return self.path / Constants.FILENAME_VERSION
 
     @property
     def data(self) -> Path:
@@ -780,8 +790,8 @@ class PathsSearchData:
       Dev: The caller path is a repo, like /opt/dev/repo/fmtr.dns/fmtr/dns. Here we also know we're in the package already, so can just find the root.
     From package: We never need to look inside the package, as we already know where it is.
 
-    Repo: The caller path is the repo root (e.g. setup.py). This is the only case we're not in the package already, so need to infer it. We can do this by calling find_package to find meta at relevant depths.
-    From repo: versions might be in package/meta.json or org/package/meta.json, so depths between 1 and 2 are possible.
+    Repo: The caller path is the repo root (e.g. pyproject.toml). This is the only case we're not in the package already, so need to infer it by searching for package markers.
+    From repo: package markers (e.g. package/pyproject.toml) might be at singleton or namespace depths, so depths between 1 and 2 are possible.
 
     """
     path: Path
@@ -789,16 +799,20 @@ class PathsSearchData:
     name: str
     org: str | None
 
-    SETUP_FILE = "setup.py"
+    ROOT_MARKER = Constants.FILENAME_PYPROJECT
+    PACKAGE_MARKER = Constants.FILENAME_PYPROJECT
 
     @classmethod
     def from_caller(cls, path_caller: Path) -> Self:
-
-        if (path_caller / cls.SETUP_FILE).exists():
-            path_root = path_caller
-            path_package = cls.find_package(path_root)
-            is_repo = True
-        elif (path_caller / Constants.FILENAME_VERSION).exists() or (path_caller / Constants.FILENAME_META).exists():
+        if (path_caller / cls.ROOT_MARKER).exists():
+            try:
+                path_root = path_caller
+                path_package = cls.find_package(path_root)
+                is_repo = True
+            except FileNotFoundError:
+                path_package = path_caller
+                path_root, is_repo = cls.find_root(path_package)
+        elif (path_caller / cls.PACKAGE_MARKER).exists():
             path_package = path_caller
             path_root, is_repo = cls.find_root(path_package)
         else:
@@ -815,20 +829,22 @@ class PathsSearchData:
     def find_package(cls, path_repo: Path) -> Path:
         """
 
-        Find the package directory, given a site/repo root. Do this by looking for meta at singleton and namespace depths.
+        Find the package directory, given a site/repo root. Do this by looking for package markers at singleton and namespace depths.
 
         """
         masks = "*/{name}", "*/*/{name}"
-        names = Constants.FILENAME_VERSION, Constants.FILENAME_META
-        patterns = [mask.format(name=name) for mask, name in product(masks, names)]
+        patterns = [mask.format(name=cls.PACKAGE_MARKER) for mask in masks]
 
         targets = chain.from_iterable(path_repo.glob(pattern) for pattern in patterns)
         targets = list(targets)
+        packages = sorted({target.parent for target in targets})
 
-        if len(targets) != 1:
-            raise FileNotFoundError(f"Expected exactly 1 of {names} at depth 1 or 2 under {path_repo}, found {len(targets)}: {targets}")
+        if len(packages) != 1:
+            raise FileNotFoundError(
+                f"Expected exactly 1 package marker {cls.PACKAGE_MARKER!r} at depth 1 or 2 under {path_repo}, found {len(packages)}: {targets}"
+            )
 
-        path_package = next(iter(targets)).parent
+        path_package = next(iter(packages))
         return path_package
 
     @classmethod
@@ -847,14 +863,25 @@ class PathsSearchData:
 
 
         cur = path_package
+        last_error = None
         while True:
-            if (cur / cls.SETUP_FILE).exists():
-                return cur, True
+            if (cur / cls.ROOT_MARKER).exists():
+                try:
+                    package = cls.find_package(cur)
+                except FileNotFoundError as exception:
+                    last_error = exception
+                    package = None
+
+                if package == path_package:
+                    return cur, True
             if cur.parent == cur:
                 break
             cur = cur.parent
 
-        raise FileNotFoundError(f"Could not find the site-packages or repo root starting from {path_package}")
+        message = f"Could not find the site-packages or repo root starting from {path_package}"
+        if last_error is None:
+            raise FileNotFoundError(message)
+        raise FileNotFoundError(f"{message}. Last root-marker probe failed.") from last_error
 
     @classmethod
     def get_org_name(cls, parts) -> Tuple[str | None, str]:

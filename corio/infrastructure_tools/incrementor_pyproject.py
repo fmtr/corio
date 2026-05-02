@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import asdict
 from functools import cached_property
 from itertools import chain
 
@@ -6,6 +7,7 @@ from corio.constants import Constants
 from corio.infrastructure_tools.releaser import Incrementor
 from corio.logging_tools import logger
 from corio.path_tools import Path
+from corio.toml_tools import ensure_table
 
 
 class IncrementorPyproject(Incrementor):
@@ -17,7 +19,7 @@ class IncrementorPyproject(Incrementor):
 
     @cached_property
     def path(self) -> Path:
-        return self.paths.repo / "pyproject.toml"
+        return self.paths.pyproject_repo
 
     @cached_property
     def name_command(self) -> str:
@@ -59,7 +61,7 @@ class IncrementorPyproject(Incrementor):
 
     @property
     def _package_data(self) -> dict[str, list[str]]:
-        return {self.paths.name_ns: [Constants.FILENAME_VERSION, Constants.FILENAME_META]}
+        return {self.paths.name_ns: [Constants.FILENAME_PYPROJECT]}
 
     @cached_property
     def _console_scripts(self) -> list[str]:
@@ -131,9 +133,21 @@ class IncrementorPyproject(Incrementor):
             logger.info(f'No dependencies section found in "{self.path}". Skipping.')
             return None
 
+        old = self.versions.old
+        new = self._bump(old)
+        logger.info(f'Incrementing version "{self.path}" {old} {Constants.ARROW_RIGHT} {new}...')
+        self.paths.metadata.version = str(new)
+
         install, extras = self._flatten_dependencies(dependencies)
 
-        project = self._ensure_table(data, "project")
+        metadata = ensure_table(data, ("tool", "corio", "metadata"))
+        metadata_obj = asdict(self.paths.metadata)
+        metadata_obj.pop("path", None)
+        metadata_obj = {key: value for key, value in metadata_obj.items() if value is not None}
+        metadata.clear()
+        metadata.update(metadata_obj)
+
+        project = ensure_table(data, ("project",))
         project["name"] = self.paths.name_ns
         project["version"] = self.paths.metadata.version
         project["description"] = self.paths.metadata.description
@@ -144,7 +158,7 @@ class IncrementorPyproject(Incrementor):
         project["license"] = "Apache-2.0"
         project["license-files"] = ["LICENSE"]
 
-        urls = self._ensure_table(project, "urls")
+        urls = ensure_table(project, ("urls",))
         urls["Homepage"] = self._url
 
         scripts = {}
@@ -153,10 +167,8 @@ class IncrementorPyproject(Incrementor):
             scripts[command.strip()] = target.strip()
         project["scripts"] = scripts
 
-        tool = self._ensure_table(data, "tool")
-        setuptools = self._ensure_table(tool, "setuptools")
-        packages = self._ensure_table(setuptools, "packages")
-        package_find = self._ensure_table(packages, "find")
+        setuptools = ensure_table(data, ("tool", "setuptools"))
+        package_find = ensure_table(data, ("tool", "setuptools", "packages", "find"))
         package_find["where"] = ["."]
         package_find["include"] = [f"{self.paths.name_ns}*"]
         package_find["namespaces"] = bool(self.paths.is_namespace)
@@ -166,7 +178,7 @@ class IncrementorPyproject(Incrementor):
         elif "package-dir" in setuptools:
             del setuptools["package-dir"]
 
-        package_data = self._ensure_table(setuptools, "package-data")
+        package_data = ensure_table(setuptools, ("package-data",))
         package_data[self.paths.name_ns] = self._package_data[self.paths.name_ns]
 
         if self._scripts:
@@ -176,10 +188,10 @@ class IncrementorPyproject(Incrementor):
 
         return data
 
-    @staticmethod
-    def _ensure_table(container, key):
-        value = container.get(key)
-        if value is None or not isinstance(value, dict):
-            value = {}
-            container[key] = value
-        return value
+    def _bump(self, version):
+        if self.versions.pinned:
+            return self.versions.pinned
+
+        if version.prerelease:
+            return version.bump_prerelease()
+        return version.bump_patch()
