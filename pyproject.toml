@@ -74,14 +74,12 @@ corio = ["version", "meta.json"]
 
 [project]
 name = "corio"
-version = "2.1.0-alpha002"
+version = "2.1.0-alpha003"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
+license = "Apache-2.0"
 license-files = ["LICENSE"]
-
-[project.license]
-text = "Copyright © 2026 Frontmatter AI. All rights reserved."
 
 [project.optional-dependencies]
 dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "yamlscript", "pyyaml", "beanie[odm]"]
@@ -150,6 +148,7 @@ email = "innovative.fowler@mask.pro.fmtr.dev"
 Homepage = "https://github.com/fmtr/corio"
 
 [project.scripts]
+corio-infra-api = "corio.entrypoints.infra_api:main"
 corio-ep-test = "corio.entrypoints.ep_test:main"
 corio-shell-debug = "corio.entrypoints.shell_debug:main"
 corio-cache-hfh = "corio.entrypoints.cache_hfh:main"
