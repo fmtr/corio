@@ -62,7 +62,7 @@ encrypt = ["pyrage"]
 secrets = ["encrypt", "env.io", "yaml", "logging", "sets", "vcs"]
 
 [tool.corio.metadata]
-version = "2.1.0-alpha005"
+version = "2.1.0-alpha006"
 port = 1
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -92,7 +92,7 @@ corio = ["pyproject.toml"]
 
 [project]
 name = "corio"
-version = "2.1.0-alpha005"
+version = "2.1.0-alpha006"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
@@ -100,7 +100,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 
 [project.optional-dependencies]
-dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "yamlscript", "pyyaml", "beanie[odm]"]
+dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie[odm]"]
 test = ["pytest-cov"]
 yaml = ["yamlscript", "pyyaml"]
 logging = ["logfire"]
@@ -151,11 +151,11 @@ ha = ["dotenv"]
 "ha.api" = ["dotenv", "homeassistant_api", "aiohasupervisor"]
 doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav"]
 youtube = ["pytubefix"]
-infra = ["semver", "logfire", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire", "pydantic", "pydantic-extra-types", "pycountry", "logfire[fastapi]", "tomlkit"]
+infra = ["semver", "logfire", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit"]
 vcs = ["pygit2"]
 tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
-secrets = ["pyrage", "dotenv", "yamlscript", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "pygit2"]
+secrets = ["pyrage", "dotenv", "yamlscript", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 all = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie[odm]", "pytest-cov", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "python-on-whales", "Unidecode", "tinynetrc", "huggingface_hub", "deepmerge", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "openai", "pydantic-ai[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "httpx", "httpx_retries", "logfire[httpx]", "regex", "setuptools", "playwright", "aiomqtt", "av", "dotenv", "homeassistant_api", "aiohasupervisor", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pytubefix", "build", "twine", "packaging", "pygit2", "tomlkit", "decode-config", "esptool", "pyrage"]
 
 [[project.authors]]
@@ -175,4 +175,4 @@ corio-secrets = "corio.entrypoints.secrets:main"
 corio-remote-debug-test = "corio.entrypoints.remote_debug_test:main"
 
 [dependency-groups]
-dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "yamlscript", "pyyaml", "beanie[odm]"]
+dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie[odm]"]
