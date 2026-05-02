@@ -62,7 +62,7 @@ encrypt = ["pyrage"]
 secrets = ["encrypt", "env.io", "yaml", "logging", "sets", "vcs"]
 
 [tool.corio.metadata]
-version = "2.1.0-alpha004"
+version = "2.1.0-alpha005"
 port = 1
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -92,7 +92,7 @@ corio = ["pyproject.toml"]
 
 [project]
 name = "corio"
-version = "2.1.0-alpha004"
+version = "2.1.0-alpha005"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
@@ -173,3 +173,6 @@ corio-cache-hfh = "corio.entrypoints.cache_hfh:main"
 corio-install-yamlscript = "corio.entrypoints.install_yamlscript:main"
 corio-secrets = "corio.entrypoints.secrets:main"
 corio-remote-debug-test = "corio.entrypoints.remote_debug_test:main"
+
+[dependency-groups]
+dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "yamlscript", "pyyaml", "beanie[odm]"]
