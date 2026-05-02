@@ -62,7 +62,7 @@ encrypt = ["pyrage"]
 secrets = ["encrypt", "env.io", "yaml", "logging", "sets", "vcs"]
 
 [tool.corio.metadata]
-version = "2.1.0-alpha007"
+version = "2.1.0"
 port = 1
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -72,6 +72,7 @@ org_friendly = "Frontmatter AI"
 is_client = false
 scripts = []
 services = []
+keywords = []
 is_pypi = true
 is_dockerhub = false
 
@@ -92,12 +93,13 @@ corio = ["pyproject.toml"]
 
 [project]
 name = "corio"
-version = "2.1.0-alpha007"
+version = "2.1.0"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
 license = "Apache-2.0"
 license-files = ["LICENSE"]
+keywords = []
 
 [project.optional-dependencies]
 dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie[odm]"]
