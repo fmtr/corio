@@ -479,6 +479,7 @@ class Metadata:
     services: list[str] = field(default_factory=list)
     docs: dict = field(default_factory=dict)
     setup: dict = field(default_factory=dict)
+    keywords: list[str] = field(default_factory=list)
 
     is_pypi: bool = False
     is_dockerhub: bool = False

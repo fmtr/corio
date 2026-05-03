@@ -4,7 +4,7 @@
 
 set -eux
 
-mkdir -p /tmp/deps
-python /tmp/repo/setup.py requirements ${EXTRAS} > /tmp/deps/requirements.txt
-/python -m pip install -r /tmp/deps/requirements.txt --no-cache-dir
-
+UV_PROJECT_ENVIRONMENT=/ve/p/.venv uv sync \
+  --project "$(dirname "${PYPROJECT}")" \
+  --no-install-project \
+  --no-dev

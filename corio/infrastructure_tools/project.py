@@ -84,7 +84,7 @@ class Project:
 
     @cached_property
     def scripts_str(self):
-        return ' '.join(self.scripts)
+        return ' && '.join(self.scripts)
 
 
 class Versions(Inherit[Project]):

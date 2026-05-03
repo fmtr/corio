@@ -140,6 +140,7 @@ class IncrementorPyproject(Incrementor):
         project["name"] = self.paths.name_ns
         project["version"] = self.paths.metadata.version
         project["description"] = self.paths.metadata.description
+        project["keywords"] = self.paths.metadata.keywords
         project["readme"] = self.paths.readme.name
         project["authors"] = [dict(name=self._author, email=self.AUTHOR_EMAIL)]
         project["license"] = "Apache-2.0"
