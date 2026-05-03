@@ -7,4 +7,6 @@ set -eux
 UV_PROJECT_ENVIRONMENT=/ve/p/.venv uv sync \
   --project "$(dirname "${PYPROJECT}")" \
   --no-install-project \
-  --no-dev
+  --no-dev \
+  --no-sources \
+  --no-install-local
