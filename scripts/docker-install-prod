@@ -4,4 +4,7 @@
 
 set -eux
 
-uv pip install --python /ve/p/.venv/bin/python --no-deps /tmp/repo
+TMP_BUILD="$(mktemp -d)"
+cp --archive /tmp/repo/. "${TMP_BUILD}/"
+uv pip install --python /ve/p/.venv/bin/python --no-deps "${TMP_BUILD}"
+rm -rf "${TMP_BUILD}"
