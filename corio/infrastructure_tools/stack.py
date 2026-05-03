@@ -80,7 +80,7 @@ class Stack(Inherit[Project]):
         return self.name_dash
 
     @logger.instrument('Building image for project {self.name} on context {self.context} on channel {self.channel}...')
-    def build(self):
+    def build(self, cache: bool = True):
         """
 
         Builds a Docker image using the specified build arguments, tags, and contexts.
@@ -110,6 +110,7 @@ class Stack(Inherit[Project]):
                 tags=self.tags_image,
                 target=self.channel,
                 load=True,
+                cache=cache,
                 progress="plain",
                 stream_logs=True,
         ):
@@ -123,14 +124,14 @@ class Development(Stack):
 
     """
 
-    def recreate(self):
+    def recreate(self, cache: bool = True):
         """
 
         Recreates a compose deployment
 
         """
 
-        self.build()
+        self.build(cache=cache)
 
         data = self.compose_data
 

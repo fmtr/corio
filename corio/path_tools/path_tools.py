@@ -725,6 +725,15 @@ class PackagePaths(FromCallerMixin):
         return self.repo / 'README.md'
 
     @property
+    def license(self) -> Path:
+        """
+
+        Path of the LICENSE file.
+
+        """
+        return self.repo / 'LICENSE'
+
+    @property
     def entrypoint(self) -> Path:
         """
 

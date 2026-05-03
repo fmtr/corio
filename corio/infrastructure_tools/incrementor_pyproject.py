@@ -144,7 +144,10 @@ class IncrementorPyproject(Incrementor):
         project["readme"] = self.paths.readme.name
         project["authors"] = [dict(name=self._author, email=self.AUTHOR_EMAIL)]
         project["license"] = "Apache-2.0"
-        project["license-files"] = ["LICENSE"]
+        if self.paths.license.exists():
+            project["license-files"] = [self.paths.license.name]
+        elif "license-files" in project:
+            del project["license-files"]
 
         dependencies = self._get_dependencies(data)
         if dependencies:

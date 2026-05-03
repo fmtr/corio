@@ -39,7 +39,7 @@ class Releaser(Inherit[Project]):
     """
 
     @logger.instrument("Releasing {self.paths.name_ns}...")
-    def run(self, increment: bool = True, build: bool = False, release: bool = True):
+    def run(self, increment: bool = True, build: bool = False, release: bool = True, cache: bool = True):
 
         from corio.infrastructure_tools.stack import ProductionPrivate, ProductionPublic
 
@@ -57,7 +57,7 @@ class Releaser(Inherit[Project]):
 
         for stack_type in stack_types:
             stack = self.stacks.cls[stack_type]
-            stack.build()
+            stack.build(cache=cache)
             stack.push()
 
         if release:

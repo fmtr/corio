@@ -26,18 +26,26 @@ class Api(api.Base):
         mod = importlib.reload(mod)
         return mod.Project(**kwargs)
 
-    async def recreate(self, name: str, extra: str = 'all'):
+    async def recreate(self, name: str, extra: str = 'all', cache: bool = True):
         project = Project(name, extras=[extra])
-        project.stacks.channel[Constants.DEVELOPMENT].recreate()
+        project.stacks.channel[Constants.DEVELOPMENT].recreate(cache=cache)
 
-    async def build(self, name: str, extra: str = 'all', context: str = None):
+    async def build(self, name: str, extra: str = 'all', context: str = None, cache: bool = True):
         project = Project(name, context=context, extras=[extra])
-        project.stacks.cls[ProductionPublic].build()
+        project.stacks.cls[ProductionPublic].build(cache=cache)
 
-    async def release(self, name: str, pinned: str = None, increment: bool = True, build: bool = False, release: bool = True):
+    async def release(
+            self,
+            name: str,
+            pinned: str = None,
+            increment: bool = True,
+            build: bool = False,
+            release: bool = True,
+            cache: bool = True,
+    ):
         project = Project(name, pinned=pinned)
 
-        project.releaser.run(increment=increment, build=build, release=release)
+        project.releaser.run(increment=increment, build=build, release=release, cache=cache)
 
 
 if __name__ == '__main__':

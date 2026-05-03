@@ -4,7 +4,11 @@
 
 set -eux
 
-TMP_BUILD="$(mktemp -d)"
-cp --archive /tmp/repo/. "${TMP_BUILD}/"
-uv pip install --python /ve/p/.venv/bin/python --no-deps "${TMP_BUILD}"
-rm -rf "${TMP_BUILD}"
+source /ve/p/.venv/bin/activate
+
+cp --archive /tmp/repo/. /tmp/build/
+uv pip install pip
+uv run pip wheel /tmp/build --no-cache --no-deps --wheel-dir /tmp/dist
+
+uv pip install --no-cache --no-deps --no-index --find-links=/tmp/dist "${NAME}"
+rm -rf /tmp/build /tmp/dist
