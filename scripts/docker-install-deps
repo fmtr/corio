@@ -9,6 +9,7 @@ uv sync \
   --no-install-project \
   --no-dev \
   --no-sources \
-  --no-install-local
+  --no-install-local \
+  --verbose
 
 rm /ve/p/pyproject.toml
