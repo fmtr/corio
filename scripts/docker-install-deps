@@ -10,3 +10,5 @@ uv sync \
   --no-dev \
   --no-sources \
   --no-install-local
+
+rm /ve/p/pyproject.toml
