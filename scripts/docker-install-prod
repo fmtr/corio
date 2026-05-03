@@ -10,5 +10,5 @@ cp --archive /tmp/repo/. /tmp/build/
 uv pip install pip
 uv run pip wheel /tmp/build --no-cache --no-deps --wheel-dir /tmp/dist
 
-uv pip install --no-cache --no-deps --no-index --find-links=/tmp/dist "${NAME}"
+uv pip install --no-deps --no-index --find-links=/tmp/dist "${NAME}"
 rm -rf /tmp/build /tmp/dist
