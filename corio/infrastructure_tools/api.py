@@ -4,12 +4,13 @@ from corio import api_tools as api
 from corio.constants import Constants
 from corio.infrastructure_tools import Project
 from corio.infrastructure_tools.stack import ProductionPublic
+from corio.paths import paths
 
 
 class Api(api.Base):
     TITLE = f'Infrastructure API'
     URL_DOCS = '/'
-    PORT = 9100  # todo fix
+    PORT = api.Base.PORT + paths.metadata.port
 
     def get_endpoints(self):
         endpoints = [

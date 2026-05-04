@@ -1,4 +1,5 @@
 import pydantic_ai
+import logfire
 from pydantic import PlainValidator
 from pydantic_ai import RunContext, ModelRetry
 from pydantic_ai._output import OutputDataT
@@ -14,7 +15,7 @@ from corio.constants import Constants
 from corio.logging_tools import logger
 from corio.string_tools import truncate_mid
 
-pydantic_ai.Agent.instrument_all()
+logfire.instrument_pydantic_ai()
 
 
 class Validator:

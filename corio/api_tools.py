@@ -39,7 +39,7 @@ class Base:
     """
     TITLE = 'Base API'
     HOST = '0.0.0.0'
-    PORT = 8080
+    PORT = 8000
     SWAGGER_PARAMS = dict(tryItOutEnabled=True)
     URL = None
     URL_DOCS = '/'
