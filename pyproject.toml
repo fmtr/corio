@@ -89,7 +89,7 @@ include = ["corio*"]
 namespaces = false
 
 [tool.setuptools.package-data]
-corio = ["pyproject.toml"]
+corio = ["pyproject.package.toml"]
 
 [project]
 name = "corio"

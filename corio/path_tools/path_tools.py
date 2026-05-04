@@ -544,7 +544,7 @@ class PackagePaths(FromCallerMixin):
         Path of package-local pyproject (typically symlinked to repo pyproject).
 
         """
-        return self.path / Constants.FILENAME_PYPROJECT
+        return self.path / Constants.FILENAME_PYPROJECT_PACKAGE
 
     @property
     def pyproject_repo(self) -> Path:
@@ -810,7 +810,7 @@ class PathsSearchData:
     org: str | None
 
     ROOT_MARKER = Constants.FILENAME_PYPROJECT
-    PACKAGE_MARKER = Constants.FILENAME_PYPROJECT
+    PACKAGE_MARKER = Constants.FILENAME_PYPROJECT_PACKAGE
 
     @classmethod
     def from_caller(cls, path_caller: Path) -> Self:

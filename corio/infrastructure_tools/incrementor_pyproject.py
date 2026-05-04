@@ -61,7 +61,7 @@ class IncrementorPyproject(Incrementor):
 
     @property
     def _package_data(self) -> dict[str, list[str]]:
-        return {self.paths.name_ns: [Constants.FILENAME_PYPROJECT]}
+        return {self.paths.name_ns: [Constants.FILENAME_PYPROJECT_PACKAGE]}
 
     @cached_property
     def _console_scripts(self) -> list[str]:

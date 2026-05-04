@@ -51,6 +51,7 @@ class Constants:
     DIR_NAME_ARTIFACT = 'artifact'
     DIR_NAME_SOURCE = 'source'
     FILENAME_PYPROJECT = 'pyproject.toml'
+    FILENAME_PYPROJECT_PACKAGE = 'pyproject.package.toml'
     DIR_NAME_HF = 'hf'
 
     ENTRYPOINT = 'entrypoint'
