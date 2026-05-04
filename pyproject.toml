@@ -168,6 +168,7 @@ email = "innovative.fowler@mask.pro.fmtr.dev"
 Homepage = "https://github.com/fmtr/corio"
 
 [project.scripts]
+corio-pyproject = "corio.entrypoints.pyproject:main"
 corio-ep-test = "corio.entrypoints.ep_test:main"
 corio-shell-debug = "corio.entrypoints.shell_debug:main"
 corio-cache-hfh = "corio.entrypoints.cache_hfh:main"

@@ -130,7 +130,8 @@ class IncrementorPyproject(Incrementor):
     def _enrich_toml(self, data):
         old = self.versions.old
         new = self._bump(old)
-        logger.info(f'Incrementing version "{self.path}" {old} {Constants.ARROW_RIGHT} {new}...')
+        if old != new:
+            logger.info(f'Incrementing version "{self.path}" {old} {Constants.ARROW_RIGHT} {new}...')
         self.paths.metadata.version = str(new)
 
         metadata = ensure_table(data, ("tool", "corio", "metadata"))
