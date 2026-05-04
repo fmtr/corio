@@ -76,7 +76,14 @@ keywords = []
 is_pypi = true
 is_dockerhub = false
 
-[tool.corio.metadata.docs]
+[[tool.corio.metadata.docs.nav]]
+Home = "index.md"
+
+[[tool.corio.metadata.docs.nav]]
+"Quick Start" = "quick-start.md"
+
+[[tool.corio.metadata.docs.nav]]
+Modules = "modules/"
 
 [tool.corio.metadata.setup]
 
