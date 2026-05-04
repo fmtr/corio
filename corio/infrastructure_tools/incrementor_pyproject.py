@@ -50,10 +50,6 @@ class IncrementorPyproject(Incrementor):
         return Constants.ORG_NAME_FRIENDLY
 
     @property
-    def _url(self) -> str:
-        return f"https://github.com/{self.paths.metadata.org_github}/{self.paths.name_ns}"
-
-    @property
     def _package_dir(self):
         if self.paths.is_namespace:
             return {"": "."}
@@ -163,7 +159,7 @@ class IncrementorPyproject(Incrementor):
             logger.info(f'No dependencies section found in "{self.path}". Skipping dependency enrichment.')
 
         urls = ensure_table(project, ("urls",))
-        urls["Homepage"] = self._url
+        urls["Homepage"] = self.repo_url
 
         scripts = {}
         for entry in self._console_scripts:

@@ -56,6 +56,18 @@ class Project:
         return self.paths.name
 
     @cached_property
+    def repo_name(self):
+        return f"{self.paths.metadata.org_github}/{self.paths.name_ns}"
+
+    @cached_property
+    def repo_url(self):
+        return f"https://github.com/{self.repo_name}"
+
+    @cached_property
+    def repo_api_url(self):
+        return f"https://api.github.com/repos/{self.repo_name}"
+
+    @cached_property
     def stacks(self):
         from corio.infrastructure_tools.stack import Stack, Development, ProductionPrivate, ProductionPublic
         classes = [Development, ProductionPrivate, ProductionPublic]

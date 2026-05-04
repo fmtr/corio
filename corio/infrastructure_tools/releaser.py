@@ -336,7 +336,7 @@ class ReleaseGithub(Release):
 
     @property
     def url(self):
-        return f"https://github.com/{self.paths.metadata.org_github}/{self.paths.name_ns}/compare/v{self.versions.old}...v{self.versions.new}"
+        return f"{self.repo_url}/compare/v{self.versions.old}...v{self.versions.new}"
 
     @property
     def body(self):
@@ -347,7 +347,7 @@ class ReleaseGithub(Release):
             return f'**Full Changelog**: [{self.versions.old} {Constants.ARROW_RIGHT} {self.versions.new}]({self.url})'
 
     def release(self):
-        url = f"https://api.github.com/repos/{self.paths.metadata.org_github}/{self.paths.name_ns}/releases"
+        url = f"{self.repo_api_url}/releases"
         name = f'Release {self.tag}'
 
         headers = {
@@ -452,6 +452,8 @@ class ReleaseDocumentation(Release):
             docs_dir=str(self.paths.docs),
 
             site_name=self.paths.name_ns,
+            repo_url=self.repo_url,
+            repo_name=self.repo_name,
             theme={
                 "name": "material",
                 "features": [
