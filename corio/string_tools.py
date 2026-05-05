@@ -178,7 +178,7 @@ MASK_IDENTITY = '{}'
 MASK_QUOTE = '"{}"'
 
 
-def join_natural(items, sep=', ', conj='and', mask=MASK_IDENTITY):
+def join_natural(items, sep=', ', conj='and', mask=MASK_IDENTITY, if_empty=f'({None})'):
     """
 
     Natural language list
@@ -187,7 +187,7 @@ def join_natural(items, sep=', ', conj='and', mask=MASK_IDENTITY):
 
     items = list(items)
     if not items:
-        return ""
+        return if_empty
     if len(items) == 1:
         return mask.format(items[0])
     firsts, last = items[:-1], items[-1]

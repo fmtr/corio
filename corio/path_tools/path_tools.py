@@ -16,6 +16,7 @@ from typing import Union, Any
 
 from corio.constants import Constants
 from corio.platform_tools import is_wsl
+from corio.string_tools import join_natural
 
 if typing.TYPE_CHECKING:
     from datetime import datetime, timezone
@@ -809,28 +810,24 @@ class PathsSearchData:
     name: str
     org: str | None
 
-    ROOT_MARKER = Constants.FILENAME_PYPROJECT
-    PACKAGE_MARKER = Constants.FILENAME_PYPROJECT_PACKAGE
-
     @classmethod
     def from_caller(cls, path_caller: Path) -> Self:
-        if (path_caller / cls.ROOT_MARKER).exists():
-            try:
-                path_root = path_caller
-                path_package = cls.find_package(path_root)
-                is_repo = True
-            except FileNotFoundError:
-                path_package = path_caller
-                path_root, is_repo = cls.find_root(path_package)
-        elif (path_caller / cls.PACKAGE_MARKER).exists():
-            path_package = path_caller
-            path_root, is_repo = cls.find_root(path_package)
-        else:
-            raise FileNotFoundError(f'Path does not appear to be a package or a repo: "{path_caller}"')
+        """
 
+        Find package/repo context from an arbitrary caller path.
+
+        """
+        if (path_caller / Constants.FILENAME_PYPROJECT).exists():
+            path_package = cls.find_package(path_caller)
+            repo = path_caller
+        else:
+            path_package_marker = path_caller.find_up(Constants.FILENAME_PYPROJECT_PACKAGE)
+            path_package = path_package_marker.parent
+            repo = cls.find_repo(path_package_marker)
+
+        path_root = repo or cls.find_site(path_package)
         parts = path_package.relative_to(path_root).parts
         org, name = cls.get_org_name(parts)
-        repo = path_root if is_repo else None
         self = cls(path=path_package, repo=repo, name=name, org=org)
         return self
 
@@ -843,25 +840,24 @@ class PathsSearchData:
 
         """
         masks = "*/{name}", "*/*/{name}"
-        patterns = [mask.format(name=cls.PACKAGE_MARKER) for mask in masks]
+        patterns = [mask.format(name=Constants.FILENAME_PYPROJECT_PACKAGE) for mask in masks]
 
         targets = chain.from_iterable(path_repo.glob(pattern) for pattern in patterns)
         targets = list(targets)
         packages = sorted({target.parent for target in targets})
 
         if len(packages) != 1:
-            raise FileNotFoundError(
-                f"Expected exactly 1 package marker {cls.PACKAGE_MARKER!r} at depth 1 or 2 under {path_repo}, found {len(packages)}: {targets}"
-            )
+            msg=f"Expected exactly 1 package marker {Constants.FILENAME_PYPROJECT_PACKAGE!r} at depth 1 or 2 under {path_repo}, found {len(packages)}: {join_natural(targets)}"
+            raise FileNotFoundError(msg)
 
         path_package = next(iter(packages))
         return path_package
 
     @classmethod
-    def find_root(cls, path_package: Path) -> Tuple[Path, bool]:
+    def find_site(cls, path_package: Path) -> Path:
         """
 
-        Find the site/repo root, given a package directory. First check if it's under a site directory, then whether any parent is a repo root.
+        Find the containing site-packages root for a package path.
 
         """
         paths_site = site.getsitepackages() + [site.getusersitepackages()]
@@ -869,29 +865,26 @@ class PathsSearchData:
 
         for path_site in paths_site:
             if path_package.is_relative_to(path_site):
-                return path_site, False
+                return path_site
 
+        raise FileNotFoundError(f'Could not find a site-packages root for "{path_package}"')
 
-        cur = path_package
-        last_error = None
-        while True:
-            if (cur / cls.ROOT_MARKER).exists():
-                try:
-                    package = cls.find_package(cur)
-                except FileNotFoundError as exception:
-                    last_error = exception
-                    package = None
+    @classmethod
+    def find_repo(cls, path: Path) -> Path | None:
+        """
 
-                if package == path_package:
-                    return cur, True
-            if cur.parent == cur:
-                break
-            cur = cur.parent
+        Resolve the repository root from a package marker symlink.
 
-        message = f"Could not find the site-packages or repo root starting from {path_package}"
-        if last_error is None:
-            raise FileNotFoundError(message)
-        raise FileNotFoundError(f"{message}. Last root-marker probe failed.") from last_error
+        In dev installs, ``pyproject.package.toml`` is expected to be a symlink to
+        the repo ``pyproject.toml``; resolving the link and taking ``.parent`` gives
+        the repo root. If the marker is not a symlink, treat it as a regular
+        site-packages install and return ``None``.
+
+        """
+        if not path.is_symlink():
+            return None
+
+        return path.resolve().parent
 
     @classmethod
     def get_org_name(cls, parts) -> Tuple[str | None, str]:
