@@ -1,4 +1,5 @@
-# `from corio import debug`
+# debug
+`from corio import debug`
 
 Debugging helpers and tooling wrappers.
 

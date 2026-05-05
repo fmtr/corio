@@ -1,4 +1,5 @@
-# `from corio import ai`
+# ai
+`from corio import ai`
 
 Tools for model inference and agentic helpers.
 

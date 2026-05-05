@@ -1,4 +1,5 @@
-# `from corio import patterns`
+# patterns
+`from corio import patterns`
 
 `patterns` is a regex-driven transformation utility for structured rewrite rules.
 

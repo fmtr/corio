@@ -1,4 +1,5 @@
-# `from corio import netrc`
+# netrc
+`from corio import netrc`
 
 Netrc helper wrappers.
 

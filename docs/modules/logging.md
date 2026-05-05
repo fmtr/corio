@@ -1,4 +1,5 @@
-# `from corio import logging`
+# logging
+`from corio import logging`
 
 Logging setup and instrumentation helpers.
 

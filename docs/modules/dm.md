@@ -1,4 +1,5 @@
-# `from corio import dm`
+# dm
+`from corio import dm`
 
 `dm` provides the data modelling layer built on Pydantic, with utilities aimed at robust parsing and schema ergonomics.
 

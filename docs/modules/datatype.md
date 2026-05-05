@@ -1,4 +1,5 @@
-# `from corio import datatype`
+# datatype
+`from corio import datatype`
 
 General datatype inspection and conversion helpers.
 

@@ -1,4 +1,5 @@
-# `from corio import semantic`
+# semantic
+`from corio import semantic`
 
 Semantic similarity/vector search helpers.
 

@@ -1,4 +1,5 @@
-# `from corio import setup`
+# setup
+`from corio import setup`
 
 Setup/build helper wrappers.
 

@@ -1,4 +1,5 @@
-# `from corio import caching`
+# caching
+`from corio import caching`
 
 Caching helpers and wrappers.
 

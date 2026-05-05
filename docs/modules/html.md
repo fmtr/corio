@@ -1,4 +1,5 @@
-# `from corio import html`
+# html
+`from corio import html`
 
 HTML to text conversion helpers.
 

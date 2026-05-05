@@ -1,4 +1,5 @@
-# `from corio import ha`
+# ha
+`from corio import ha`
 
 Home Assistant related helpers.
 

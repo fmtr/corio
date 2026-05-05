@@ -1,4 +1,5 @@
-# `from corio import openai`
+# openai
+`from corio import openai`
 
 OpenAI integration helpers.
 

@@ -1,4 +1,5 @@
-# `from corio import version`
+# version
+`from corio import version`
 
 Version parsing/increment helpers.
 

@@ -1,4 +1,5 @@
-# `from corio import function`
+# function
+`from corio import function`
 
 Function signature and argument utility helpers.
 

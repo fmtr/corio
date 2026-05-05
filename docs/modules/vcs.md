@@ -1,4 +1,5 @@
-# `from corio import vcs`
+# vcs
+`from corio import vcs`
 
 Version-control helpers exposed via `pygit2`.
 

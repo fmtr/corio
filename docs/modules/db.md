@@ -1,4 +1,5 @@
-# `from corio import db`
+# db
+`from corio import db`
 
 Database helper package namespace.
 

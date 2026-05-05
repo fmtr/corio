@@ -1,4 +1,5 @@
-# `from corio import packaging`
+# packaging
+`from corio import packaging`
 
 Packaging utility helpers.
 

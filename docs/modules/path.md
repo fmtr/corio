@@ -1,4 +1,5 @@
-# `from corio import path`
+# path
+`from corio import path`
 
 `path` is one of the core modules in `corio`. It extends `pathlib.Path` and provides package-aware path resolution helpers used throughout the rest of the library.
 

@@ -1,4 +1,5 @@
-# `from corio import platform`
+# platform
+`from corio import platform`
 
 Platform/environment detection helpers.
 

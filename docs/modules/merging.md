@@ -1,4 +1,5 @@
-# `from corio import merging`
+# merging
+`from corio import merging`
 
 Recursive merge helpers.
 

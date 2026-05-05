@@ -1,4 +1,5 @@
-# `from corio import net`
+# net
+`from corio import net`
 
 Networking helpers.
 

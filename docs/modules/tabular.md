@@ -1,4 +1,5 @@
-# `from corio import tabular`
+# tabular
+`from corio import tabular`
 
 Tabular data helpers (DataFrame formatting/io).
 

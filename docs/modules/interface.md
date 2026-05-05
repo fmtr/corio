@@ -1,4 +1,5 @@
-# `from corio import interface`
+# interface
+`from corio import interface`
 
 `interface` is a thin base for Flet UI apps with lifecycle hooks and typed context wiring.
 

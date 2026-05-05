@@ -1,4 +1,5 @@
-# `from corio import sets`
+# sets
+`from corio import sets`
 
 Settings management built on `pydantic-settings`.
 

@@ -1,4 +1,5 @@
-# `from corio import http`
+# http
+`from corio import http`
 
 Instrumented HTTP client helpers with retries.
 

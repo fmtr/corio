@@ -1,4 +1,5 @@
-# `from corio import metric`
+# metric
+`from corio import metric`
 
 Metric/evaluation helpers, mostly tabular-data oriented.
 

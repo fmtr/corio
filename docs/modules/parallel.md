@@ -1,4 +1,5 @@
-# `from corio import parallel`
+# parallel
+`from corio import parallel`
 
 Parallel execution helpers.
 

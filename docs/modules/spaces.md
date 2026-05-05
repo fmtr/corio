@@ -1,4 +1,5 @@
-# `from corio import spaces`
+# spaces
+`from corio import spaces`
 
 Spaces-related helpers (netrc-based integrations).
 

@@ -1,4 +1,5 @@
-# `from corio import augmentation`
+# augmentation
+`from corio import augmentation`
 
 Data augmentation helpers (currently lightweight/stub-level).
 

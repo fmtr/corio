@@ -10,6 +10,7 @@ from twine.commands.upload import upload as twine_upload
 from corio.iterator_tools import IndexList
 
 gh_deploy = cli.commands["gh-deploy"].callback
+serve = cli.commands["serve"].callback
 
 from corio import environment_tools as env
 from corio import http_tools as http
@@ -443,7 +444,6 @@ class ReleaseDocumentation(Release):
     def data(self):
         import io
 
-        from mkdocs.config import load_config
         from material.extensions.emoji import twemoji, to_svg
 
         return dict(
@@ -452,11 +452,13 @@ class ReleaseDocumentation(Release):
             docs_dir=str(self.paths.docs),
 
             site_name=self.paths.name_ns,
+            site_description=self.paths.metadata.description,
             repo_url=self.repo_url,
             repo_name=self.repo_name,
             theme={
                 "name": "material",
                 "features": [
+                    "navigation.indexes",
                     "content.code.annotate",
                     "content.code.copy",
                 ],
@@ -487,10 +489,6 @@ class ReleaseDocumentation(Release):
                 {"pymdownx.tabbed": {"alternate_style": True}},
                 {"pymdownx.emoji": {"emoji_index": twemoji, "emoji_generator": to_svg}},
             ],
-            nav=self.paths.metadata.docs.get('nav') or [
-                {"Home": "index.md"},
-                {"Changelog": "changelog/"},
-            ],
             extra={
                 "version": {"provider": "mike"},
             },
@@ -513,6 +511,16 @@ class ReleaseDocumentation(Release):
             **self.data
         )
         return result
+
+    def serve(self, host: str = '0.0.0.0', port: int = 8180, livereload: bool = True):
+        dev_addr = f"{host}:{port}"
+        data = dict(self.data)
+        data.pop("site_dir", None)
+        return serve(
+            dev_addr=dev_addr,
+            livereload=livereload,
+            **data,
+        )
 
     def release(self):
         if not self.paths.docs.exists():

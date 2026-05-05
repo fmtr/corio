@@ -1,4 +1,5 @@
-# `from corio import json_fix`
+# json_fix
+`from corio import json_fix`
 
 Tolerant JSON repair/parsing helpers.
 

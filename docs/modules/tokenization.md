@@ -1,4 +1,5 @@
-# `from corio import tokenization`
+# tokenization
+`from corio import tokenization`
 
 Tokenizer training/configuration helpers.
 

@@ -1,4 +1,5 @@
-# `from corio import api`
+# api
+`from corio import api`
 
 `api` provides a lightweight FastAPI base where endpoints are defined as dataclass configuration.
 

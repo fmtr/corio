@@ -1,4 +1,5 @@
-# `from corio import yaml`
+# yaml
+`from corio import yaml`
 
 YAML/YAMLScript read/write helpers.
 

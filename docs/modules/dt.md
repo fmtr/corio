@@ -1,4 +1,5 @@
-# `from corio import dt`
+# dt
+`from corio import dt`
 
 Datetime helper utilities.
 

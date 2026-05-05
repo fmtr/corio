@@ -1,4 +1,5 @@
-# `from corio import random`
+# random
+`from corio import random`
 
 Random helper functions.
 

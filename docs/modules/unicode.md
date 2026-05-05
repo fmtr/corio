@@ -1,4 +1,5 @@
-# `from corio import unicode`
+# unicode
+`from corio import unicode`
 
 Unicode normalization/decoding helpers.
 

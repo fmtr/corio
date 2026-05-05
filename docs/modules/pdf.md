@@ -1,4 +1,5 @@
-# `from corio import pdf`
+# pdf
+`from corio import pdf`
 
 PDF extraction and processing helpers.
 

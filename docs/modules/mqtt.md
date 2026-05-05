@@ -1,4 +1,5 @@
-# `from corio import mqtt`
+# mqtt
+`from corio import mqtt`
 
 MQTT utility helpers.
 

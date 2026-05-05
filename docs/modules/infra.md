@@ -1,4 +1,5 @@
-# `from corio import infra`
+# infra
+`from corio import infra`
 
 `infra` is the release/build orchestration layer used by `corio` projects.
 

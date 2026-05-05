@@ -1,4 +1,5 @@
-# `from corio import encrypt`
+# encrypt
+`from corio import encrypt`
 
 `encrypt` provides AGE-based encryption helpers for serializable Python data.
 

@@ -1,4 +1,5 @@
-# `from corio import toml`
+# toml
+`from corio import toml`
 
 TOML parsing and serialization helpers.
 

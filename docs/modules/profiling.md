@@ -1,4 +1,5 @@
-# `from corio import profiling`
+# profiling
+`from corio import profiling`
 
 Timing and profiling helpers.
 

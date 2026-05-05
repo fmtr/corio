@@ -1,4 +1,5 @@
-# `from corio import dns`
+# dns
+`from corio import dns`
 
 `dns` contains a small DNS toolkit for building resolvers/proxies, with request/response datamodels and plain or DoH upstream clients.
 
