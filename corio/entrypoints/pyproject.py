@@ -1,5 +1,5 @@
-from corio.infrastructure_tools.incrementor_pyproject import IncrementorPyproject
-from corio.infrastructure_tools.project import Project
+from corio.infra.incrementor_pyproject import IncrementorPyproject
+from corio.infra.project import Project
 from corio.paths import paths
 
 

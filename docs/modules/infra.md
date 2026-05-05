@@ -9,7 +9,7 @@ Core objects:
 - `Repository`: git operations (`fetch`, tagging, push flow)
 - `Stack`: container build/deploy definitions (development and production variants)
 - `Releaser`: version increment, package build/upload, docs deploy flow
-- `infrastructure_tools.api.Api`: FastAPI surface for release/build/recreate operations
+- `infrastructure.api.Api`: FastAPI surface for release/build/recreate operations
 
 Install:
 

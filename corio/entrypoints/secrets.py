@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     with Path('/opt/dev/repo/ia.core').chdir:
         sys.argv = [
-            '/opt/dev/repo/corio/corio/secrets_tools.py',
+            '/opt/dev/repo/corio/corio.secrets.py',
             #'decrypt',
             'encrypt',
             #'--context=+',

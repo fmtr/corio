@@ -22,7 +22,6 @@ This table maps friendly imports from `corio.__init__` to docs pages and require
 | `from corio import dt` | - | [dt](dt.md) |
 | `from corio import encrypt` | `encrypt` | [encrypt](encrypt.md) |
 | `from corio import env` | - (`env.io` for dotenv helpers) | [env](env.md) |
-| `from corio import environment` | - (`env.io` for dotenv helpers) | [env](env.md) |
 | `from corio import function` | - | [function](function.md) |
 | `from corio import google_api` | `google.api` | [google_api](google_api.md) |
 | `from corio import ha` | `ha` (`ha.api` for API/supervisor extras) | [ha](ha.md) |
@@ -79,4 +78,3 @@ This table maps friendly imports from `corio.__init__` to docs pages and require
 - `from corio import Timer` -> [profiling](profiling.md)
 - `from corio import ContextProcess` -> [process](process.md)
 - `from corio import merge` -> [merging](merging.md)
-

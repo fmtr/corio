@@ -1,6 +1,6 @@
-from corio.infrastructure_tools.project import Project
-from corio.infrastructure_tools.releaser import ReleaseDocumentation
-from corio.path_tools import PackagePaths, Path
+from corio.infra.project import Project
+from corio.infra.releaser import ReleaseDocumentation
+from corio.path import PackagePaths, Path
 
 
 def main():

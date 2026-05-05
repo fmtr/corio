@@ -1,210 +1,59 @@
-import corio.async_tools as aio
-import corio.database_tools as db
-import corio.dataclass_tools as dataclass
-import corio.datatype_tools as datatype
-import corio.environment_tools as env
-import corio.environment_tools as environment
-import corio.function_tools as function
-import corio.hash_tools as hash
-import corio.import_tools as import_
-import corio.inherit_tools as inherit
-import corio.iterator_tools as iterator
-import corio.json_tools as json
-import corio.logging_tools as logging
-import corio.name_tools as name
-import corio.networking_tools as net
-import corio.packaging_tools as packaging
-import corio.path_tools as path
-import corio.platform_tools as platform
-import corio.random_tools as random
-import corio.setup_tools as setup
-import corio.string_tools as string
-import corio.toml_tools as toml
+import builtins
 
-from corio import ai_tools as ai
-from corio import datetime_tools as dt
-from corio import dns_tools as dns
-from corio import docker_tools as docker
-from corio import ha_tools as ha
-from corio import infrastructure_tools as infra
-from corio import interface_tools as interface
-from corio import version_tools as version
+from corio.import_ import MissingExtraMockModule
+from corio.tools import MissingExtraError
+
+
+_ORIGINAL_IMPORT = builtins.__import__
+
+
+def _corio_import_hook(name, globals=None, locals=None, fromlist=(), level=0):
+    caller_name = (globals or {}).get('__name__', '')
+    try:
+        return _ORIGINAL_IMPORT(name, globals, locals, fromlist, level)
+    except ModuleNotFoundError as exception:
+        if not caller_name.startswith('corio'):
+            raise
+        if caller_name == 'corio':
+            raise
+        extra=caller_name[len('corio.'):]
+        raise MissingExtraError(extra) from exception
+
+
+builtins.__import__ = _corio_import_hook
+
 from corio.constants import Constants
-from corio.import_tools import MissingExtraMockModule
-from corio.logging_tools import logger
-# Submodules
-from corio.path_tools import Path, PackagePaths, AppPaths
+from corio.path.path import Path, PackagePaths
 
 try:
-    from corio import augmentation_tools as augmentation
-except ModuleNotFoundError as exception:
-    augmentation = MissingExtraMockModule('augmentation', exception)
+    from corio.logging import logger
+except ImportError as exception:
+    logger = MissingExtraMockModule('logging', exception)
 
 try:
-    from corio import yaml_tools as yaml
-except ModuleNotFoundError as exception:
-    yaml = MissingExtraMockModule('yaml', exception)
-
-
-try:
-    from corio import parallel_tools as parallel
-except ModuleNotFoundError as exception:
-    parallel = MissingExtraMockModule('parallel', exception)
+    from corio.path.path import Path
+except ImportError as exception:
+    AppPaths = MissingExtraMockModule('path.app', exception)
 
 try:
-    from corio import profiling_tools as profiling
-    from corio.profiling_tools import Timer
-except ModuleNotFoundError as exception:
-    profiling = Timer = MissingExtraMockModule('profiling', exception)
+    from corio.http import Client
+except ImportError as exception:
+    Client = MissingExtraMockModule('http', exception)
 
 try:
-    import corio.process_tools as process
-    from corio.process_tools import ContextProcess
-except ModuleNotFoundError as exception:
-    process = ContextProcess = MissingExtraMockModule('process', exception)
+    from corio.profiling import Timer
+except ImportError as exception:
+    Timer = MissingExtraMockModule('profiling', exception)
 
 try:
-    from corio import tokenization_tools as tokenization
-except ModuleNotFoundError as exception:
-    tokenization = MissingExtraMockModule('tokenization', exception)
+    from corio.process import ContextProcess
+except ImportError as exception:
+    ContextProcess = MissingExtraMockModule('process', exception)
 
 try:
-    from corio import unicode_tools as unicode
-except ModuleNotFoundError as exception:
-    unicode = MissingExtraMockModule('unicode', exception)
-
-try:
-    from corio import netrc_tools as netrc
-except ModuleNotFoundError as exception:
-    netrc = MissingExtraMockModule('netrc', exception)
-
-try:
-    from corio import spaces_tools as spaces
-except ModuleNotFoundError as exception:
-    spaces = MissingExtraMockModule('spaces', exception)
-
-try:
-    from corio import hfh_tools as hfh
-except ModuleNotFoundError as exception:
-    hfh = MissingExtraMockModule('hfh', exception)
-
-try:
-    from corio import merging_tools as merging
-    from corio.merging_tools import merge
-except ModuleNotFoundError as exception:
-    merging = merge = MissingExtraMockModule('merging', exception)
-
-try:
-    from corio import api_tools as api
-except ModuleNotFoundError as exception:
-    api = MissingExtraMockModule('api', exception)
-
-try:
-    from corio import data_modelling_tools as dm
-except ModuleNotFoundError as exception:
-    dm = MissingExtraMockModule('dm', exception)
-
-try:
-    from corio import json_fix_tools as json_fix
-except ModuleNotFoundError as exception:
-    json_fix = MissingExtraMockModule('json_fix', exception)
-
-try:
-    from corio import semantic_tools as semantic
-except ModuleNotFoundError as exception:
-    semantic = MissingExtraMockModule('semantic', exception)
-
-try:
-    from corio import metric_tools as metric
-except ModuleNotFoundError as exception:
-    metric = MissingExtraMockModule('metric', exception)
-
-try:
-    from corio import html_tools as html
-except ModuleNotFoundError as exception:
-    html = MissingExtraMockModule('html', exception)
-
-try:
-    from corio import openai_tools as openai
-except ModuleNotFoundError as exception:
-    openai = MissingExtraMockModule('openai', exception)
-
-try:
-    from corio import google_api_tools as google_api
-except ModuleNotFoundError as exception:
-    google_api = MissingExtraMockModule('google.api', exception)
-
-try:
-    from corio import caching_tools as caching
-except ModuleNotFoundError as exception:
-    caching = MissingExtraMockModule('caching', exception)
-
-try:
-    from corio import pdf_tools as pdf
-except ModuleNotFoundError as exception:
-    pdf = MissingExtraMockModule('pdf', exception)
-
-try:
-    from corio import tabular_tools as tabular
-except ModuleNotFoundError as exception:
-    tabular = MissingExtraMockModule('tabular', exception)
-
-try:
-    from corio import debugging_tools as debug
-except ModuleNotFoundError as exception:
-    debug = MissingExtraMockModule('debug', exception)
-
-try:
-    from corio import settings_tools as sets
-except ModuleNotFoundError as exception:
-    sets = MissingExtraMockModule('sets', exception)
-
-try:
-    from corio import pattern_tools as patterns
-except ModuleNotFoundError as exception:
-    patterns = MissingExtraMockModule('patterns', exception)
-
-try:
-    from corio import http_tools as http
-    from corio.http_tools import Client
-except ModuleNotFoundError as exception:
-    http = Client = MissingExtraMockModule('http', exception)
-
-try:
-    from corio import webhook_tools as webhook
-except ModuleNotFoundError as exception:
-    webhook = MissingExtraMockModule('webhook', exception)
-
-try:
-    from corio import mqtt_tools as mqtt
-except ModuleNotFoundError as exception:
-    mqtt = MissingExtraMockModule('mqtt', exception)
-
-try:
-    from corio import av_tools as av
-except ModuleNotFoundError as exception:
-    av = MissingExtraMockModule('av', exception)
-
-try:
-    from corio import youtube_tools as youtube
-except ModuleNotFoundError as exception:
-    youtube = MissingExtraMockModule('youtube', exception)
-
-try:
-    import pygit2 as vcs
-except ModuleNotFoundError as exception:
-    vcs = MissingExtraMockModule('vcs', exception)
-
-try:
-    from corio import encryption_tools as encrypt
-except ModuleNotFoundError as exception:
-    encrypt = MissingExtraMockModule('encrypt', exception)
-
-try:
-    from corio import secrets_tools as secrets
-except ModuleNotFoundError as exception:
-    secrets = MissingExtraMockModule('secrets', exception)
-
+    from corio.merging import merge
+except ImportError as exception:
+    merge = MissingExtraMockModule('merging', exception)
 
 
 def get_version():

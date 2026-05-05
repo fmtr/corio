@@ -1,7 +1,7 @@
 import pytest
 
-from corio import datatype_tools
-from corio.datatype_tools import TypeConversionFailed
+from corio import datatype
+from corio.datatype import TypeConversionFailed
 from corio.tests import helpers
 from corio.tools import Raise
 
@@ -27,7 +27,7 @@ from corio.tools import Raise
 def test_to_bool(raw, expected):
     if expected is Raise:
         with pytest.raises(TypeConversionFailed):
-            datatype_tools.to_bool(raw, default=Raise)
+            datatype.to_bool(raw, default=Raise)
     else:
-        actual = datatype_tools.to_bool(raw)
+        actual = datatype.to_bool(raw)
         assert actual == expected

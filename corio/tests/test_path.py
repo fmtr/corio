@@ -1,7 +1,7 @@
 import pathlib
 import pytest
 
-from corio import path_tools
+from corio import path
 from corio.tests.helpers import SERIALIZATION_DATA
 
 
@@ -14,7 +14,7 @@ from corio.tests.helpers import SERIALIZATION_DATA
 )
 def test_path_args(args):
     expected = str(pathlib.Path(*args))
-    actual = str(path_tools.Path(*args))
+    actual = str(path.Path(*args))
     assert actual == expected
 
 
@@ -33,9 +33,9 @@ def test_path_args(args):
     ]
 )
 def test_path_is_abs_win_path(raw, expected):
-    actual = path_tools.Path.is_abs_win_path(raw)
+    actual = path.Path.is_abs_win_path(raw)
     assert actual == expected
-    actual = path_tools.Path.is_abs_win_path(path_tools.Path(raw, convert_wsl=False))
+    actual = path.Path.is_abs_win_path(path.Path(raw, convert_wsl=False))
     assert actual == expected
 
 
@@ -45,8 +45,8 @@ def test_path_module():
 
 
     """
-    expected = path_tools.Path(__file__).absolute()
-    actual = path_tools.Path.module()
+    expected = path.Path(__file__).absolute()
+    actual = path.Path.module()
     assert actual == expected
 
 
@@ -56,8 +56,8 @@ def test_path_package():
 
 
     """
-    expected = path_tools.Path(__file__).absolute().parent
-    actual = path_tools.Path.package()
+    expected = path.Path(__file__).absolute().parent
+    actual = path.Path.package()
     assert actual == expected
 
 
@@ -68,7 +68,7 @@ def test_serialization_json():
 
     """
     expected = SERIALIZATION_DATA
-    path = path_tools.Path.temp() / 'serialization_test.json'
+    path = path.Path.temp() / 'serialization_test.json'
     path.write_json(expected)
     actual = path.read_json()
     path.unlink()
@@ -82,12 +82,12 @@ def test_serialization_yaml():
 
     """
     expected = SERIALIZATION_DATA | {
-        'path': path_tools.Path('/usr/bin/a/b/c/d.ini'),
+        'path': path.Path('/usr/bin/a/b/c/d.ini'),
         'bytes': b'test',
         'set': {'foo', 'bar', 'baz'},
         'text': 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium \n' * 100
     }
-    path = path_tools.Path.temp() / 'serialization_test.yaml'
+    path = path.Path.temp() / 'serialization_test.yaml'
     path.write_yaml(expected)
     actual = path.read_yaml()
     path.unlink()

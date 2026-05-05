@@ -50,6 +50,6 @@ Sibling repos commonly:
 
 ## Notes
 
-- `Base` instruments FastAPI via `corio.logging_tools`.
+- `Base` instruments FastAPI via `corio.logging`.
 - In dev mode, exception handling is configured to re-raise for easier debugging.
 - Default endpoint method is POST unless `method_http` is set.

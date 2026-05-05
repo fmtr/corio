@@ -1,4 +1,4 @@
-from corio.infrastructure_tools.api import Api
+from corio.infra.api import Api
 
 
 def main():

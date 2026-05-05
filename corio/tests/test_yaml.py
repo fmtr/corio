@@ -1,4 +1,4 @@
-from corio import yaml_tools
+from corio import yaml
 from corio.tests.helpers import SERIALIZATION_DATA
 
 
@@ -9,5 +9,5 @@ def test_yaml():
 
     """
     expected = SERIALIZATION_DATA
-    actual = yaml_tools.from_yaml(yaml_tools.to_yaml(expected))
+    actual = yaml.from_yaml(yaml.to_yaml(expected))
     assert actual == expected

@@ -1,3 +1,3 @@
-from corio.path_tools.path_tools import PackagePaths
+from corio.path.path import PackagePaths
 
 paths = PackagePaths()

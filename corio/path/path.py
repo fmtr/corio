@@ -1,0 +1,905 @@
+from __future__ import annotations
+
+import os
+import re
+import site
+import subprocess
+import typing
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from functools import cached_property
+from itertools import chain
+from pathlib import Path
+from tempfile import gettempdir
+from typing import Self, Tuple, Callable
+from typing import Union, Any
+
+from corio.constants import Constants
+from corio.platform import is_wsl
+from corio.string import join_natural
+
+if typing.TYPE_CHECKING:
+    from datetime import datetime, timezone
+
+
+WIN_PATH_PATTERN = r'''([a-z]:(\\|$)|\\\\)'''
+WIN_PATH_RX = re.compile(WIN_PATH_PATTERN, flags=re.IGNORECASE)
+
+
+class WSLPathConversionError(EnvironmentError):
+    """
+
+    Error to raise if WSL path conversion fails.
+
+    """
+
+
+class Path(type(Path())):
+    """
+
+    Custom path object aware of WSL paths, with some additional read/write methods
+
+    """
+
+    def __new__(cls, *segments: Union[str, Path], convert_wsl: bool = True, **kwargs):
+        """
+
+        Intercept arguments to detect whether WSL conversion is required.
+
+        """
+        if convert_wsl and len(segments) == 1 and is_wsl() and cls.is_abs_win_path(*segments):
+            segments = [cls.from_wsl(*segments)]
+
+        return super().__new__(cls, *segments, **kwargs)
+
+    @classmethod
+    def is_abs_win_path(cls, path: Union[str, Path]) -> bool:
+        """
+
+        Infer if the current path is an absolute Windows path.
+
+        """
+        path = str(path)
+        return bool(WIN_PATH_RX.match(path))
+
+    @classmethod
+    def from_wsl(cls, path: Union[str, Path]) -> bool:  # pragma: no cover
+        """
+
+        Call `wslpath` to convert the path to its Unix equivalent.
+
+        """
+        result = subprocess.run(['wslpath', '-u', str(path)], capture_output=True, text=True)
+
+        if result.returncode:
+            msg = f'Could not convert Windows path to Unix equivalent: "{path}"'
+            raise WSLPathConversionError(msg)
+
+        path_wsl = result.stdout.strip()
+        path_wsl = cls(path_wsl, convert_wsl=False)
+        return path_wsl
+
+    @classmethod
+    def package(cls) -> 'Path':
+        """
+
+        Get path to originating module (e.g. directory containing .py file).
+
+        """
+        from corio.inspection import get_call_path
+        path = get_call_path(offset=2).absolute().parent
+        return path
+
+    @classmethod
+    def module(cls) -> 'Path':
+        """
+
+        Get path to originating module (i.e. .py file).
+
+        """
+        from corio.inspection import get_call_path
+        path = get_call_path(offset=2).absolute()
+        return path
+
+    @classmethod
+    def temp(cls) -> 'Path':
+        """
+
+        Get path to temporary directory.
+
+        """
+        return cls(gettempdir())
+
+    def write_json(self, obj) -> int:
+        """
+
+        Write the specified object to the path as a JSON string
+
+        """
+        from corio.json import to_json
+        json_str = to_json(obj)
+        return self.write_text(json_str, encoding=Constants.ENCODING)
+
+    def read_json(self) -> Any:
+        """
+
+        Read JSON from the file and return as a Python object
+
+        """
+        from corio.json import from_json
+        json_str = self.read_text(encoding=Constants.ENCODING)
+        obj = from_json(json_str)
+        return obj
+
+    def write_yaml(self, obj) -> int:
+        """
+
+        Write the specified object to the path as a JSON string
+
+        """
+        from corio import yaml
+        yaml_str = yaml.to_yaml(obj)
+        return self.write_text(yaml_str, encoding=Constants.ENCODING)
+
+    def read_yaml(self) -> Any:
+        """
+
+        Read YAML from the file and return as a Python object
+
+        """
+        from corio import yaml
+        yaml_str = self.read_text(encoding=Constants.ENCODING)
+        obj = yaml.from_yaml(yaml_str)
+        return obj
+
+    def write_toml(self, obj) -> int:
+        """
+
+        Write the specified object to the path as a TOML string.
+
+        """
+        from corio.toml import to_toml
+
+        toml_str = to_toml(obj)
+        return self.write_text(toml_str, encoding=Constants.ENCODING)
+
+    def read_toml(self) -> Any:
+        """
+
+        Read TOML from the file and return as a Python object.
+
+        """
+        from corio.toml import from_toml
+
+        toml_str = self.read_text(encoding=Constants.ENCODING)
+        obj = from_toml(toml_str)
+        return obj
+
+    def read_env(self) -> dict[str, str]:
+        """
+
+        Read .env file
+
+        """
+
+        from dotenv import dotenv_values  # todo move to env.io
+        data = dotenv_values(self)
+        data = dict(data)
+        return data
+
+    def write_env(self, obj: dict[str, str]):
+        """
+
+        Write to .env file
+
+        """
+        from dotenv import set_key  # todo move to env.io
+        self.write_text("")
+        for key, value in obj.items():
+            set_key(self, str(key), str(value), quote_mode="auto")
+
+
+    def read_data(self):
+        """
+
+        Read data inferring format from file extension.
+
+        """
+        read_data, write_data = self.get_serializers()
+        return read_data()
+
+    def write_data(self, obj) -> int:
+        """
+
+        Write data inferring format from file extension.
+
+        """
+
+        read_data, write_data = self.get_serializers()
+        return write_data(obj)
+
+    def get_serializers(self) -> tuple[Callable, Callable]:
+        """
+
+        Get write/read methods for the file extension.
+
+        """
+        dotenv_name = '.env'
+        if self.name == dotenv_name:
+            suffix = dotenv_name
+        else:
+            suffix = self.suffix
+
+        ext = suffix.lstrip('.')
+
+        serializers = self.serializers.get(ext)
+
+        if serializers is None:
+            return self.serializers['txt']
+
+        return self.serializers[ext]
+
+    @cached_property
+    def serializers(self) -> dict[str, tuple[Callable, Callable]]:
+        """
+
+        Map file extensions to write/read methods.
+
+        """
+        return dict(
+            json=(self.read_json, self.write_json),
+            toml=(self.read_toml, self.write_toml),
+            yaml=(self.read_yaml, self.write_yaml),
+            yml=(self.read_yaml, self.write_yaml),
+            env=(self.read_env, self.write_env),
+            txt=(self.read_text, self.write_text),
+        )
+        
+        
+    def mkdirf(self):
+        """
+
+        Convenience method for creating directory with parents
+
+        """
+        return self.mkdir(parents=True, exist_ok=True)
+
+    def with_suffix(self, suffix: str) -> 'Path':
+        """
+
+        Pathlib doesn't add a dot prefix, but then errors if you don't provide one, which feels rather obnoxious.
+
+        """
+        if not suffix.startswith('.'):
+            suffix = f'.{suffix}'
+        return super().with_suffix(suffix)
+
+    def get_conversion_path(self, suffix: str) -> 'Path':
+        """
+
+        Fetch the equivalent path for a different format in the standard conversion directory structure.
+        .../xyz/filename.xyx -> ../abc/filename.abc
+
+        """
+
+        old_dir = self.parent.name
+
+        if old_dir != self.suffix.removeprefix('.'):
+            raise ValueError(f"Expected parent directory '{old_dir}' to match file extension '{suffix}'")
+
+        new = self.parent.parent / suffix / f'{self.stem}.{suffix}'
+        return new
+
+    @property
+    def exist(self):
+        """
+
+        Exists as property
+
+        """
+        return super().exists()
+
+    @classmethod
+    def app(cls):
+        """
+
+        Convenience method for getting application paths
+
+        """
+        from corio import path
+        return path.AppPaths()
+
+    @property
+    def type(self):
+        """
+
+        Infer file type, extension, etc.
+
+        """
+        if not self.exists():
+            return None
+        from corio import path
+        kind = path.guess(str(self.absolute()))
+        return kind
+
+    @property
+    def children(self) -> list[Self]:
+        """
+
+        Recursive children property
+
+        """
+        if not self.is_dir():
+            return None
+        return sorted(self.iterdir(), key=lambda x: x.is_dir(), reverse=True)
+
+    def _timestamp_utc(self, ts: float) -> datetime:
+        """
+
+        Convert a timestamp to UTC datetime.
+
+        """
+        from datetime import datetime, timezone
+        return datetime.fromtimestamp(ts, tz=timezone.utc)
+
+    @property
+    def accessed(self) -> datetime:
+        """
+
+        Access datetime.
+
+        """
+        return self._timestamp_utc(self.stat().st_atime)
+
+    @property
+    def modified(self) -> datetime:
+        """
+
+        Modified datetime.
+
+        """
+        return self._timestamp_utc(self.stat().st_mtime)
+
+    @property
+    def metadata_changed(self) -> datetime:
+        """
+
+        Metadata changed datetime.
+
+        """
+        return self._timestamp_utc(self.stat().st_ctime)
+
+    @property
+    def created(self) -> datetime | None:
+        """
+
+        Created datetime.
+
+        """
+        st = self.stat()
+        if not hasattr(st, "st_birthtime"):
+            return None
+        return self._timestamp_utc(st.st_birthtime)
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, source, handler):
+        """
+
+        Support Pydantic de/serialization and validation
+
+        TODO: Ideally these would be a mixin in dm, but then we'd need Pydantic to use it. Split dm module into Pydantic depts and other utils and import from there.
+
+        """
+        from pydantic_core import core_schema
+        return core_schema.no_info_plain_validator_function(
+            cls.__deserialize_pydantic__,
+            serialization=core_schema.plain_serializer_function_ser_schema(cls.__serialize_pydantic__),
+        )
+
+    @classmethod
+    def __serialize_pydantic__(cls, self) -> str:
+        """
+
+        Serialize to string
+
+        """
+        return str(self)
+
+    @classmethod
+    def __deserialize_pydantic__(cls, data) -> Self:
+        """
+
+        Deserialize from string
+
+        """
+        if isinstance(data, cls):
+            return data
+        return cls(data)
+
+    @property
+    def chdir(self):
+        """
+
+        Return change dir context manager
+
+        """
+        return chdir(self)
+
+    def find_up(self, name) -> Self:
+
+        """
+
+        Walk up the directory tree looking for the file name
+
+        """
+
+        current = self
+
+        while True:
+            path = current / name
+            if path.exists():
+                return path
+
+            parent = current.parent
+            if parent == current:
+                raise FileNotFoundError(f'Could not find {name} in "{self}" or any parent directory')
+
+            current = parent
+
+class FromCallerMixin:
+    """
+
+
+    """
+
+    def from_caller(self):
+        from corio.inspection import get_call_path
+        path = get_call_path(offset=3).parent
+        return path
+
+
+@dataclass
+class Metadata:
+    TABLE_PATH = ("tool", "corio", "metadata")
+
+    path: Path = field(init=False)
+
+    version: str
+    port: int | None = None
+    entrypoint: str | None = None
+    base: str = 'python'
+    description: str | None = None
+
+    org_singleton: str | None = None
+    org_github: str = Constants.ORG_NAME
+    org_friendly: str = Constants.ORG_NAME_FRIENDLY
+
+    is_client: bool = False
+
+    scripts: list[str] = field(default_factory=list)
+    services: list[str] = field(default_factory=list)
+    docs: dict = field(default_factory=dict)
+    setup: dict = field(default_factory=dict)
+    keywords: list[str] = field(default_factory=list)
+
+    is_pypi: bool = False
+    is_dockerhub: bool = False
+
+    @classmethod
+    def read(cls, path: Path) -> Self:
+        from corio.toml import get_table
+
+        data = path.read_data()
+        metadata = get_table(data, cls.TABLE_PATH)
+        if metadata is None:
+            raise KeyError(f"Missing metadata table in {path}: {'.'.join(cls.TABLE_PATH)}")
+
+        self = cls(**metadata)
+        self.path = path
+        return self
+
+    @property
+    def version_obj(self):
+        from corio.version import Version
+        version = Version.parse(self.version)
+        return version
+
+class PackagePaths(FromCallerMixin):
+    """
+
+    Canonical paths for a package.
+
+    """
+
+    dev = Path('/') / 'opt' / 'dev'
+    dev_repo = dev / 'repo'
+    data_global = dev / Constants.DIR_NAME_DATA
+
+    def __init__(self, path: Path | None = None):
+        """
+
+        Use calling module path as default path, if not otherwise specified.
+
+        """
+
+        data = PathsSearchData.from_caller(path or self.from_caller())
+
+        self.path = data.path
+        self.repo = data.repo
+        self.name = data.name
+        self.org = data.org
+
+    @cached_property
+    def metadata(self) -> Metadata:
+        """
+
+        Package metadata
+
+        """
+        return Metadata.read(self.pyproject)
+
+    @property
+    def pyproject(self) -> Path:
+        """
+
+        Path of package-local pyproject (typically symlinked to repo pyproject).
+
+        """
+        return self.path / Constants.FILENAME_PYPROJECT_PACKAGE
+
+    @property
+    def pyproject_repo(self) -> Path:
+        """
+
+        Path of repository pyproject.
+
+        """
+        return self.repo / Constants.FILENAME_PYPROJECT
+
+    @property
+    def is_dev(self) -> bool:
+        """
+
+        Is the package in the dev directory - as opposed to `site-packages` etc?
+
+        """
+        return self.path.is_relative_to(self.dev)
+
+    @property
+    def is_namespace(self) -> bool:
+        """
+
+        If organization is not present, then the package is a namespace.
+
+        """
+        return bool(self.org)
+
+    @property
+    def name_ns(self) -> str:
+        """
+
+        Name of namespace package.
+
+        """
+
+        if self.is_namespace:
+            return f'{self.org}.{self.name}'
+        else:
+            return self.name
+
+    @property
+    def data(self) -> Path:
+        """
+
+        Path of project-specific data directory.
+
+        """
+        return self.dev / Constants.DIR_NAME_REPO / self.name_ns / Constants.DIR_NAME_DATA
+
+    @property
+    def cache(self) -> Path:
+        """
+
+        Path of cache directory.
+
+        """
+
+        return self.data / Constants.DIR_NAME_CACHE
+
+    @property
+    def artifact(self) -> Path:
+        """
+
+        Path of project-specific artifact directory
+
+        """
+
+        return self.data / Constants.DIR_NAME_ARTIFACT
+
+    @property
+    def source(self) -> Path:
+        """
+
+        Path of project-specific source directory
+
+        """
+
+        return self.data / Constants.DIR_NAME_SOURCE
+
+    @property
+    def settings(self) -> Path:
+        """
+
+        Path of settings file.
+
+        """
+        return self.data / Constants.FILENAME_CONFIG
+
+    @property
+    def hf(self) -> Path:
+        """
+
+        Path of HuggingFace directory
+
+        """
+        return self.artifact / Constants.DIR_NAME_HF
+
+    @property
+    def docs(self) -> Path:
+        """
+
+        Path of docs directory
+
+        """
+        return self.repo / Constants.DOCS_DIR
+
+    @property
+    def docs_config(self) -> Path:
+        """
+
+        Path of docs config file
+
+        """
+        return self.repo / Constants.DOCS_CONFIG_FILENAME
+
+    @property
+    def ha_config(self) -> Path:
+        """
+
+        Path of Home Assistant config file
+
+        """
+        return self.repo / 'ha' / 'config.yaml'
+
+    @property
+    def ha_addon(self) -> Path:
+        """
+
+        Path of Home Assistant add-on
+
+        """
+        return self.repo / 'ha' / 'addon'
+
+    @property
+    def ha_addon_changelog(self) -> Path:
+        """
+
+        Path of Home Assistant add-on changelog
+
+        """
+        return self.ha_addon / 'CHANGELOG.md'
+
+    @property
+    def ha_addon_config(self) -> Path:
+        """
+
+        Path of Home Assistant add-on config file
+
+        """
+        return self.ha_addon / 'config.yaml'
+
+    @property
+    def changelog(self) -> Path:
+        """
+
+        Path of repo changelog
+
+        """
+        return self.repo / 'CHANGELOG.md'
+
+    @property
+    def docs_changelog(self) -> Path:
+        """
+
+        Path of docs latest changelog
+
+        """
+        return self.docs / 'changelog' / 'changelog.md'
+
+    @property
+    def readme(self) -> Path:
+        """
+
+        Path of the README file.
+
+        """
+        return self.repo / 'README.md'
+
+    @property
+    def license(self) -> Path:
+        """
+
+        Path of the LICENSE file.
+
+        """
+        return self.repo / 'LICENSE'
+
+    @property
+    def entrypoint(self) -> Path:
+        """
+
+        Path of base entrypoint module.
+
+        """
+        return self.path / Constants.ENTRYPOINT_FILE
+
+    @property
+    def entrypoints(self) -> Path:
+        """
+
+        Path of entrypoints sub-package.
+
+        """
+        return self.path / Constants.ENTRYPOINTS_DIR
+
+    @property
+    def scripts(self) -> Path:
+        """
+
+        Paths of shell scripts
+
+        """
+
+        return self.repo / Constants.SCRIPTS_DIR
+
+    def __repr__(self) -> str:
+        """
+
+        Show base path in repr.
+
+        """
+        return f'{self.__class__.__name__}("{self.path}")'
+
+@contextmanager
+def chdir(path: Path):
+    """
+
+    Set CWD temporarily using a context manager
+
+    """
+    prev = Path.cwd()
+    os.chdir(path)
+    try:
+        yield Path.cwd()
+    finally:
+        os.chdir(prev)
+
+
+root = Path('/')
+
+
+@dataclass
+class PathsSearchData:
+    """
+
+    Finds the one/two part parts between the root (repo/site) and the package. Once we have those two fixed points, we can work out the org/name.
+
+    So when we start in the package, all we need to do is find the repo/site. And when we start in the repo, we need to find the package.
+
+    Package: The caller path is the package, like fmtr/tools or acme.
+      Site Packages: The caller path is in site-packages, and root of the package. Here we find the site-packages dir we're in, and call it the root.
+      Dev: The caller path is a repo, like /opt/dev/repo/fmtr.dns/fmtr/dns. Here we also know we're in the package already, so can just find the root.
+    From package: We never need to look inside the package, as we already know where it is.
+
+    Repo: The caller path is the repo root (e.g. pyproject.toml). This is the only case we're not in the package already, so need to infer it by searching for package markers.
+    From repo: package markers (e.g. package/pyproject.toml) might be at singleton or namespace depths, so depths between 1 and 2 are possible.
+
+    """
+    path: Path
+    repo: Path | None
+    name: str
+    org: str | None
+
+    @classmethod
+    def from_caller(cls, path_caller: Path) -> Self:
+        """
+
+        Find package/repo context from an arbitrary caller path.
+
+        """
+        if (path_caller / Constants.FILENAME_PYPROJECT).exists():
+            path_package = cls.find_package(path_caller)
+            repo = path_caller
+        else:
+            path_package_marker = path_caller.find_up(Constants.FILENAME_PYPROJECT_PACKAGE)
+            path_package = path_package_marker.parent
+            repo = cls.find_repo(path_package_marker)
+
+        path_root = repo or cls.find_site(path_package)
+        parts = path_package.relative_to(path_root).parts
+        org, name = cls.get_org_name(parts)
+        self = cls(path=path_package, repo=repo, name=name, org=org)
+        return self
+
+
+    @classmethod
+    def find_package(cls, path_repo: Path) -> Path:
+        """
+
+        Find the package directory, given a site/repo root. Do this by looking for package markers at singleton and namespace depths.
+
+        """
+        masks = "*/{name}", "*/*/{name}"
+        patterns = [mask.format(name=Constants.FILENAME_PYPROJECT_PACKAGE) for mask in masks]
+
+        targets = chain.from_iterable(path_repo.glob(pattern) for pattern in patterns)
+        targets = list(targets)
+        packages = sorted({target.parent for target in targets})
+
+        if len(packages) != 1:
+            msg=f"Expected exactly 1 package marker {Constants.FILENAME_PYPROJECT_PACKAGE!r} at depth 1 or 2 under {path_repo}, found {len(packages)}: {join_natural(targets)}"
+            raise FileNotFoundError(msg)
+
+        path_package = next(iter(packages))
+        return path_package
+
+    @classmethod
+    def find_site(cls, path_package: Path) -> Path:
+        """
+
+        Find the containing site-packages root for a package path.
+
+        """
+        paths_site = site.getsitepackages() + [site.getusersitepackages()]
+        paths_site = [Path(path_site) for path_site in paths_site]
+
+        for path_site in paths_site:
+            if path_package.is_relative_to(path_site):
+                return path_site
+
+        raise FileNotFoundError(f'Could not find a site-packages root for "{path_package}"')
+
+    @classmethod
+    def find_repo(cls, path: Path) -> Path | None:
+        """
+
+        Resolve the repository root from a package marker symlink.
+
+        In dev installs, ``pyproject.package.toml`` is expected to be a symlink to
+        the repo ``pyproject.toml``; resolving the link and taking ``.parent`` gives
+        the repo root. If the marker is not a symlink, treat it as a regular
+        site-packages install and return ``None``.
+
+        """
+        if not path.is_symlink():
+            return None
+
+        return path.resolve().parent
+
+    @classmethod
+    def get_org_name(cls, parts) -> Tuple[str | None, str]:
+        """
+
+        Get the org and name from the package path parts, in both singleton and namespace cases.
+
+        """
+        if len(parts) == 2:
+            org, name = parts
+        else:
+            org = None
+            name = next(iter(parts))
+        return org, name
+
+if __name__ == "__main__":
+    paths = PackagePaths()
+    paths
