@@ -66,7 +66,7 @@ This table maps friendly imports from `corio.__init__` to docs pages and require
 | `from corio import vcs` | `vcs` | [vcs](vcs.md) |
 | `from corio import version` | `version` / `version.dev` | [version](version.md) |
 | `from corio import webhook` | `webhook` | [webhook](webhook.md) |
-| `from corio import yaml` | `yaml` | [yaml](yaml.md) |
+| `from corio import yml` | `yaml` | [yml](yml.md) |
 | `from corio import youtube` | `youtube` | [youtube](youtube.md) |
 
 ## Shared Top-Level Exports

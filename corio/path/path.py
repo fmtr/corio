@@ -137,8 +137,8 @@ class Path(type(Path())):
         Write the specified object to the path as a JSON string
 
         """
-        from corio import yaml
-        yaml_str = yaml.to_yaml(obj)
+        from corio import yml
+        yaml_str = yml.to_yaml(obj)
         return self.write_text(yaml_str, encoding=Constants.ENCODING)
 
     def read_yaml(self) -> Any:
@@ -147,9 +147,9 @@ class Path(type(Path())):
         Read YAML from the file and return as a Python object
 
         """
-        from corio import yaml
+        from corio import yml
         yaml_str = self.read_text(encoding=Constants.ENCODING)
-        obj = yaml.from_yaml(yaml_str)
+        obj = yml.from_yaml(yaml_str)
         return obj
 
     def write_toml(self, obj) -> int:

@@ -65,9 +65,9 @@ class Infra(dm.Base):
 
 class InstallYamlscript(dm.Base):
     def run(self):
-        from corio import yaml
+        from corio import yml
 
-        return yaml.install()
+        return yml.install()
 
 
 class RemoteDebugTest(dm.Base):
