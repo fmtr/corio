@@ -21,6 +21,8 @@ if TYPE_CHECKING:
 
 ALL = '+'
 
+token_hex=None # FastAPI tries to import this?
+
 class Definition(dm.Base):
     """
 
