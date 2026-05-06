@@ -1,7 +1,7 @@
 import time
 from multiprocessing import Queue, Process
 
-from corio.logging import logger
+from corio.logs import logger
 
 
 class ContextProcess:

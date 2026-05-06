@@ -5,9 +5,9 @@ from typing import Optional, Dict
 from dns import query as dnspython_query, message as dnspython_message, rdatatype as dnspython_rdatatype, rcode as dnspython_rcode
 from httpx_retries import Retry, RetryTransport
 
-from corio import http as http
+from corio import https as https
 from corio.dns.dm import Exchange, Response
-from corio.logging import logger
+from corio.logs import logger
 
 RETRY_STRATEGY = Retry(
     total=2,  # initial + 1 retry
@@ -21,7 +21,7 @@ RETRY_STRATEGY = Retry(
 )
 
 
-class HTTPClientDoH(http.Client):
+class HTTPClientDoH(https.Client):
     """
 
     Base HTTP client for DoH-appropriate retry strategy.

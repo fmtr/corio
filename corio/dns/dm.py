@@ -8,7 +8,7 @@ from dns import rcode as dnspython_rcode, reversename as dnspython_reversename
 from dns.message import Message, QueryMessage
 from dns.rrset import RRset
 
-from corio.string import join
+from corio.strings import join
 
 TTL_CODE_DEFAULTS = {
     dnspython_rcode.NOERROR: 300,  # Successful query

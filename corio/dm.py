@@ -9,7 +9,7 @@ from typing import ClassVar, List, Any, Dict
 
 from corio.datatype import is_optional, none_else
 from corio.iterator import get_class_lookup
-from corio.string import camel_to_snake
+from corio.strings import camel_to_snake
 from corio.tools import Auto, Required, Empty
 
 

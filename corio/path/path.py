@@ -15,8 +15,8 @@ from typing import Self, Tuple, Callable
 from typing import Union, Any
 
 from corio.constants import Constants
-from corio.platform import is_wsl
-from corio.string import join_natural
+from corio.plat import is_wsl
+from corio.strings import join_natural
 
 if typing.TYPE_CHECKING:
     from datetime import datetime, timezone
@@ -116,7 +116,7 @@ class Path(type(Path())):
         Write the specified object to the path as a JSON string
 
         """
-        from corio.json import to_json
+        from corio.jsn import to_json
         json_str = to_json(obj)
         return self.write_text(json_str, encoding=Constants.ENCODING)
 
@@ -126,7 +126,7 @@ class Path(type(Path())):
         Read JSON from the file and return as a Python object
 
         """
-        from corio.json import from_json
+        from corio.jsn import from_json
         json_str = self.read_text(encoding=Constants.ENCODING)
         obj = from_json(json_str)
         return obj

@@ -5,8 +5,8 @@ from typing import List, Any
 import regex as re
 
 from corio import Constants
-from corio.logging import logger
-from corio.string import join
+from corio.logs import logger
+from corio.strings import join
 
 
 class RewriteCircularLoopError(Exception):

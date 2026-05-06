@@ -6,7 +6,7 @@ from multiprocessing import cpu_count
 from typing import List, Callable, Any, Union
 
 from corio.iterator import dict_records_to_lists
-from corio.logging import logger
+from corio.logs import logger
 from corio.path import Path
 
 

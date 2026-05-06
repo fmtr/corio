@@ -1,3 +1,4 @@
+import importlib.metadata
 from functools import lru_cache
 from typing import Any
 from yaml import CDumper as Dumper
@@ -11,6 +12,18 @@ except Exception as exception:
     pass  # Allow missing binary, so we can install on-demand
 
 
+def get_version(module):
+    """
+
+    Retrieve the version of a specified module.
+
+    """
+
+    if type(module) is not str:
+        module = module.__name__
+    version = importlib.metadata.version(module)
+    return version
+
 def install():
     """
 
@@ -18,9 +31,9 @@ def install():
 
     """
     import subprocess
-    from corio import logger, packaging
+    from corio import logger
 
-    version = packaging.get_version('yamlscript')
+    version = get_version('yamlscript')
     logger.warning(f"Installing YAML Script runtime binary version {version}...")
     result = subprocess.run(f"curl https://yamlscript.org/install | VERSION={version} LIB=1 bash", shell=True, check=True)
     return result

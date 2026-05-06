@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from diskcache import Cache
 
 from corio.constants import Constants
-from corio.logging import logger
+from corio.logs import logger
 from corio.path.path import Path
 
 

@@ -7,7 +7,7 @@ from typing import Optional
 
 from corio import caching as caching
 from corio.dns.dm import Exchange
-from corio.logging import logger
+from corio.logs import logger
 
 
 @dataclass(kw_only=True, eq=False)

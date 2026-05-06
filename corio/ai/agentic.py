@@ -12,8 +12,8 @@ from typing import List, Optional, Any, Annotated, Generic
 
 from corio import env as env
 from corio.constants import Constants
-from corio.logging import logger
-from corio.string import truncate_mid
+from corio.logs import logger
+from corio.strings import truncate_mid
 
 logfire.instrument_pydantic_ai()
 

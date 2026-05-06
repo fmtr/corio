@@ -2,9 +2,9 @@ import httpx
 from functools import cached_property
 from httpx_retries import RetryTransport, Retry
 
-from corio import logging
+from corio import logs
 
-logging.logger.instrument_httpx()
+logs.logger.instrument_httpx()
 
 
 class Client(httpx.Client):

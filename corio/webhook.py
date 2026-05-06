@@ -1,5 +1,5 @@
 from corio import env, Constants
-from corio.http import client
+from corio.https import client
 
 
 def notify(title, body, url=None):

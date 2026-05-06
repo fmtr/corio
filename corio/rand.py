@@ -19,7 +19,6 @@ def temporary_seed(seed=0):
     Temporarily set random seed and revert
 
     """
-    import random
     state = random.getstate()
     random.seed(seed)
     try:

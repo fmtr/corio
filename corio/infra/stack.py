@@ -6,7 +6,7 @@ from corio.docker import DockerClient
 from corio.infra.project import Project
 from corio.inherit import Inherit
 from corio.iterator import IndexList
-from corio.logging import logger
+from corio.logs import logger
 from corio.merging import merge
 from corio.path import Path, PackagePaths
 

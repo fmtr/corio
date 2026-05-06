@@ -1,7 +1,7 @@
 import json
 import json_repair
 
-from corio.logging import logger
+from corio.logs import logger
 from corio.tools import Raise
 
 

@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 
 from corio import env
 from corio.iterator import enlist
-from corio.logging import logger
+from corio.logs import logger
 
 for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:
     logger_uvicorn = logging.getLogger(name)

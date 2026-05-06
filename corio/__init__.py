@@ -4,7 +4,7 @@ IMPORT_HOOK = ImportHook()
 
 from corio.constants import Constants
 from corio.path.path import Path, PackagePaths
-from corio.logging import logger
+from corio.logs import logger
 
 
 try:
@@ -13,9 +13,9 @@ except ImportError as exception:
     AppPaths = MissingExtraMockModule('path.app', exception)
 
 try:
-    from corio.http import Client
-except ImportError as exception:
-    Client = MissingExtraMockModule('http', exception)
+    from corio.https import Client
+except (ImportError, RuntimeError) as exception:
+    Client = MissingExtraMockModule('https', exception)
 
 try:
     from corio.profiling import Timer

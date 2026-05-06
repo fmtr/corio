@@ -3,7 +3,7 @@ from functools import cached_property
 from typing import Any
 
 from corio.inherit import Inherit
-from corio.logging import logger
+from corio.logs import logger
 from corio.path import Path
 
 

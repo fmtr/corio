@@ -13,11 +13,11 @@ gh_deploy = cli.commands["gh-deploy"].callback
 serve = cli.commands["serve"].callback
 
 from corio import env as env
-from corio import http as http
+from corio import https as https
 from corio.constants import Constants
 from corio.infra.project import Project
 from corio.inherit import Inherit
-from corio.logging import logger
+from corio.logs import logger
 from corio.path import Path
 
 
@@ -367,7 +367,7 @@ class ReleaseGithub(Release):
         }
 
         with logger.span(f'Creating release "{name}"...'):
-            response = http.client.post(url, json=payload, headers=headers)
+            response = https.client.post(url, json=payload, headers=headers)
 
         response.raise_for_status()
 

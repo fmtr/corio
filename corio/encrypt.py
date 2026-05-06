@@ -8,7 +8,7 @@ from pyrage import x25519
 
 import corio.env as env
 from corio.constants import Constants
-from corio.json import to_json, from_json
+from corio.jsn import to_json, from_json
 from corio.path import Path
 
 SerializableScalar = Union[str, int, float, bool, None]

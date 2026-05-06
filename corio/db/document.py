@@ -6,7 +6,7 @@ from typing import List
 
 from corio import dm
 from corio.constants import Constants
-from corio.logging import logger
+from corio.logs import logger
 
 ModifyEvents = [
     actions.Insert,

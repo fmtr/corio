@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from corio.dns import server, client
 from corio.dns.dm import Exchange
-from corio.logging import logger
+from corio.logs import logger
 
 
 @dataclass(kw_only=True, eq=False)

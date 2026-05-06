@@ -5,7 +5,7 @@ from itertools import chain
 from corio.constants import Constants
 from corio.infra.releaser import Incrementor
 from corio.iterator import dedupe
-from corio.logging import logger
+from corio.logs import logger
 from corio.path import Path
 from corio.toml import ensure_table
 

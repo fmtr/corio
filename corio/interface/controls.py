@@ -6,7 +6,7 @@ from flet.core.types import ColorValue, IconValue
 from functools import cached_property
 from typing import Optional
 
-from corio.logging import logger
+from corio.logs import logger
 
 
 class SliderSteps(ft.Slider):

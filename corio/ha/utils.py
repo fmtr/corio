@@ -2,8 +2,8 @@ import os
 from dotenv import load_dotenv
 
 from corio.ha import constants
-from corio.logging import logger
-from corio.string import ELLIPSIS
+from corio.logs import logger
+from corio.strings import ELLIPSIS
 
 
 def apply_addon_env():

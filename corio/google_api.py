@@ -6,7 +6,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build, Resource
 
-from corio.logging import logger
+from corio.logs import logger
 from corio.path import Path
 
 

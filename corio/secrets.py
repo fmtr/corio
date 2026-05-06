@@ -12,9 +12,9 @@ from pydantic_settings import CliSubCommand
 from corio import dm as dm
 from corio import sets as sets
 from corio.iterator import flatten_tree, strip_none, IndexList
-from corio.logging import logger
+from corio.logs import logger
 from corio.path import Path
-from corio.string import join_natural, MASK_QUOTE
+from corio.strings import join_natural, MASK_QUOTE
 
 if TYPE_CHECKING:
     from corio.encrypt import EncryptorValues, EncryptorValuesSelect

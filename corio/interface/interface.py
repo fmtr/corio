@@ -9,7 +9,7 @@ from corio import env
 from corio.constants import Constants
 from corio.function import MethodDecorator
 from corio.interface.context import Context
-from corio.logging import logger
+from corio.logs import logger
 
 
 class update(MethodDecorator):
