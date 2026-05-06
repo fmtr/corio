@@ -51,9 +51,16 @@ class Base(BaseSettings, CliRunMixin):
 
         """
 
+        cli_parse_args = cls.model_config.get('cli_parse_args')
+        if cli_parse_args is None:
+            cli_parse_args = False
+
         sources = (
             init_settings,
-            CliSettingsSource(settings_cls, cli_parse_args=True),
+            CliSettingsSource(
+                settings_cls,
+                cli_parse_args=cli_parse_args,
+            ),
             EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix(), env_nested_delimiter=cls.ENV_NESTED_DELIMITER),
             YamlScriptConfigSettingsSource(settings_cls, yaml_file=cls.find_yaml_file()),
         )

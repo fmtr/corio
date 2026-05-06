@@ -3,17 +3,21 @@ from __future__ import annotations
 from functools import cached_property
 from typing import ClassVar
 from typing import Generator
+from typing import TYPE_CHECKING
 
 from pydantic import Field
+from pydantic_settings import CLI_SUPPRESS
 from pydantic_settings import CliSubCommand
 
 from corio import dm as dm
 from corio import sets as sets
-from corio.encrypt import EncryptorValuesSelect, EncryptorValues
 from corio.iterator import flatten_tree, strip_none, IndexList
 from corio.logging import logger
 from corio.path import Path
 from corio.string import join_natural, MASK_QUOTE
+
+if TYPE_CHECKING:
+    from corio.encrypt import EncryptorValues, EncryptorValuesSelect
 
 ALL = '+'
 
@@ -23,7 +27,7 @@ class Definition(dm.Base):
     Pair of lists of files - and the nodes to encrypt within those files
 
     """
-    config: Config | None = Field(default=None, exclude=True, repr=False)
+    config: Cli | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
     files: list[str]
     nodes: list[str] = Field(default_factory=list)
 
@@ -34,6 +38,8 @@ class Definition(dm.Base):
         Create encryptor with only the nodes specified
 
         """
+        from corio.encrypt import EncryptorValuesSelect
+
         return EncryptorValuesSelect(nodes=self.nodes)
 
     def is_keys_values_aligned(self, black_robin: dict) -> bool:
@@ -137,7 +143,7 @@ class Command(dm.Base):
     CLI subcommand base
 
     """
-    config: Config | None = Field(default=None, exclude=True, repr=False)
+    config: Cli | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
     context: list[str]
 
     def is_black(self, path: Path) -> bool:
@@ -318,6 +324,8 @@ class Decrypt(Command):
         Decryption doesn't need definitions, so can use a generic values encryptor
 
         """
+        from corio.encrypt import EncryptorValues
+
         return EncryptorValues()
 
     def is_included_self_suffix(self, path: Path) -> bool:
@@ -359,7 +367,7 @@ class Decrypt(Command):
         return path_red
 
 
-class Config(sets.Base):
+class Cli(sets.Base):
     """
 
     Secrets encryptions definitions file in repo root

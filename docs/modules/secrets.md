@@ -42,9 +42,8 @@ definitions:
 Entry point:
 
 ```bash
-corio-secrets encrypt --context=web
-corio-secrets decrypt --context=web
+corio secrets encrypt --context=web
+corio secrets decrypt --context=web
 ```
 
 `encrypt` writes `*.black.yml`, and `decrypt` restores cleartext files when the encrypted side is newer/changed.
-
