@@ -1,22 +1,6 @@
 from typing import Any
 
 
-class MissingExtraError(ImportError):
-    """
-
-    Error to raise if extras are missing.
-
-    """
-
-    MASK = 'The current module is missing dependencies. To install them, run: `pip install {library}[{extra}] --upgrade`'
-
-    def __init__(self, extra):
-        from corio.paths import paths
-        self.message = self.MASK.format(library=paths.name_ns, extra=extra)
-
-        super().__init__(self.message)
-
-
 def identity(x: Any) -> Any:
     """
 
