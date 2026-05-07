@@ -43,6 +43,7 @@ class IncrementorPyproject(Incrementor):
         self.path.write_toml(data)
         return self.path
 
+
     @property
     def _author(self) -> str:
         if self.paths.metadata.is_client:
@@ -124,18 +125,15 @@ class IncrementorPyproject(Incrementor):
         return {str(key): [str(value) for value in values] for key, values in table.items()}
 
     def _enrich_toml(self, data):
-        old = self.versions.old
-        new = self._bump(old)
-        if old != new:
-            logger.info(f'Incrementing version "{self.path}" {old} {Constants.ARROW_RIGHT} {new}...')
-        self.paths.metadata.version = str(new)
+        version = str(self.version)
+        logger.info(f'Applying release version "{version}" to "{self.path}"...')
 
         metadata = ensure_table(data, ("tool", "corio", "metadata"))
-        metadata["version"] = self.paths.metadata.version
+        metadata["version"] = version
 
         project = ensure_table(data, ("project",))
         project["name"] = self.paths.name_ns
-        project["version"] = self.paths.metadata.version
+        project["version"] = version
         project["description"] = self.paths.metadata.description
         project["keywords"] = self.paths.metadata.keywords
         project["readme"] = self.paths.readme.name
@@ -187,11 +185,3 @@ class IncrementorPyproject(Incrementor):
             del setuptools["script-files"]
 
         return data
-
-    def _bump(self, version):
-        if self.versions.pinned:
-            return self.versions.pinned
-
-        if version.prerelease:
-            return version.bump_prerelease()
-        return version.bump_patch()

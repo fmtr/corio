@@ -45,6 +45,10 @@ class Releaser(Inherit[Project]):
 
         from corio.infra.stack import ProductionPrivate, ProductionPublic
 
+        if increment:
+            self.repo.fetch()
+            self.increment()
+
         is_passed = self.tester.run()
         if not is_passed:
             if self.versions.is_pre:
@@ -53,8 +57,6 @@ class Releaser(Inherit[Project]):
                 raise RuntimeError("Tests failed. Aborting release.")
 
         if increment:
-            self.repo.fetch()
-            self.increment()
             self.repo.push()
             self.repo.fetch()
 
@@ -157,6 +159,7 @@ class Releaser(Inherit[Project]):
 
         return IndexList[Incrementor](
             [
+                IncrementorVersion(self),
                 IncrementorPyproject(self),
                 IncrementorHomeAssistantAddon(self),
                 IncrementorChangelog(self),
@@ -210,6 +213,24 @@ class Incrementor(Inherit[Releaser]):
 
     def apply(self) -> Path | list[Path] | None:
         raise NotImplementedError
+
+
+class IncrementorVersion(Incrementor):
+    @logger.instrument('Incrementing release version in-memory for "{self.paths.name_ns}"...')
+    def apply(self) -> Path | list[Path] | None:
+        old = self.versions.old
+        if self.versions.pinned:
+            new = self.versions.pinned
+        elif old.prerelease:
+            new = old.bump_prerelease()
+        else:
+            new = old.bump_patch()
+
+        if old != new:
+            logger.info(f'Incrementing runtime version {old} {Constants.ARROW_RIGHT} {new}...')
+
+        self.paths.metadata.version = str(new)
+        return None
 
 
 
@@ -613,7 +634,7 @@ class Tester(Inherit[Releaser]):
                 extras.insert(0, module)
 
             path_test = self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
-            name = f"{self.paths.name_ns}/{module}"
+            name = f"{self.paths.name_ns}.{module}"
             envs[name] = self.get_env(name=name, path_tests=path_test, extras=extras)
 
         return envs
