@@ -1,6 +1,8 @@
 from copy import deepcopy
 from functools import cached_property
 from itertools import chain
+from packaging.requirements import Requirement, InvalidRequirement
+from packaging.utils import canonicalize_name
 
 from corio.constants import Constants
 from corio.infra.releaser import Incrementor
@@ -37,7 +39,11 @@ class IncrementorPyproject(Incrementor):
             if not source.get("editable"):
                 continue
 
-            path_repo = self.paths.repo / key
+            source_path = source.get("path")
+            if not source_path:
+                logger.warning(f'Editable source "{key}" is missing "path". Skipping.')
+                continue
+            path_repo = (self.paths.repo / str(source_path)).resolve()
             if not path_repo.exists():
                 continue
 
@@ -55,16 +61,55 @@ class IncrementorPyproject(Incrementor):
                 )
 
             editables[paths.name_ns] = metadata
+            editables[canonicalize_name(paths.name_ns)] = metadata
 
         return editables
 
     def pin_editables(self, dep: str) -> str:
-        metadata = self.editables.get(dep)
+        try:
+            requirement = Requirement(dep)
+        except InvalidRequirement:
+            return dep
+
+        if requirement.specifier:
+            return dep
+        if requirement.url:
+            return dep
+
+        metadata = self.editables.get(requirement.name)
+        if metadata is None:
+            metadata = self.editables.get(canonicalize_name(requirement.name))
         if metadata is None:
             return dep
-        pinned = f"{dep}=={metadata.version}"
+
+        extras = ""
+        if requirement.extras:
+            extras = f"[{','.join(sorted(requirement.extras))}]"
+
+        marker = ""
+        if requirement.marker:
+            marker = f"; {requirement.marker}"
+
+        pinned = f"{requirement.name}{extras}=={metadata.version}{marker}"
         logger.info(f'Pinning editable dependency "{dep}" -> "{pinned}".')
         return pinned
+
+    def _pin_project_dependencies(self, data: dict, project: dict) -> None:
+        dependencies = project.get("dependencies")
+        if dependencies is not None:
+            project["dependencies"] = dedupe(self.pin_editables(str(value)) for value in dependencies)
+
+        optional_dependencies = project.get("optional-dependencies")
+        if isinstance(optional_dependencies, dict):
+            project["optional-dependencies"] = {
+                str(key): dedupe(self.pin_editables(str(value)) for value in values)
+                for key, values in optional_dependencies.items()
+            }
+
+        optional_dependencies = project.get("optional-dependencies", {})
+        if "dev" in optional_dependencies:
+            dependency_groups = ensure_table(data, ("dependency-groups",))
+            dependency_groups["dev"] = list(optional_dependencies["dev"])
 
     def apply(self) -> Path | list[Path] | None:
         if not self.path.exists():
@@ -150,7 +195,6 @@ class IncrementorPyproject(Incrementor):
 
 
         extras = {key: dedupe(resolve_values(key)) for key in dependencies}
-        extras = {key: dedupe(self.pin_editables(value) for value in values) for key, values in extras.items()}
         install = extras.pop("install", [])
         extras["all"] = dedupe(list(chain.from_iterable(extras.values())))
         return install, extras
@@ -191,12 +235,9 @@ class IncrementorPyproject(Incrementor):
             install, extras = self._flatten_dependencies(dependencies)
             project["dependencies"] = install
             project["optional-dependencies"] = extras
-
-            if "dev" in extras:
-                dependency_groups = ensure_table(data, ("dependency-groups",))
-                dependency_groups["dev"] = list(extras["dev"])
         else:
             logger.info(f'No dependencies section found in "{self.path}". Skipping dependency enrichment.')
+        self._pin_project_dependencies(data, project)
 
         urls = ensure_table(project, ("urls",))
         urls["Homepage"] = self.repo_url
