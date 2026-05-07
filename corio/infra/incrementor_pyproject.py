@@ -48,10 +48,10 @@ class IncrementorPyproject(Incrementor):
                 continue
 
             metadata = paths.metadata
-            if metadata.version_obj.prerelease:
+            if metadata.version_obj.prerelease and not self.versions.is_pre:
                 raise ValueError(
                     f'Editable dependency "{paths.name_ns}" is pre-release '
-                    f'({metadata.version_obj.prerelease}). Refusing to pin.'
+                    f'({metadata.version_obj.prerelease}) while "{self.paths.name_ns}" is release. Refusing to pin.'
                 )
 
             editables[paths.name_ns] = metadata
