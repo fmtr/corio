@@ -762,6 +762,15 @@ class PackagePaths(FromCallerMixin):
 
         return self.repo / Constants.SCRIPTS_DIR
 
+    @property
+    def tests(self) -> Path:
+        """
+
+        Path of package tests.
+
+        """
+        return self.path / "tests"
+
     def __repr__(self) -> str:
         """
 

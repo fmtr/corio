@@ -53,7 +53,7 @@ This table maps friendly imports from `corio.__init__` to docs pages and require
 | `from corio import process` | `process` | [process](process.md) |
 | `from corio import profiling` | `profiling` | [profiling](profiling.md) |
 | `from corio import rand` | - | [rand](rand.md) |
-| `from corio import secrets` | `secrets` | [secrets](secrets.md) |
+| `from corio import sec` | `secrets` | [secrets](secrets.md) |
 | `from corio import semantic` | `semantic` | [semantic](semantic.md) |
 | `from corio import sets` | `sets` | [sets](sets.md) |
 | `from corio import setup` | `setup` | [setup](setup.md) |

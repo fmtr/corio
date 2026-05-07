@@ -1,6 +1,7 @@
 import pathlib
 import pytest
 
+from corio.hook import MissingExtraError
 from corio import path
 from corio.tests.helpers import SERIALIZATION_DATA
 
@@ -68,10 +69,10 @@ def test_serialization_json():
 
     """
     expected = SERIALIZATION_DATA
-    path = path.Path.temp() / 'serialization_test.json'
-    path.write_json(expected)
-    actual = path.read_json()
-    path.unlink()
+    path_tmp = path.Path.temp() / 'serialization_test.json'
+    path_tmp.write_json(expected)
+    actual = path_tmp.read_json()
+    path_tmp.unlink()
     assert actual == expected
 
 
@@ -87,8 +88,12 @@ def test_serialization_yaml():
         'set': {'foo', 'bar', 'baz'},
         'text': 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium \n' * 100
     }
-    path = path.Path.temp() / 'serialization_test.yaml'
-    path.write_yaml(expected)
-    actual = path.read_yaml()
-    path.unlink()
+    path_tmp = path.Path.temp() / 'serialization_test.yaml'
+    try:
+        path_tmp.write_yaml(expected)
+        actual = path_tmp.read_yaml()
+    except MissingExtraError:
+        pytest.skip("requires yaml extra")
+    else:
+        path_tmp.unlink()
     assert actual == expected

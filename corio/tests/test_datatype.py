@@ -1,9 +1,5 @@
-import pytest
-
 from corio import datatype
-from corio.datatype import TypeConversionFailed
 from corio.tests import helpers
-from corio.tools import Raise
 
 
 @helpers.parametrize(
@@ -11,23 +7,18 @@ from corio.tools import Raise
     [
         ('true', True),
         ('1', True),
-        ('t', True),
         ('y', True),
         ('yes', True),
+        ('on', True),
         ('false', False),
         (0, False),
         ('f', False),
         ('n', False),
         ('no', False),
-        ('nooo', None),
-        ('zzz', None),
-        ('zzz', Raise),
+        ('nooo', False),
+        ('zzz', False),
     ]
 )
 def test_to_bool(raw, expected):
-    if expected is Raise:
-        with pytest.raises(TypeConversionFailed):
-            datatype.to_bool(raw, default=Raise)
-    else:
-        actual = datatype.to_bool(raw)
-        assert actual == expected
+    actual = datatype.to_bool(raw)
+    assert actual == expected

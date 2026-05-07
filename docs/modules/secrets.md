@@ -1,5 +1,5 @@
 # secrets
-`from corio import secrets`
+`from corio import sec`
 
 `secrets` builds on `encrypt` + `sets` to provide repo-oriented secret file workflows.
 

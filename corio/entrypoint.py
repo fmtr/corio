@@ -1,7 +1,7 @@
 from pydantic_settings import CliSubCommand
 
 from corio import dm
-from corio import secrets
+from corio import sec
 from corio import sets
 
 
@@ -78,7 +78,7 @@ class RemoteDebugTest(dm.Base):
 
 
 class Cli(sets.Base, cli_parse_args=True):
-    secrets: CliSubCommand[secrets.Cli]
+    secrets: CliSubCommand[sec.Cli]
     docs: CliSubCommand[Docs]
     pyproject: CliSubCommand[Pyproject]
     ep_test: CliSubCommand[EpTest]

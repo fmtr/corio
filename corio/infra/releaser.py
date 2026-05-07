@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 from functools import cached_property
 
 import build
@@ -43,6 +44,13 @@ class Releaser(Inherit[Project]):
     def run(self, increment: bool = True, build: bool = False, release: bool = True, cache: bool = True):
 
         from corio.infra.stack import ProductionPrivate, ProductionPublic
+
+        is_passed = self.tester.run()
+        if not is_passed:
+            if self.versions.is_pre:
+                logger.warning(f"Tests failed, but release is pre-release ({self.version.prerelease}). Continuing.")
+            else:
+                raise RuntimeError("Tests failed. Aborting release.")
 
         if increment:
             self.repo.fetch()
@@ -174,6 +182,10 @@ class Releaser(Inherit[Project]):
 
         return releases
 
+    @cached_property
+    def tester(self):
+        return Tester(self)
+
     def release(self):
         for release in self.releases:
             release.release()
@@ -198,6 +210,9 @@ class Incrementor(Inherit[Releaser]):
 
     def apply(self) -> Path | list[Path] | None:
         raise NotImplementedError
+
+
+
 
 
 class IncrementorHomeAssistantAddon(Incrementor):
@@ -529,3 +544,126 @@ class ReleaseDocumentation(Release):
 
         with self.paths.repo.chdir:
             self.deploy()
+
+
+class Tester(Inherit[Releaser]):
+    TEST_FILENAME_PREFIX = "test_"
+    TEST_FILENAME_SUFFIX = ".py"
+    TOX_REQUIRES = ["tox>=4.22", "tox-uv>=1"]
+
+    @cached_property
+    def path_config_dir(self) -> Path:
+        return Path.temp() / f"{self.name}-tox"
+
+    @cached_property
+    def path_config(self) -> Path:
+        return self.path_config_dir / "tox.toml"
+
+    @cached_property
+    def dependencies(self) -> dict[str, list[str]]:
+        data = self.paths.pyproject_repo.read_toml()
+        table = data.get("tool", {}).get("corio", {}).get("dependencies", {})
+        dependencies = {
+            str(key): [str(value) for value in values]
+            for key, values in table.items()
+            if isinstance(values, list)
+        }
+        return dependencies
+
+    @cached_property
+    def modules(self) -> list[str]:
+        if not self.paths.tests.exists():
+            return []
+
+        modules = []
+        for path in sorted(self.paths.tests.glob(f"{self.TEST_FILENAME_PREFIX}*{self.TEST_FILENAME_SUFFIX}")):
+            module = path.stem.removeprefix(self.TEST_FILENAME_PREFIX)
+            if module:
+                modules.append(module)
+        return modules
+
+    @cached_property
+    def envs(self) -> dict[str, dict]:
+        envs = {}
+        extras_available = set(self.dependencies.keys())
+
+        for module in self.modules:
+            extras = ["test"]
+            if module in extras_available:
+                extras.insert(0, module)
+
+            path_test = self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
+            path_test = path_test.relative_to(self.paths.repo)
+            envs[module] = {
+                "description": f"Run tests for module {module}.",
+                "extras": extras,
+                "commands": [["python", "-m", "pytest", "-q", str(path_test)]],
+            }
+
+        return envs
+
+    @cached_property
+    def data(self) -> dict:
+        data = {
+            "requires": self.TOX_REQUIRES,
+            "env_list": list(self.envs.keys()),
+            "env": self.envs,
+        }
+        return data
+
+    def write_config(self):
+        self.path_config_dir.mkdir(parents=True, exist_ok=True)
+        self.path_config.write_toml(self.data)
+
+    def run_subprocess(self) -> int:
+        command = [
+            "uvx",
+            "--with",
+            "tox-uv",
+            "tox",
+            "-c",
+            str(self.path_config),
+            "--root",
+            str(self.paths.repo),
+            "--workdir",
+            str(self.paths.repo / ".tox"),
+            "run",
+        ]
+
+        process = subprocess.Popen(
+            command,
+            cwd=self.paths.repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+
+        assert process.stdout is not None
+        for line in process.stdout:
+            line = line.rstrip().replace("{", "{{").replace("}", "}}")
+            logger.info(line)
+
+        code = process.wait()
+        return code
+
+    @logger.instrument('Running test suite for "{self.paths.name_ns}"...')
+    def run(self) -> bool:
+        if not self.envs:
+            logger.warning(f'No tests found under "{self.paths.tests}". Skipping.')
+            return True
+
+        logger.info(f'Generating temporary tox config: "{self.path_config}"')
+        self.write_config()
+        try:
+            code = self.run_subprocess()
+        finally:
+            self.path_config.unlink(missing_ok=True)
+            shutil.rmtree(self.path_config_dir, ignore_errors=True)
+
+        if code == 0:
+            logger.info("All test environments passed.")
+            return True
+
+        logger.error(f"Test suite failed with exit code {code}.")
+        return False
