@@ -6,7 +6,7 @@ from corio.constants import Constants
 from corio.infra.releaser import Incrementor
 from corio.iterator import dedupe
 from corio.logs import logger
-from corio.path import Path
+from corio.path import Path, PackagePaths
 from corio.toml import ensure_table
 
 
@@ -24,6 +24,47 @@ class IncrementorPyproject(Incrementor):
     @cached_property
     def name_command(self) -> str:
         return self.paths.name_ns.replace(".", self.ENTRYPOINT_COMMAND_SEP)
+
+    @cached_property
+    def editables(self) -> dict[str, object]:
+        data = self.path.read_toml()
+        sources = data.get("tool", {}).get("uv", {}).get("sources", {})
+
+        editables = {}
+        for key, source in sources.items():
+            if not isinstance(source, dict):
+                continue
+            if not source.get("editable"):
+                continue
+
+            path_repo = self.paths.repo / key
+            if not path_repo.exists():
+                continue
+
+            try:
+                paths = PackagePaths(path_repo)
+            except Exception as exception:
+                logger.warning(f'Failed to resolve editable source at "{path_repo}". Skipping. {exception!r}')
+                continue
+
+            metadata = paths.metadata
+            if metadata.version_obj.prerelease:
+                raise ValueError(
+                    f'Editable dependency "{paths.name_ns}" is pre-release '
+                    f'({metadata.version_obj.prerelease}). Refusing to pin.'
+                )
+
+            editables[paths.name_ns] = metadata
+
+        return editables
+
+    def pin_editables(self, dep: str) -> str:
+        metadata = self.editables.get(dep)
+        if metadata is None:
+            return dep
+        pinned = f"{dep}=={metadata.version}"
+        logger.info(f'Pinning editable dependency "{dep}" -> "{pinned}".')
+        return pinned
 
     def apply(self) -> Path | list[Path] | None:
         if not self.path.exists():
@@ -107,9 +148,10 @@ class IncrementorPyproject(Incrementor):
                     values_resolved += resolve_values(value)
             return values_resolved
 
-        install = dedupe(resolve_values("install")) if "install" in dependencies else []
+
         extras = {key: dedupe(resolve_values(key)) for key in dependencies}
-        extras.pop("install", None)
+        extras = {key: dedupe(self.pin_editables(value) for value in values) for key, values in extras.items()}
+        install = extras.pop("install", [])
         extras["all"] = dedupe(list(chain.from_iterable(extras.values())))
         return install, extras
 
