@@ -12,6 +12,16 @@ else:
 
 LEVEL_DEFAULT = logging.DEBUG if env.IS_DEV else logging.INFO
 
+
+def sanitize(message: str) -> str:
+    """
+
+    Sanitize a log line for brace-style formatters.
+
+    """
+    return message.rstrip().replace("{", "{{").replace("}", "}}")
+
+
 def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=Constants.ORG_NAME,
                stream=STREAM_DEFAULT, environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
     """

@@ -77,6 +77,7 @@ services = []
 keywords = []
 is_pypi = true
 is_dockerhub = false
+test_envs = true
 
 [tool.corio.metadata.setup]
 

@@ -6,7 +6,7 @@ from corio.docker import DockerClient
 from corio.infra.project import Project
 from corio.inherit import Inherit
 from corio.iterator import IndexList
-from corio.logs import logger
+from corio.logs import logger, sanitize
 from corio.merging import merge
 from corio.path import Path, PackagePaths
 
@@ -114,7 +114,7 @@ class Stack(Inherit[Project]):
                 progress="plain",
                 stream_logs=True,
         ):
-            logger.info(line.rstrip())
+            logger.info(sanitize(line))
 
 
 class Development(Stack):
@@ -177,8 +177,8 @@ class ProductionPublic(ProductionPrivate):
         for tag in self.tags_public:
             with logger.span(f'Pushing image "{tag}"'):
                 for tag, line_bytes in self.client.push(tag, stream_logs=True):
-                    line = line_bytes.decode().rstrip()
-                    logger.info(line.rstrip())
+                    line = line_bytes.decode()
+                    logger.info(sanitize(line))
 
         self
 

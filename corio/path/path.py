@@ -484,6 +484,7 @@ class Metadata:
 
     is_pypi: bool = False
     is_dockerhub: bool = False
+    test_envs: bool = False
 
     @classmethod
     def read(cls, path: Path) -> Self:

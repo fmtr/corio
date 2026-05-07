@@ -18,7 +18,7 @@ from corio import https as https
 from corio.constants import Constants
 from corio.infra.project import Project
 from corio.inherit import Inherit
-from corio.logs import logger
+from corio.logs import logger, sanitize
 from corio.path import Path
 
 
@@ -582,8 +582,28 @@ class Tester(Inherit[Releaser]):
                 modules.append(module)
         return modules
 
+
+    def get_env(self, name: str, path_tests: Path, extras: list[str]) -> dict:
+        if path_tests.is_relative_to(self.paths.repo):
+            path_tests = path_tests.relative_to(self.paths.repo)
+        env = {
+            "description": f"Run {name} tests.",
+            "extras": extras,
+            "commands": [["python", "-m", "pytest", "-q", str(path_tests)]],
+        }
+        return env
+
+    @cached_property
+    def env(self) -> dict:
+        return self.get_env(name=self.paths.name_ns, path_tests=self.paths.tests, extras=["test"])
+
     @cached_property
     def envs(self) -> dict[str, dict]:
+        if not self.paths.metadata.test_envs:
+            if not self.modules:
+                return {}
+            return {self.paths.name_ns: self.env}
+
         envs = {}
         extras_available = set(self.dependencies.keys())
 
@@ -593,12 +613,8 @@ class Tester(Inherit[Releaser]):
                 extras.insert(0, module)
 
             path_test = self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
-            path_test = path_test.relative_to(self.paths.repo)
-            envs[module] = {
-                "description": f"Run tests for module {module}.",
-                "extras": extras,
-                "commands": [["python", "-m", "pytest", "-q", str(path_test)]],
-            }
+            name = f"{self.paths.name_ns}/{module}"
+            envs[name] = self.get_env(name=name, path_tests=path_test, extras=extras)
 
         return envs
 
@@ -641,8 +657,7 @@ class Tester(Inherit[Releaser]):
 
         assert process.stdout is not None
         for line in process.stdout:
-            line = line.rstrip().replace("{", "{{").replace("}", "}}")
-            logger.info(line)
+            logger.info(sanitize(line))
 
         code = process.wait()
         return code
