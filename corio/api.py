@@ -178,8 +178,3 @@ class Base:
         """
         import asyncio
         return asyncio.run(cls.launch_async(*args, **kwargs))
-
-
-
-if __name__ == '__main__':
-    Base.launch()

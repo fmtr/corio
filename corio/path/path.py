@@ -909,7 +909,3 @@ class PathsSearchData:
             org = None
             name = next(iter(parts))
         return org, name
-
-if __name__ == "__main__":
-    paths = PackagePaths()
-    paths

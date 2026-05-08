@@ -410,8 +410,3 @@ def tst_tool():
         objs = ToolsCall.from_json(text).apply(BulkInferenceManagerTools.TOOLS)
         obj = objs[0]
         print(obj)
-
-
-if __name__ == '__main__':
-    texts = tst()
-    texts

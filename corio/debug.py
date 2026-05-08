@@ -78,13 +78,3 @@ def debug_shell():
     data = ShellDebug.from_path(path_str)
     trace(is_debug=True)
     data
-
-
-if __name__ == "__main__":
-    import sys
-
-    sys.argv = [
-        'test.py',
-        './fmtr-debug/34e8d492-2f15-419a-8fcb-fe4fa0fa02bb',
-    ]
-    debug_shell()

@@ -88,9 +88,3 @@ def from_yaml(yaml_str: str) -> Any:
     """
     obj = get_interpreter().load(yaml_str)
     return obj
-
-
-if __name__ == '__main__':
-    data = dict(a=1, c=2, b=3)
-    yaml_str = to_yaml(data)
-    yaml_str

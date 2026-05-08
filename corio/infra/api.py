@@ -47,7 +47,3 @@ class Api(api.Base):
         project = Project(name, pinned=pinned)
 
         project.releaser.run(increment=increment, build=build, release=release, cache=cache)
-
-
-if __name__ == '__main__':
-    Api.launch()

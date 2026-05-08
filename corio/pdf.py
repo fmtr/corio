@@ -216,16 +216,3 @@ class Document(pm.Document):
             documents.append(document)
 
         return documents
-
-if __name__ == '__main__':
-    from corio.path import Path
-
-    PATH_DATA = Path.data()
-    # PATH_PDF=PATH_DATA/'chib.pdf'
-    PATH_PDF = PATH_DATA / 'kvm.pdf'
-    assert PATH_PDF.exists()
-
-    doc = Document(PATH_PDF)
-    data = doc.data
-    md = doc.to_markdown()
-    md

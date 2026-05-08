@@ -272,7 +272,3 @@ class Transformer:
         logger.debug(f'Finished transforming: {history_str}')
 
         return previous
-
-
-if __name__ == '__main__':
-    ...

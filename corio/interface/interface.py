@@ -183,6 +183,3 @@ class Test(Base[Context]):
     def __init__(self):
         controls = [ft.Text(self.TITLE)]
         super().__init__(controls=controls)
-
-if __name__ == "__main__":
-    Test.launch()

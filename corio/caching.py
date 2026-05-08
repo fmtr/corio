@@ -178,34 +178,3 @@ class TLRU(cachetools.TLRUCache):
 
         """
         return self.dump()
-
-
-
-if __name__ == '__main__':
-    sec10 = timedelta(seconds=10)
-    c = TLRU(ttu_static=sec10, maxsize=2, desc='Test Data')
-    c['test'] = 'val'
-    c['test2'] = 'val2'
-    c['test3'] = 'val3'
-    c
-
-
-
-
-
-
-    path_tmp_cache = Path.cwd().parent.parent / 'data' / 'cache'
-    tc = Disk(path_tmp_cache)
-
-    tc.setdefault('c', Disk).setdefault('c1', Disk)['subkey'] = 0000.1
-    # tc['c']=Disk.Create
-    tc['c']['test'] = False
-    tc['val'] = 123
-    tc.setdefault('b', Disk)
-    tc.setdefault('a', Disk)
-    tc['a']['value2'] = 456
-    tc['a']['value4'] = dict(mykey='myvalue')
-
-    tc['b']['value3'] = [789, True]
-    tc.dump()
-    {}.items()

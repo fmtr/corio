@@ -33,8 +33,3 @@ def get_text(prompt, model='gpt-4o'):
     )
     text = completion.choices[0].message.content
     return text
-
-
-if __name__ == '__main__':
-    text = get_text('hi')
-    text

@@ -10,8 +10,3 @@ def notify(title, body, url=None):
     """
     url = url or env.get(Constants.WEBHOOK_URL_NOTIFY_KEY)
     client.post(url, json=dict(title=title, body=body))
-
-
-if __name__ == '__main__':
-    notify('Title', 'Body')
-    notify

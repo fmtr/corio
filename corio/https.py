@@ -44,9 +44,3 @@ class Client(httpx.Client):
 
 
 client = Client()
-
-if __name__ == '__main__':
-    resp = client.get('https://postman-echo.com/delay/5')
-    resp.raise_for_status()
-    print(resp.json())
-    resp

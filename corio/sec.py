@@ -421,7 +421,3 @@ class Cli(sets.Base):
 
         """
         return self.find_yaml_file().parent
-
-
-if __name__ == '__main__':
-    ...

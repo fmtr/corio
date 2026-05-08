@@ -148,9 +148,3 @@ def get_native_level_from_otel(otel_name: str) -> int:
 
 
 logger = get_logger(name=Constants.LIBRARY_NAME)
-
-if __name__ == '__main__':
-    logger.info('Hello World')
-    logger.warning('test warning')
-    logger.debug('Hello World')
-    logger
