@@ -9,6 +9,7 @@ from corio.infra.releaser import Incrementor
 from corio.iterator import dedupe
 from corio.logs import logger
 from corio.path import Path, PackagePaths
+from corio.path.path import Metadata
 from corio.toml import ensure_table
 
 
@@ -28,7 +29,7 @@ class IncrementorPyproject(Incrementor):
         return self.paths.name_ns.replace(".", self.ENTRYPOINT_COMMAND_SEP)
 
     @cached_property
-    def editables(self) -> dict[str, object]:
+    def editables(self) -> dict[str, Metadata]:
         data = self.path.read_toml()
         sources = data.get("tool", {}).get("uv", {}).get("sources", {})
 
@@ -65,7 +66,7 @@ class IncrementorPyproject(Incrementor):
 
         return editables
 
-    def pin_editables(self, dep: str) -> str:
+    def _pin_editable(self, dep: str) -> str:
         try:
             requirement = Requirement(dep)
         except InvalidRequirement:
@@ -94,22 +95,18 @@ class IncrementorPyproject(Incrementor):
         logger.info(f'Pinning editable dependency "{dep}" -> "{pinned}".')
         return pinned
 
-    def _pin_project_dependencies(self, data: dict, project: dict) -> None:
-        dependencies = project.get("dependencies")
-        if dependencies is not None:
-            project["dependencies"] = dedupe(self.pin_editables(str(value)) for value in dependencies)
+    def _process_deps(self, deps: str|list[str]) -> str|list[str]:
 
-        optional_dependencies = project.get("optional-dependencies")
-        if isinstance(optional_dependencies, dict):
-            project["optional-dependencies"] = {
-                str(key): dedupe(self.pin_editables(str(value)) for value in values)
-                for key, values in optional_dependencies.items()
-            }
+        if isinstance(deps, list):
+            deps=[self._process_deps(dep) for dep in deps]
+            deps=dedupe(deps)
+            return deps
 
-        optional_dependencies = project.get("optional-dependencies", {})
-        if "dev" in optional_dependencies:
-            dependency_groups = ensure_table(data, ("dependency-groups",))
-            dependency_groups["dev"] = list(optional_dependencies["dev"])
+        dep=deps
+        dep=self._pin_editable(dep)
+
+        return dep
+
 
     def apply(self) -> Path | list[Path] | None:
         if not self.path.exists():
@@ -199,16 +196,6 @@ class IncrementorPyproject(Incrementor):
         extras["all"] = dedupe(list(chain.from_iterable(extras.values())))
         return install, extras
 
-    def _get_dependencies(self, data) -> dict[str, list[str]]:
-        table = data
-        for key in self.DEPENDENCIES_SECTION_PATH:
-            if key not in table:
-                return {}
-            table = table[key]
-
-        if table is None:
-            return {}
-        return {str(key): [str(value) for value in values] for key, values in table.items()}
 
     def _enrich_toml(self, data):
         version = str(self.version)
@@ -230,14 +217,31 @@ class IncrementorPyproject(Incrementor):
         elif "license-files" in project:
             del project["license-files"]
 
-        dependencies = self._get_dependencies(data)
-        if dependencies:
-            install, extras = self._flatten_dependencies(dependencies)
+
+        deps_corio = data.get("tool", {}).get("corio", {}).get("dependencies", None)
+        if deps_corio is not None:
+            install, extras = self._flatten_dependencies(deps_corio)
             project["dependencies"] = install
             project["optional-dependencies"] = extras
         else:
             logger.info(f'No dependencies section found in "{self.path}". Skipping dependency enrichment.')
-        self._pin_project_dependencies(data, project)
+
+
+        deps = project.get("dependencies")
+        if deps is not None:
+            project["dependencies"] = self._process_deps(deps)
+
+        optionals = project.get("optional-dependencies")
+        if optionals is not None:
+            optionals = {
+                key: self._process_deps(values)
+                for key, values in optionals.items()
+            }
+            project["optional-dependencies"] = optionals
+
+            if "dev" in optionals:
+                dependency_groups = ensure_table(data, ("dependency-groups",))
+                dependency_groups["dev"] = list(optionals["dev"])
 
         urls = ensure_table(project, ("urls",))
         urls["Homepage"] = self.repo_url
