@@ -72,8 +72,6 @@ class IncrementorPyproject(Incrementor):
         except InvalidRequirement:
             return dep
 
-        if requirement.specifier:
-            return dep
         if requirement.url:
             return dep
 
@@ -82,6 +80,11 @@ class IncrementorPyproject(Incrementor):
             metadata = self.editables.get(canonicalize_name(requirement.name))
         if metadata is None:
             return dep
+
+        if requirement.specifier:
+            operators = {specifier.operator for specifier in requirement.specifier}
+            if not operators.issubset({"==", "==="}):
+                return dep
 
         extras = ""
         if requirement.extras:

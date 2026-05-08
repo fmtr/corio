@@ -95,7 +95,7 @@ def test_pin_editables_preserves_extras_and_skips_existing_specifiers(tmp_path):
     assert req.extras == {"version.dev", "logging", "sets", "yaml", "debug", "caching", "api", "mqtt"}
     assert str(req.specifier) == "==1.2.3"
 
-    assert incrementor._pin_editable("haco==1.0.0") == "haco==1.0.0"
+    assert incrementor._pin_editable("haco==1.0.0") == "haco==1.2.3"
     assert incrementor._pin_editable("haco>=1.0.0") == "haco>=1.0.0"
 
 
@@ -160,4 +160,3 @@ def test_process_deps_pins_project_dependencies(tmp_path):
 
     assert incrementor._process_deps(dependencies) == ["haco==1.2.3", "requests>=2"]
     assert incrementor._process_deps(optional_dev) == ["haco[logging]==1.2.3", "pytest"]
-

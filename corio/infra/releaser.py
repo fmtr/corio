@@ -525,6 +525,7 @@ class ReleaseDocumentation(Release):
                 {"pymdownx.tabbed": {"alternate_style": True}},
                 {"pymdownx.emoji": {"emoji_index": twemoji, "emoji_generator": to_svg}},
             ],
+            exclude_docs="*.hidden.md\n**/*.hidden.md",
             extra={
                 "version": {"provider": "mike"},
             },
