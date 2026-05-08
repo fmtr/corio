@@ -64,7 +64,7 @@ secrets = ["encrypt", "env.io", "yaml", "logging", "sets", "vcs"]
 cli = ["sets", "logging"]
 
 [tool.corio.metadata]
-version = "2.2.2-alpha002"
+version = "2.2.2-alpha003"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -94,7 +94,7 @@ corio = ["pyproject.package.toml"]
 
 [project]
 name = "corio"
-version = "2.2.2-alpha002"
+version = "2.2.2-alpha003"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
