@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.2.4"
+version = "2.2.5-alpha000"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
@@ -82,7 +82,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.2.4"
+version = "2.2.5-alpha000"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -175,100 +175,100 @@ corio = ["pyproject.package.toml"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["corio.caching", "corio.datatype", "corio.dns", "corio.dt", "corio.encrypt", "corio.env", "corio.hash", "corio.hook", "corio.infra", "corio.iterator", "corio.jsn", "corio.name", "corio.path", "corio.patterns", "corio.rand", "corio.strings", "corio.toml", "corio.tools", "corio.yaml"]
+env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "strings", "toml", "tools", "yaml"]
 
-[tool.tox.env."corio.caching"]
-description = "Run corio.caching tests."
+[tool.tox.env.caching]
+description = "Run caching tests."
 deps = ["diskcache", "cachetools", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_caching.py"]]
 
-[tool.tox.env."corio.datatype"]
-description = "Run corio.datatype tests."
+[tool.tox.env.datatype]
+description = "Run datatype tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_datatype.py"]]
 
-[tool.tox.env."corio.dns"]
-description = "Run corio.dns tests."
+[tool.tox.env.dns]
+description = "Run dns tests."
 deps = ["dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "diskcache", "cachetools", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dns.py"]]
 
-[tool.tox.env."corio.dt"]
-description = "Run corio.dt tests."
+[tool.tox.env.dt]
+description = "Run dt tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dt.py"]]
 
-[tool.tox.env."corio.encrypt"]
-description = "Run corio.encrypt tests."
+[tool.tox.env.encrypt]
+description = "Run encrypt tests."
 deps = ["pyrage", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_encrypt.py"]]
 
-[tool.tox.env."corio.env"]
-description = "Run corio.env tests."
+[tool.tox.env.env]
+description = "Run env tests."
 deps = ["dotenv", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_env.py"]]
 
-[tool.tox.env."corio.hash"]
-description = "Run corio.hash tests."
+[tool.tox.env.hash]
+description = "Run hash tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_hash.py"]]
 
-[tool.tox.env."corio.hook"]
-description = "Run corio.hook tests."
+[tool.tox.env.hook]
+description = "Run hook tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_hook.py"]]
 
-[tool.tox.env."corio.infra"]
-description = "Run corio.infra tests."
+[tool.tox.env.infra]
+description = "Run infra tests."
 deps = ["semver", "logfire", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_infra.py"]]
 
-[tool.tox.env."corio.iterator"]
-description = "Run corio.iterator tests."
+[tool.tox.env.iterator]
+description = "Run iterator tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_iterator.py"]]
 
-[tool.tox.env."corio.jsn"]
-description = "Run corio.jsn tests."
+[tool.tox.env.jsn]
+description = "Run jsn tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_jsn.py"]]
 
-[tool.tox.env."corio.name"]
-description = "Run corio.name tests."
+[tool.tox.env.name]
+description = "Run name tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_name.py"]]
 
-[tool.tox.env."corio.path"]
-description = "Run corio.path tests."
+[tool.tox.env.path]
+description = "Run path tests."
 deps = ["appdirs", "filetype", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_path.py"]]
 
-[tool.tox.env."corio.patterns"]
-description = "Run corio.patterns tests."
+[tool.tox.env.patterns]
+description = "Run patterns tests."
 deps = ["regex", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_patterns.py"]]
 
-[tool.tox.env."corio.rand"]
-description = "Run corio.rand tests."
+[tool.tox.env.rand]
+description = "Run rand tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_rand.py"]]
 
-[tool.tox.env."corio.strings"]
-description = "Run corio.strings tests."
+[tool.tox.env.strings]
+description = "Run strings tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_strings.py"]]
 
-[tool.tox.env."corio.toml"]
-description = "Run corio.toml tests."
+[tool.tox.env.toml]
+description = "Run toml tests."
 deps = ["tomlkit", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_toml.py"]]
 
-[tool.tox.env."corio.tools"]
-description = "Run corio.tools tests."
+[tool.tox.env.tools]
+description = "Run tools tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_tools.py"]]
 
-[tool.tox.env."corio.yaml"]
-description = "Run corio.yaml tests."
+[tool.tox.env.yaml]
+description = "Run yaml tests."
 deps = ["yamlscript", "pyyaml", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_yaml.py"]]
 
