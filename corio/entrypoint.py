@@ -3,6 +3,7 @@ from pydantic_settings import CliSubCommand
 from corio import dm
 from corio import sec
 from corio import sets
+from corio.path import Path
 
 
 class DocServe(dm.Base):
@@ -40,6 +41,17 @@ class Pyproject(dm.Base):
 class EpTest(dm.Base):
     def run(self):
         print("Ran test entrypoint.")
+
+
+class Test(dm.Base):
+    name: str = Path.cwd().name
+
+    def run(self):
+        from corio.infra.project import Project
+
+        project = Project(self.name)
+        is_passed = project.releaser.tester.run()
+        return int(not is_passed)
 
 
 class ShellDebug(dm.Base):
@@ -81,6 +93,7 @@ class Cli(sets.Base, cli_parse_args=True):
     secrets: CliSubCommand[sec.Cli]
     docs: CliSubCommand[Docs]
     pyproject: CliSubCommand[Pyproject]
+    test: CliSubCommand[Test]
     ep_test: CliSubCommand[EpTest]
     shell_debug: CliSubCommand[ShellDebug]
     cache_hfh: CliSubCommand[CacheHfh]

@@ -584,13 +584,7 @@ class Tester(Inherit[Releaser]):
     @cached_property
     def dependencies(self) -> dict[str, list[str]]:
         data = self.paths.pyproject_repo.read_toml()
-        table = data.get("tool", {}).get("corio", {}).get("dependencies", {})
-        dependencies = {
-            str(key): [str(value) for value in values]
-            for key, values in table.items()
-            if isinstance(values, list)
-        }
-        return dependencies
+        return data["project"].get("optional-dependencies",{})
 
     @cached_property
     def modules(self) -> list[str]:
@@ -608,9 +602,11 @@ class Tester(Inherit[Releaser]):
     def get_env(self, name: str, path_tests: Path, extras: list[str]) -> dict:
         if path_tests.is_relative_to(self.paths.repo):
             path_tests = path_tests.relative_to(self.paths.repo)
+        deps = self.get_deps_extras(extras)
         env = {
             "description": f"Run {name} tests.",
             "extras": extras,
+            "deps": deps,
             "commands": [["python", "-m", "pytest", "-q", str(path_tests)]],
         }
         return env
@@ -618,6 +614,22 @@ class Tester(Inherit[Releaser]):
     @cached_property
     def env(self) -> dict:
         return self.get_env(name=self.paths.name_ns, path_tests=self.paths.tests, extras=["test"])
+
+    def get_extras_module(self, module: str) -> list[str]:
+        extras = ["test"]
+        extras_available = set(self.dependencies.keys())
+
+        if module in extras_available:
+            extras.insert(0, module)
+
+        extras_children = sorted(extra for extra in extras_available if extra.startswith(f"{module}."))
+        return extras_children + extras
+
+    def get_deps_extras(self, extras: list[str]) -> list[str]:
+        resolved = []
+        for extra in extras:
+            resolved.extend(self.dependencies.get(extra, []))
+        return list(dict.fromkeys(resolved))
 
     @cached_property
     def envs(self) -> dict[str, dict]:
@@ -627,12 +639,9 @@ class Tester(Inherit[Releaser]):
             return {self.paths.name_ns: self.env}
 
         envs = {}
-        extras_available = set(self.dependencies.keys())
 
         for module in self.modules:
-            extras = ["test"]
-            if module in extras_available:
-                extras.insert(0, module)
+            extras = self.get_extras_module(module)
 
             path_test = self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
             name = f"{self.paths.name_ns}.{module}"

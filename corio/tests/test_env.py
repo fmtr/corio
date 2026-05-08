@@ -73,3 +73,13 @@ def test_get_env_dict():
     with helpers.patch_environment(clear=True, **ENVIRONMENT_DATA):
         actual = env.get_dict()
     assert actual == expected
+
+
+def test_env_file_round_trip_via_path_data(tmp_path):
+    path_env = Path(tmp_path / ".env")
+    expected = {"A": "1", "B": "two"}
+
+    path_env.write_data(expected)
+    actual = path_env.read_data()
+
+    assert actual == expected
