@@ -248,9 +248,9 @@ def test_incrementor_tox_envs_use_file_module_name_with_test_envs(tmp_path):
     }
     envs = incrementor._tox_envs(dependencies=dependencies)
 
-    assert set(envs) == {"corio.path", "corio.strings"}
-    assert envs["corio.path"]["deps"] == ["appdirs", "filetype", "pytest", "pytest-cov"]
-    assert envs["corio.strings"]["deps"] == ["pytest", "pytest-cov"]
+    assert set(envs) == {"path", "strings"}
+    assert envs["path"]["deps"] == ["appdirs", "filetype", "pytest", "pytest-cov"]
+    assert envs["strings"]["deps"] == ["pytest", "pytest-cov"]
 
 
 def test_incrementor_tox_envs_fall_back_to_single_env_when_test_envs_disabled(tmp_path):
@@ -279,7 +279,7 @@ def test_incrementor_tox_envs_canonicalizes_dotted_extras(tmp_path):
         }
     )
 
-    assert envs["corio.env"]["deps"] == ["dotenv", "pytest", "pytest-cov"]
+    assert envs["env"]["deps"] == ["dotenv", "pytest", "pytest-cov"]
 
 
 def test_tester_run_skips_when_no_tests_found(tmp_path):

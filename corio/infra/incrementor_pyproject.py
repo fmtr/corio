@@ -356,7 +356,7 @@ class IncrementorPyproject(Incrementor):
         for module in self._tests_modules:
             extras = self._tox_get_extras_module(module=module, dependencies=dependencies)
             path_test = self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
-            name = f"{self.paths.name_ns}.{module}"
+            name = module
             envs[name] = self._tox_get_env(
                 name=name,
                 path_tests=path_test,
