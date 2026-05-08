@@ -1,4 +1,3 @@
-import shutil
 import subprocess
 from functools import cached_property
 
@@ -571,20 +570,6 @@ class ReleaseDocumentation(Release):
 class Tester(Inherit[Releaser]):
     TEST_FILENAME_PREFIX = "test_"
     TEST_FILENAME_SUFFIX = ".py"
-    TOX_REQUIRES = ["tox>=4.22", "tox-uv>=1"]
-
-    @cached_property
-    def path_config_dir(self) -> Path:
-        return Path.temp() / f"{self.name}-tox"
-
-    @cached_property
-    def path_config(self) -> Path:
-        return self.path_config_dir / "tox.toml"
-
-    @cached_property
-    def dependencies(self) -> dict[str, list[str]]:
-        data = self.paths.pyproject_repo.read_toml()
-        return data["project"].get("optional-dependencies",{})
 
     @cached_property
     def modules(self) -> list[str]:
@@ -598,69 +583,10 @@ class Tester(Inherit[Releaser]):
                 modules.append(module)
         return modules
 
-
-    def get_env(self, name: str, path_tests: Path, extras: list[str]) -> dict:
-        if path_tests.is_relative_to(self.paths.repo):
-            path_tests = path_tests.relative_to(self.paths.repo)
-        deps = self.get_deps_extras(extras)
-        env = {
-            "description": f"Run {name} tests.",
-            "extras": extras,
-            "deps": deps,
-            "commands": [["python", "-m", "pytest", "-q", str(path_tests)]],
-        }
-        return env
-
     @cached_property
-    def env(self) -> dict:
-        return self.get_env(name=self.paths.name_ns, path_tests=self.paths.tests, extras=["test"])
-
-    def get_extras_module(self, module: str) -> list[str]:
-        extras = ["test"]
-        extras_available = set(self.dependencies.keys())
-
-        if module in extras_available:
-            extras.insert(0, module)
-
-        extras_children = sorted(extra for extra in extras_available if extra.startswith(f"{module}."))
-        return extras_children + extras
-
-    def get_deps_extras(self, extras: list[str]) -> list[str]:
-        resolved = []
-        for extra in extras:
-            resolved.extend(self.dependencies.get(extra, []))
-        return list(dict.fromkeys(resolved))
-
-    @cached_property
-    def envs(self) -> dict[str, dict]:
-        if not self.paths.metadata.test_envs:
-            if not self.modules:
-                return {}
-            return {self.paths.name_ns: self.env}
-
-        envs = {}
-
-        for module in self.modules:
-            extras = self.get_extras_module(module)
-
-            path_test = self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
-            name = f"{self.paths.name_ns}.{module}"
-            envs[name] = self.get_env(name=name, path_tests=path_test, extras=extras)
-
-        return envs
-
-    @cached_property
-    def data(self) -> dict:
-        data = {
-            "requires": self.TOX_REQUIRES,
-            "env_list": list(self.envs.keys()),
-            "env": self.envs,
-        }
-        return data
-
-    def write_config(self):
-        self.path_config_dir.mkdir(parents=True, exist_ok=True)
-        self.path_config.write_toml(self.data)
+    def env_list(self) -> list[str]:
+        data = self.paths.pyproject_repo.read_toml()
+        return list(data.get("tool", {}).get("tox", {}).get("env_list", []))
 
     def run_subprocess(self) -> int:
         command = [
@@ -669,7 +595,7 @@ class Tester(Inherit[Releaser]):
             "tox-uv",
             "tox",
             "-c",
-            str(self.path_config),
+            str(self.paths.pyproject_repo),
             "--root",
             str(self.paths.repo),
             "--workdir",
@@ -695,17 +621,15 @@ class Tester(Inherit[Releaser]):
 
     @logger.instrument('Running test suite for "{self.paths.name_ns}"...')
     def run(self) -> bool:
-        if not self.envs:
+        if not self.modules:
             logger.warning(f'No tests found under "{self.paths.tests}". Skipping.')
             return True
 
-        logger.info(f'Generating temporary tox config: "{self.path_config}"')
-        self.write_config()
-        try:
-            code = self.run_subprocess()
-        finally:
-            self.path_config.unlink(missing_ok=True)
-            shutil.rmtree(self.path_config_dir, ignore_errors=True)
+        if not self.env_list:
+            logger.warning(f'No tox envs found in "{self.paths.pyproject_repo}". Skipping.')
+            return True
+
+        code = self.run_subprocess()
 
         if code == 0:
             logger.info("All test environments passed.")

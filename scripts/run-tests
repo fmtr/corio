@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(pwd)"
+
+cd "$repo_root"
+uvx --with tox-uv tox -c pyproject.toml --root "$repo_root" --workdir "$repo_root/.tox" run "$@"

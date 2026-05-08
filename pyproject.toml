@@ -1,99 +1,3 @@
-[build-system]
-requires = ["setuptools>=82", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.corio.dependencies]
-dev = ["logging", "version.dev", "debug", "sets", "yaml", "db.document", "infra"]
-install = []
-test = ["pytest", "pytest-cov"]
-yaml = ["yamlscript", "pyyaml"]
-logging = ["logfire", "version"]
-parallel = ["dask[bag]", "distributed", "bokeh"]
-tokenization = ["tokenizers"]
-augmentation = ["faker", "sre_yield"]
-process = ["logging"]
-profiling = ["contexttimer"]
-"docker.client" = ["python-on-whales"]
-unicode = ["Unidecode"]
-version = []
-"version.dev" = ["semver"]
-spaces = ["netrc"]
-netrc = ["tinynetrc"]
-hfh = ["huggingface_hub"]
-merging = ["deepmerge"]
-api = ["fastapi", "uvicorn[standard]", "logging", "dm", "logfire[fastapi]"]
-dm = ["pydantic", "pydantic-extra-types", "pycountry"]
-ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "dm"]
-"ai.compute" = ["cuda-bindings==13.2.0", "cuda-pathfinder==1.5.4", "cuda-toolkit==13.0.2", "nvidia-cublas==13.1.0.3", "nvidia-cuda-cupti==13.0.85", "nvidia-cuda-nvrtc==13.0.88", "nvidia-cuda-runtime==13.0.96", "nvidia-cudnn-cu13==9.19.0.56", "nvidia-cufft==12.0.0.61", "nvidia-cufile==1.15.1.6", "nvidia-curand==10.4.0.35", "nvidia-cusolver==12.0.4.66", "nvidia-cusparse==12.6.3.3", "nvidia-cusparselt-cu13==0.8.0", "nvidia-nccl-cu13==2.28.9", "nvidia-nvjitlink==13.0.88", "nvidia-nvshmem-cu13==3.4.5", "nvidia-nvtx==13.0.85", "torch==2.11.0", "triton==3.6.0"]
-"openai.api" = ["openai"]
-"ai.client" = ["logging", "dm", "openai.api", "pydantic-ai-slim[logfire,openai]", "ollama"]
-json-fix = ["json_repair"]
-semantic = ["sentence_transformers", "metric"]
-metric = ["tabular"]
-tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
-html = ["html2text"]
-interface = ["flet[all] <0.80.0", "flet-video", "flet-webview"]
-"google.api" = ["google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client"]
-caching = ["diskcache", "cachetools"]
-pdf = ["pymupdf", "dm", "pymupdf4llm"]
-debug = ["pydevd-pycharm~=251.25410.159"]
-sets = ["pydantic-settings", "dm", "yaml"]
-"path.app" = ["appdirs"]
-"path.type" = ["filetype"]
-dns = ["dnspython[doh]", "http", "caching"]
-patterns = ["regex"]
-http = ["httpx", "httpx_retries", "logging", "logfire[httpx]"]
-setup = ["setuptools"]
-webhook = ["http"]
-browsers = ["playwright"]
-db = []
-"db.document" = ["beanie"]
-mqtt = ["aiomqtt"]
-av = ["av"]
-env = []
-"env.io" = ["dotenv"]
-toml = []
-"toml.write" = ["tomlkit"]
-ha = ["env.io"]
-"ha.api" = ["ha", "homeassistant_api", "aiohasupervisor"]
-doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav"]
-youtube = ["pytubefix"]
-infra = ["version.dev", "logging", "setup", "doc", "sets", "build", "twine", "packaging", "vcs", "docker.client", "merging", "http", "api", "toml.write", "secrets", "cli", "test"]
-vcs = ["pygit2"]
-tasmota = ["decode-config", "esptool"]
-encrypt = ["pyrage"]
-secrets = ["encrypt", "env.io", "yaml", "logging", "sets", "vcs"]
-cli = ["sets", "logging"]
-
-[tool.corio.metadata]
-version = "2.2.4"
-port = 0
-base = "python"
-description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
-org_singleton = "fmtr"
-org_github = "fmtr"
-org_friendly = "Frontmatter AI"
-is_client = false
-scripts = []
-services = []
-keywords = []
-is_pypi = true
-is_dockerhub = false
-test_envs = true
-
-[tool.corio.metadata.setup]
-
-[tool.setuptools]
-script-files = ["scripts/opt-dev-init", "scripts/docker-prune", "scripts/vlc-tn", "scripts/ha-addon-launch", "scripts/install-ys", "scripts/tasmota-config", "scripts/download", "scripts/run-script", "scripts/ssh-auth", "scripts/cru", "scripts/ssh-serve", "scripts/set-secure-path", "scripts/vm-launch", "scripts/auth-token", "scripts/set-user-sudo", "scripts/docker-build-bases", "scripts/fmtr-test-script", "scripts/compose-update", "scripts/add-ve-shell", "scripts/apt-headless", "scripts/snips-install", "scripts/install-ts", "scripts/tasmota-flash", "scripts/docs-deploy", "scripts/infra-sync", "scripts/parse-args", "scripts/docker-install-deps", "scripts/pypi-reserve", "scripts/install-docker", "scripts/set-password", "scripts/tasmota-terminal", "scripts/mirror-dir", "scripts/compress-dir", "scripts/pypi-check", "scripts/git-clone", "scripts/docker-sandbox", "scripts/docker-install-prod", "scripts/docker-sandbox-init", "scripts/install-browser", "scripts/docker-build-bases-dev", "scripts/apt-essentials", "scripts/encrypt-secrets", "scripts/add-user-path", "scripts/infra", "scripts/add-service"]
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["corio*"]
-namespaces = false
-
-[tool.setuptools.package-data]
-corio = ["pyproject.package.toml"]
-
 [project]
 name = "corio"
 version = "2.2.4"
@@ -176,6 +80,201 @@ Homepage = "https://github.com/fmtr/corio"
 
 [project.scripts]
 corio = "corio.entrypoint:main"
+
+[tool.corio.metadata]
+version = "2.2.4"
+port = 0
+base = "python"
+description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
+org_singleton = "fmtr"
+org_github = "fmtr"
+org_friendly = "Frontmatter AI"
+is_client = false
+scripts = []
+services = []
+keywords = []
+is_pypi = true
+is_dockerhub = false
+test_envs = true
+
+[tool.corio.metadata.setup]
+
+[tool.corio.dependencies]
+dev = ["logging", "version.dev", "debug", "sets", "yaml", "db.document", "infra"]
+install = []
+test = ["pytest", "pytest-cov"]
+yaml = ["yamlscript", "pyyaml"]
+logging = ["logfire", "version"]
+parallel = ["dask[bag]", "distributed", "bokeh"]
+tokenization = ["tokenizers"]
+augmentation = ["faker", "sre_yield"]
+process = ["logging"]
+profiling = ["contexttimer"]
+"docker.client" = ["python-on-whales"]
+unicode = ["Unidecode"]
+version = []
+"version.dev" = ["semver"]
+spaces = ["netrc"]
+netrc = ["tinynetrc"]
+hfh = ["huggingface_hub"]
+merging = ["deepmerge"]
+api = ["fastapi", "uvicorn[standard]", "logging", "dm", "logfire[fastapi]"]
+dm = ["pydantic", "pydantic-extra-types", "pycountry"]
+ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "dm"]
+"ai.compute" = ["cuda-bindings==13.2.0", "cuda-pathfinder==1.5.4", "cuda-toolkit==13.0.2", "nvidia-cublas==13.1.0.3", "nvidia-cuda-cupti==13.0.85", "nvidia-cuda-nvrtc==13.0.88", "nvidia-cuda-runtime==13.0.96", "nvidia-cudnn-cu13==9.19.0.56", "nvidia-cufft==12.0.0.61", "nvidia-cufile==1.15.1.6", "nvidia-curand==10.4.0.35", "nvidia-cusolver==12.0.4.66", "nvidia-cusparse==12.6.3.3", "nvidia-cusparselt-cu13==0.8.0", "nvidia-nccl-cu13==2.28.9", "nvidia-nvjitlink==13.0.88", "nvidia-nvshmem-cu13==3.4.5", "nvidia-nvtx==13.0.85", "torch==2.11.0", "triton==3.6.0"]
+"openai.api" = ["openai"]
+"ai.client" = ["logging", "dm", "openai.api", "pydantic-ai-slim[logfire,openai]", "ollama"]
+json-fix = ["json_repair"]
+semantic = ["sentence_transformers", "metric"]
+metric = ["tabular"]
+tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
+html = ["html2text"]
+interface = ["flet[all] <0.80.0", "flet-video", "flet-webview"]
+"google.api" = ["google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client"]
+caching = ["diskcache", "cachetools"]
+pdf = ["pymupdf", "dm", "pymupdf4llm"]
+debug = ["pydevd-pycharm~=251.25410.159"]
+sets = ["pydantic-settings", "dm", "yaml"]
+"path.app" = ["appdirs"]
+"path.type" = ["filetype"]
+dns = ["dnspython[doh]", "http", "caching"]
+patterns = ["regex"]
+http = ["httpx", "httpx_retries", "logging", "logfire[httpx]"]
+setup = ["setuptools"]
+webhook = ["http"]
+browsers = ["playwright"]
+db = []
+"db.document" = ["beanie"]
+mqtt = ["aiomqtt"]
+av = ["av"]
+env = []
+"env.io" = ["dotenv"]
+toml = []
+"toml.write" = ["tomlkit"]
+ha = ["env.io"]
+"ha.api" = ["ha", "homeassistant_api", "aiohasupervisor"]
+doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav"]
+youtube = ["pytubefix"]
+infra = ["version.dev", "logging", "setup", "doc", "sets", "build", "twine", "packaging", "vcs", "docker.client", "merging", "http", "api", "toml.write", "secrets", "cli", "test"]
+vcs = ["pygit2"]
+tasmota = ["decode-config", "esptool"]
+encrypt = ["pyrage"]
+secrets = ["encrypt", "env.io", "yaml", "logging", "sets", "vcs"]
+cli = ["sets", "logging"]
+
+[tool.setuptools]
+script-files = ["scripts/opt-dev-init", "scripts/docker-prune", "scripts/vlc-tn", "scripts/ha-addon-launch", "scripts/install-ys", "scripts/tasmota-config", "scripts/download", "scripts/run-script", "scripts/ssh-auth", "scripts/cru", "scripts/ssh-serve", "scripts/set-secure-path", "scripts/vm-launch", "scripts/auth-token", "scripts/set-user-sudo", "scripts/docker-build-bases", "scripts/fmtr-test-script", "scripts/compose-update", "scripts/add-ve-shell", "scripts/apt-headless", "scripts/snips-install", "scripts/install-ts", "scripts/tasmota-flash", "scripts/docs-deploy", "scripts/infra-sync", "scripts/parse-args", "scripts/docker-install-deps", "scripts/run-tests", "scripts/pypi-reserve", "scripts/install-docker", "scripts/set-password", "scripts/tasmota-terminal", "scripts/mirror-dir", "scripts/compress-dir", "scripts/pypi-check", "scripts/git-clone", "scripts/docker-sandbox", "scripts/docker-install-prod", "scripts/docker-sandbox-init", "scripts/install-browser", "scripts/docker-build-bases-dev", "scripts/apt-essentials", "scripts/encrypt-secrets", "scripts/add-user-path", "scripts/infra", "scripts/add-service"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["corio*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+corio = ["pyproject.package.toml"]
+
+[tool.tox]
+requires = ["tox>=4.22", "tox-uv>=1"]
+env_list = ["corio.caching", "corio.datatype", "corio.dns", "corio.dt", "corio.encrypt", "corio.env", "corio.hash", "corio.hook", "corio.infra", "corio.iterator", "corio.jsn", "corio.name", "corio.path", "corio.patterns", "corio.rand", "corio.strings", "corio.toml", "corio.tools", "corio.yaml"]
+
+[tool.tox.env."corio.caching"]
+description = "Run corio.caching tests."
+deps = ["diskcache", "cachetools", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_caching.py"]]
+
+[tool.tox.env."corio.datatype"]
+description = "Run corio.datatype tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_datatype.py"]]
+
+[tool.tox.env."corio.dns"]
+description = "Run corio.dns tests."
+deps = ["dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "diskcache", "cachetools", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dns.py"]]
+
+[tool.tox.env."corio.dt"]
+description = "Run corio.dt tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dt.py"]]
+
+[tool.tox.env."corio.encrypt"]
+description = "Run corio.encrypt tests."
+deps = ["pyrage", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_encrypt.py"]]
+
+[tool.tox.env."corio.env"]
+description = "Run corio.env tests."
+deps = ["dotenv", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_env.py"]]
+
+[tool.tox.env."corio.hash"]
+description = "Run corio.hash tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_hash.py"]]
+
+[tool.tox.env."corio.hook"]
+description = "Run corio.hook tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_hook.py"]]
+
+[tool.tox.env."corio.infra"]
+description = "Run corio.infra tests."
+deps = ["semver", "logfire", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_infra.py"]]
+
+[tool.tox.env."corio.iterator"]
+description = "Run corio.iterator tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_iterator.py"]]
+
+[tool.tox.env."corio.jsn"]
+description = "Run corio.jsn tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_jsn.py"]]
+
+[tool.tox.env."corio.name"]
+description = "Run corio.name tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_name.py"]]
+
+[tool.tox.env."corio.path"]
+description = "Run corio.path tests."
+deps = ["appdirs", "filetype", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_path.py"]]
+
+[tool.tox.env."corio.patterns"]
+description = "Run corio.patterns tests."
+deps = ["regex", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_patterns.py"]]
+
+[tool.tox.env."corio.rand"]
+description = "Run corio.rand tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_rand.py"]]
+
+[tool.tox.env."corio.strings"]
+description = "Run corio.strings tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_strings.py"]]
+
+[tool.tox.env."corio.toml"]
+description = "Run corio.toml tests."
+deps = ["tomlkit", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_toml.py"]]
+
+[tool.tox.env."corio.tools"]
+description = "Run corio.tools tests."
+deps = ["pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_tools.py"]]
+
+[tool.tox.env."corio.yaml"]
+description = "Run corio.yaml tests."
+deps = ["yamlscript", "pyyaml", "pytest", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_yaml.py"]]
+
+[build-system]
+requires = ["setuptools>=82", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov"]

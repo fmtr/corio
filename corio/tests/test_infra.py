@@ -17,12 +17,16 @@ def _write_editable_repo(path_repo: Path, name: str, version: str) -> None:
     )
 
 
-def _make_incrementor(path_repo: Path, is_pre: bool = False) -> IncrementorPyproject:
+def _make_incrementor(path_repo: Path, is_pre: bool = False, test_envs: bool = True) -> IncrementorPyproject:
+    path_tests = path_repo / "corio" / "tests"
+    path_tests.mkdir(parents=True, exist_ok=True)
     parent = SimpleNamespace(
         paths=SimpleNamespace(
             repo=path_repo,
             pyproject_repo=path_repo / "pyproject.toml",
             name_ns="corio",
+            tests=path_tests,
+            metadata=SimpleNamespace(test_envs=test_envs),
         ),
         versions=SimpleNamespace(is_pre=is_pre),
     )
@@ -163,24 +167,23 @@ def test_process_deps_pins_project_dependencies(tmp_path):
     assert incrementor._process_deps(optional_dev) == ["haco[logging]==1.2.3", "pytest"]
 
 
-def _make_tester(path_repo: Path, *, test_envs: bool) -> ReleaserTester:
+def _make_tester(path_repo: Path, *, env_list: list[str] | None = None) -> ReleaserTester:
     path_tests = path_repo / "corio" / "tests"
     path_tests.mkdir(parents=True)
     path_pyproject = path_repo / "pyproject.toml"
+    if env_list is None:
+        env_list = []
+
+    env_lines = ", ".join(f'"{name}"' for name in env_list)
     path_pyproject.write_text(
         "\n".join(
             [
+                "[tool.tox]",
+                f"env_list = [{env_lines}]",
+                "",
                 "[project]",
                 'name = "corio"',
                 'version = "0.0.0"',
-                "",
-                "[project.optional-dependencies]",
-                'test = ["pytest", "pytest-cov"]',
-                'path = []',
-                '"path.app" = ["appdirs"]',
-                '"path.type" = ["filetype"]',
-                "strings = []",
-                "",
             ]
         ),
         encoding="utf-8",
@@ -192,57 +195,116 @@ def _make_tester(path_repo: Path, *, test_envs: bool) -> ReleaserTester:
             tests=path_tests,
             pyproject_repo=path_pyproject,
             name_ns="corio",
-            metadata=SimpleNamespace(test_envs=test_envs),
         ),
     )
     return ReleaserTester(parent)
 
 
-def test_tester_get_extras_module_merges_module_and_dotted_children(tmp_path):
+def test_incrementor_tox_get_extras_module_merges_module_and_dotted_children(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
-    tester = _make_tester(path_repo, test_envs=True)
+    incrementor = _make_incrementor(path_repo, test_envs=True)
+    dependencies = {
+        "test": ["pytest", "pytest-cov"],
+        "path": [],
+        "path.app": ["appdirs"],
+        "path.type": ["filetype"],
+        "strings": [],
+    }
 
-    assert tester.get_extras_module("path") == ["path.app", "path.type", "path", "test"]
-    assert tester.get_extras_module("strings") == ["strings", "test"]
-    assert tester.get_extras_module("missing") == ["test"]
+    assert incrementor._tox_get_extras_module("path", dependencies) == ["path.app", "path.type", "path", "test"]
+    assert incrementor._tox_get_extras_module("strings", dependencies) == ["strings", "test"]
+    assert incrementor._tox_get_extras_module("missing", dependencies) == ["test"]
 
 
-def test_tester_get_deps_extras_resolves_recursive_dependencies(tmp_path):
+def test_incrementor_tox_get_deps_extras_resolves_superset(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
-    tester = _make_tester(path_repo, test_envs=True)
+    incrementor = _make_incrementor(path_repo, test_envs=True)
+    dependencies = {
+        "test": ["pytest", "pytest-cov"],
+        "path": [],
+        "path.app": ["appdirs"],
+        "path.type": ["filetype"],
+    }
 
-    deps = tester.get_deps_extras(["path.app", "path.type", "test"])
-    assert "pytest" in deps
-    assert "pytest-cov" in deps
-
-    deps_missing = tester.get_deps_extras(["missing"])
-    assert deps_missing == []
+    deps = incrementor._tox_get_deps_extras(["path.app", "path.type", "path", "test"], dependencies)
+    assert deps == ["appdirs", "filetype", "pytest", "pytest-cov"]
 
 
-def test_tester_envs_use_file_module_name_with_test_envs(tmp_path):
+def test_incrementor_tox_envs_use_file_module_name_with_test_envs(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
-    tester = _make_tester(path_repo, test_envs=True)
-    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
-    (tester.paths.tests / "test_strings.py").write_text("", encoding="utf-8")
+    incrementor = _make_incrementor(path_repo, test_envs=True)
+    (incrementor.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    (incrementor.paths.tests / "test_strings.py").write_text("", encoding="utf-8")
 
-    envs = tester.envs
+    dependencies = {
+        "test": ["pytest", "pytest-cov"],
+        "path": [],
+        "path.app": ["appdirs"],
+        "path.type": ["filetype"],
+        "strings": [],
+    }
+    envs = incrementor._tox_envs(dependencies=dependencies)
 
     assert set(envs) == {"corio.path", "corio.strings"}
-    assert envs["corio.path"]["extras"] == ["path.app", "path.type", "path", "test"]
-    assert envs["corio.strings"]["extras"] == ["strings", "test"]
-    assert "pytest" in envs["corio.path"]["deps"]
+    assert envs["corio.path"]["deps"] == ["appdirs", "filetype", "pytest", "pytest-cov"]
+    assert envs["corio.strings"]["deps"] == ["pytest", "pytest-cov"]
 
 
-def test_tester_envs_fall_back_to_single_env_when_test_envs_disabled(tmp_path):
+def test_incrementor_tox_envs_fall_back_to_single_env_when_test_envs_disabled(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
-    tester = _make_tester(path_repo, test_envs=False)
-    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    incrementor = _make_incrementor(path_repo, test_envs=False)
+    (incrementor.paths.tests / "test_path.py").write_text("", encoding="utf-8")
 
-    envs = tester.envs
+    envs = incrementor._tox_envs(dependencies={"test": ["pytest", "pytest-cov"]})
 
     assert set(envs) == {"corio"}
-    assert envs["corio"]["extras"] == ["test"]
+    assert envs["corio"]["deps"] == ["pytest", "pytest-cov"]
+
+
+def test_incrementor_tox_envs_canonicalizes_dotted_extras(tmp_path):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    incrementor = _make_incrementor(path_repo, test_envs=True)
+    (incrementor.paths.tests / "test_env.py").write_text("", encoding="utf-8")
+
+    envs = incrementor._tox_envs(
+        dependencies={
+            "test": ["pytest", "pytest-cov"],
+            "env": [],
+            "env.io": ["dotenv"],
+        }
+    )
+
+    assert envs["corio.env"]["deps"] == ["dotenv", "pytest", "pytest-cov"]
+
+
+def test_tester_run_skips_when_no_tests_found(tmp_path):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    tester = _make_tester(path_repo, env_list=["corio"])
+
+    assert tester.run() is True
+
+
+def test_tester_run_skips_when_no_tox_envs_found(tmp_path):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    tester = _make_tester(path_repo, env_list=[])
+    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+
+    assert tester.run() is True
+
+
+def test_tester_run_returns_false_when_subprocess_fails(tmp_path, monkeypatch):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    tester = _make_tester(path_repo, env_list=["corio"])
+    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: 1)
+
+    assert tester.run() is False
