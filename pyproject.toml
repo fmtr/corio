@@ -177,7 +177,7 @@ corio = ["pyproject.package.toml"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "strings", "toml", "tools"]
+env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "strings", "toml", "tools", "yml"]
 
 [tool.tox.env.caching]
 description = "Run caching tests."
@@ -268,6 +268,11 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_toml.py"]]
 description = "Run tools tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_tools.py"]]
+
+[tool.tox.env.yml]
+description = "Run yml tests."
+deps = ["pytest", "pytest-cov", "pyyaml", "yamlscript"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_yml.py"]]
 
 [build-system]
 requires = ["setuptools>=82", "wheel"]

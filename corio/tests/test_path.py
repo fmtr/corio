@@ -19,27 +19,6 @@ def test_path_args(args):
     assert actual == expected
 
 
-@pytest.mark.parametrize(
-    'raw, expected',
-    [
-        (r'C:\test', True),
-        (r'd:\test', True),
-        (r'u:', True),
-        (r'x:\test\file.exe', True),
-        (r'\\wsl.localhost\shell\bin', True),
-        (r'/opt/data', False),
-        (r'/bin/usr/python', False),
-        (r'test/path', False),
-        (r'test\path', False),
-    ]
-)
-def test_path_is_abs_win_path(raw, expected):
-    actual = path.Path.is_abs_win_path(raw)
-    assert actual == expected
-    actual = path.Path.is_abs_win_path(path.Path(raw, convert_wsl=False))
-    assert actual == expected
-
-
 def test_path_module():
     """
 

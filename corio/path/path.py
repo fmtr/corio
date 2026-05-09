@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import re
 import site
-import subprocess
 import typing
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -15,69 +14,18 @@ from typing import Self, Tuple, Callable
 from typing import Union, Any
 
 from corio.constants import Constants
-from corio.plat import is_wsl
 from corio.strings import join_natural
 
 if typing.TYPE_CHECKING:
     from datetime import datetime, timezone
 
 
-WIN_PATH_PATTERN = r'''([a-z]:(\\|$)|\\\\)'''
-WIN_PATH_RX = re.compile(WIN_PATH_PATTERN, flags=re.IGNORECASE)
-
-
-class WSLPathConversionError(EnvironmentError):
-    """
-
-    Error to raise if WSL path conversion fails.
-
-    """
-
-
 class Path(type(Path())):
     """
 
-    Custom path object aware of WSL paths, with some additional read/write methods
+    Custom path object with additional read/write methods.
 
     """
-
-    def __new__(cls, *segments: Union[str, Path], convert_wsl: bool = True, **kwargs):
-        """
-
-        Intercept arguments to detect whether WSL conversion is required.
-
-        """
-        if convert_wsl and len(segments) == 1 and is_wsl() and cls.is_abs_win_path(*segments):
-            segments = [cls.from_wsl(*segments)]
-
-        return super().__new__(cls, *segments, **kwargs)
-
-    @classmethod
-    def is_abs_win_path(cls, path: Union[str, Path]) -> bool:
-        """
-
-        Infer if the current path is an absolute Windows path.
-
-        """
-        path = str(path)
-        return bool(WIN_PATH_RX.match(path))
-
-    @classmethod
-    def from_wsl(cls, path: Union[str, Path]) -> bool:  # pragma: no cover
-        """
-
-        Call `wslpath` to convert the path to its Unix equivalent.
-
-        """
-        result = subprocess.run(['wslpath', '-u', str(path)], capture_output=True, text=True)
-
-        if result.returncode:
-            msg = f'Could not convert Windows path to Unix equivalent: "{path}"'
-            raise WSLPathConversionError(msg)
-
-        path_wsl = result.stdout.strip()
-        path_wsl = cls(path_wsl, convert_wsl=False)
-        return path_wsl
 
     @classmethod
     def package(cls) -> 'Path':
