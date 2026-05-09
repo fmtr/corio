@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.3.0"
+version = "2.3.1"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
@@ -9,8 +9,8 @@ license-files = ["LICENSE"]
 keywords = []
 
 [project.optional-dependencies]
-dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov"]
-test = ["pytest", "pytest-cov"]
+dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio"]
+test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript", "pyyaml"]
 yaml = ["yamlscript", "pyyaml"]
 logging = ["logfire"]
@@ -64,13 +64,13 @@ ha = ["dotenv"]
 "ha.api" = ["dotenv", "homeassistant_api", "aiohasupervisor"]
 doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav"]
 youtube = ["pytubefix"]
-infra = ["semver", "logfire", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov"]
+infra = ["semver", "logfire", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio"]
 vcs = ["pygit2"]
 tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
 secrets = ["pyrage", "dotenv", "yamlscript", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "logfire"]
-all = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "cuda-bindings==13.2.0", "cuda-pathfinder==1.5.4", "cuda-toolkit==13.0.2", "nvidia-cublas==13.1.0.3", "nvidia-cuda-cupti==13.0.85", "nvidia-cuda-nvrtc==13.0.88", "nvidia-cuda-runtime==13.0.96", "nvidia-cudnn-cu13==9.19.0.56", "nvidia-cufft==12.0.0.61", "nvidia-cufile==1.15.1.6", "nvidia-curand==10.4.0.35", "nvidia-cusolver==12.0.4.66", "nvidia-cusparse==12.6.3.3", "nvidia-cusparselt-cu13==0.8.0", "nvidia-nccl-cu13==2.28.9", "nvidia-nvjitlink==13.0.88", "nvidia-nvshmem-cu13==3.4.5", "nvidia-nvtx==13.0.85", "torch==2.11.0", "triton==3.6.0", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+all = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "cuda-bindings==13.2.0", "cuda-pathfinder==1.5.4", "cuda-toolkit==13.0.2", "nvidia-cublas==13.1.0.3", "nvidia-cuda-cupti==13.0.85", "nvidia-cuda-nvrtc==13.0.88", "nvidia-cuda-runtime==13.0.96", "nvidia-cudnn-cu13==9.19.0.56", "nvidia-cufft==12.0.0.61", "nvidia-cufile==1.15.1.6", "nvidia-curand==10.4.0.35", "nvidia-cusolver==12.0.4.66", "nvidia-cusparse==12.6.3.3", "nvidia-cusparselt-cu13==0.8.0", "nvidia-nccl-cu13==2.28.9", "nvidia-nvjitlink==13.0.88", "nvidia-nvshmem-cu13==3.4.5", "nvidia-nvtx==13.0.85", "torch==2.11.0", "triton==3.6.0", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -83,7 +83,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.3.0"
+version = "2.3.1"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -103,7 +103,7 @@ test_envs = true
 [tool.corio.dependencies]
 dev = ["logging", "version.dev", "debug", "sets", "yaml", "db.document", "infra"]
 install = []
-test = ["pytest", "pytest-cov"]
+test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript", "pyyaml"]
 yaml = ["yml"]
 logging = ["logfire", "version"]
@@ -181,97 +181,97 @@ env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook"
 
 [tool.tox.env.caching]
 description = "Run caching tests."
-deps = ["cachetools", "diskcache", "pytest", "pytest-cov"]
+deps = ["cachetools", "diskcache", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_caching.py"]]
 
 [tool.tox.env.datatype]
 description = "Run datatype tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_datatype.py"]]
 
 [tool.tox.env.dns]
 description = "Run dns tests."
-deps = ["cachetools", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-cov"]
+deps = ["cachetools", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dns.py"]]
 
 [tool.tox.env.dt]
 description = "Run dt tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dt.py"]]
 
 [tool.tox.env.encrypt]
 description = "Run encrypt tests."
-deps = ["pyrage", "pytest", "pytest-cov"]
+deps = ["pyrage", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_encrypt.py"]]
 
 [tool.tox.env.env]
 description = "Run env tests."
-deps = ["dotenv", "pytest", "pytest-cov"]
+deps = ["dotenv", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_env.py"]]
 
 [tool.tox.env.hash]
 description = "Run hash tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_hash.py"]]
 
 [tool.tox.env.hook]
 description = "Run hook tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_hook.py"]]
 
 [tool.tox.env.infra]
 description = "Run infra tests."
-deps = ["build", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-cov", "python-on-whales", "pyyaml", "semver", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript"]
+deps = ["build", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "semver", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_infra.py"]]
 
 [tool.tox.env.iterator]
 description = "Run iterator tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_iterator.py"]]
 
 [tool.tox.env.jsn]
 description = "Run jsn tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_jsn.py"]]
 
 [tool.tox.env.name]
 description = "Run name tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_name.py"]]
 
 [tool.tox.env.path]
 description = "Run path tests."
-deps = ["appdirs", "filetype", "pytest", "pytest-cov"]
+deps = ["appdirs", "filetype", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_path.py"]]
 
 [tool.tox.env.patterns]
 description = "Run patterns tests."
-deps = ["pytest", "pytest-cov", "regex"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov", "regex"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_patterns.py"]]
 
 [tool.tox.env.rand]
 description = "Run rand tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_rand.py"]]
 
 [tool.tox.env.strings]
 description = "Run strings tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_strings.py"]]
 
 [tool.tox.env.toml]
 description = "Run toml tests."
-deps = ["pytest", "pytest-cov", "tomlkit"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov", "tomlkit"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_toml.py"]]
 
 [tool.tox.env.tools]
 description = "Run tools tests."
-deps = ["pytest", "pytest-cov"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_tools.py"]]
 
 [tool.tox.env.yml]
 description = "Run yml tests."
-deps = ["pytest", "pytest-cov", "pyyaml", "yamlscript"]
+deps = ["pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "yamlscript"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_yml.py"]]
 
 [build-system]
@@ -279,4 +279,4 @@ requires = ["setuptools>=82", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov"]
+dev = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio"]
