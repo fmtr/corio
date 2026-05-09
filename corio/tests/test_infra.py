@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from packaging.requirements import Requirement
 
-from corio.infra.incrementor_pyproject import IncrementorPyproject
+from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
 from corio.infra.releaser import Tester as ReleaserTester
 from corio.path import Path
 
@@ -18,6 +18,8 @@ def _write_editable_repo(path_repo: Path, name: str, version: str) -> None:
 
 
 def _make_incrementor(path_repo: Path, is_pre: bool = False, test_envs: bool = True) -> IncrementorPyproject:
+    path_package = path_repo / "corio"
+    path_package.mkdir(parents=True, exist_ok=True)
     path_tests = path_repo / "corio" / "tests"
     path_tests.mkdir(parents=True, exist_ok=True)
     parent = SimpleNamespace(
@@ -25,6 +27,7 @@ def _make_incrementor(path_repo: Path, is_pre: bool = False, test_envs: bool = T
             repo=path_repo,
             pyproject_repo=path_repo / "pyproject.toml",
             name_ns="corio",
+            path=path_package,
             tests=path_tests,
             metadata=SimpleNamespace(test_envs=test_envs),
         ),
@@ -48,7 +51,7 @@ def test_pin_editables_and_flatten_dependencies(tmp_path):
 
     incrementor = _make_incrementor(path_main_repo)
 
-    assert incrementor._pin_editable("haco") == "haco==1.2.3"
+    assert incrementor._pin_editable("haco") == "haco~=1.2.3"
     assert incrementor._pin_editable("requests") == "requests"
 
     install, extras = incrementor._flatten_dependencies(
@@ -76,7 +79,7 @@ def test_pin_editables_resolves_uv_source_path(tmp_path):
     )
 
     incrementor = _make_incrementor(path_main_repo)
-    assert incrementor._pin_editable("corio") == "corio==1.2.3"
+    assert incrementor._pin_editable("corio") == "corio~=1.2.3"
 
 
 def test_pin_editables_preserves_extras_and_skips_existing_specifiers(tmp_path):
@@ -98,9 +101,10 @@ def test_pin_editables_preserves_extras_and_skips_existing_specifiers(tmp_path):
     req = Requirement(dep)
     assert req.name == "haco"
     assert req.extras == {"version.dev", "logging", "sets", "yaml", "debug", "caching", "api", "mqtt"}
-    assert str(req.specifier) == "==1.2.3"
+    assert str(req.specifier) == "~=1.2.3"
 
-    assert incrementor._pin_editable("haco==1.0.0") == "haco==1.2.3"
+    assert incrementor._pin_editable("haco==1.0.0") == "haco==1.0.0"
+    assert incrementor._pin_editable("haco~=1.0.0") == "haco~=1.2.3"
     assert incrementor._pin_editable("haco>=1.0.0") == "haco>=1.0.0"
 
 
@@ -142,7 +146,7 @@ def test_pin_editables_allows_prerelease_when_current_is_prerelease(tmp_path):
 
     incrementor = _make_incrementor(path_main_repo, is_pre=True)
 
-    assert incrementor._pin_editable("haco") == "haco==1.2.3-rc.1"
+    assert incrementor._pin_editable("haco") == "haco~=1.2.3-rc.1"
 
 
 def test_process_deps_pins_project_dependencies(tmp_path):
@@ -163,8 +167,13 @@ def test_process_deps_pins_project_dependencies(tmp_path):
     dependencies = ["haco", "requests>=2"]
     optional_dev = ["haco[logging]", "pytest"]
 
-    assert incrementor._process_deps(dependencies) == ["haco==1.2.3", "requests>=2"]
-    assert incrementor._process_deps(optional_dev) == ["haco[logging]==1.2.3", "pytest"]
+    assert incrementor._process_deps(dependencies) == ["haco~=1.2.3", "requests>=2"]
+    assert incrementor._process_deps(optional_dev) == ["haco[logging]~=1.2.3", "pytest"]
+
+
+def _make_test_env_generator(path_repo: Path, *, test_envs: bool, dependencies: dict[str, list[str]]) -> GeneratorTestEnvs:
+    incrementor = _make_incrementor(path_repo, test_envs=test_envs)
+    return GeneratorTestEnvs(paths=incrementor.paths, optionals=dependencies)
 
 
 def _make_tester(path_repo: Path, *, env_list: list[str] | None = None) -> ReleaserTester:
@@ -200,10 +209,40 @@ def _make_tester(path_repo: Path, *, env_list: list[str] | None = None) -> Relea
     return ReleaserTester(parent)
 
 
-def test_incrementor_tox_get_extras_module_merges_module_and_dotted_children(tmp_path):
+def test_generator_test_envs_get_deps_merges_module_and_dotted_children(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
-    incrementor = _make_incrementor(path_repo, test_envs=True)
+    generator = _make_test_env_generator(path_repo, test_envs=True, dependencies={
+        "test": ["pytest", "pytest-cov"],
+        "path": [],
+        "path.app": ["appdirs"],
+        "path.type": ["filetype"],
+        "strings": [],
+    })
+    assert generator.get_deps("path") == ["appdirs", "filetype", "pytest", "pytest-cov"]
+    assert generator.get_deps("strings") == ["pytest", "pytest-cov"]
+    assert generator.get_deps("missing") == ["pytest", "pytest-cov"]
+
+
+def test_generator_test_envs_deps_resolves_superset(tmp_path):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    dependencies = {
+        "test": ["pytest", "pytest-cov"],
+        "path": [],
+        "path.app": ["appdirs"],
+        "path.type": ["filetype"],
+    }
+    generator = _make_test_env_generator(path_repo, test_envs=True, dependencies=dependencies)
+    (generator.paths.path / "path.py").write_text("", encoding="utf-8")
+    (generator.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+
+    assert generator.get_deps("path") == ["appdirs", "filetype", "pytest", "pytest-cov"]
+
+
+def test_generator_test_envs_use_file_module_name_with_test_envs(tmp_path):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
     dependencies = {
         "test": ["pytest", "pytest-cov"],
         "path": [],
@@ -211,73 +250,45 @@ def test_incrementor_tox_get_extras_module_merges_module_and_dotted_children(tmp
         "path.type": ["filetype"],
         "strings": [],
     }
-
-    assert incrementor._tox_get_extras_module("path", dependencies) == ["path.app", "path.type", "path", "test"]
-    assert incrementor._tox_get_extras_module("strings", dependencies) == ["strings", "test"]
-    assert incrementor._tox_get_extras_module("missing", dependencies) == ["test"]
-
-
-def test_incrementor_tox_get_deps_extras_resolves_superset(tmp_path):
-    path_repo = Path(tmp_path / "corio")
-    path_repo.mkdir(parents=True)
-    incrementor = _make_incrementor(path_repo, test_envs=True)
-    dependencies = {
-        "test": ["pytest", "pytest-cov"],
-        "path": [],
-        "path.app": ["appdirs"],
-        "path.type": ["filetype"],
-    }
-
-    deps = incrementor._tox_get_deps_extras(["path.app", "path.type", "path", "test"], dependencies)
-    assert deps == ["appdirs", "filetype", "pytest", "pytest-cov"]
-
-
-def test_incrementor_tox_envs_use_file_module_name_with_test_envs(tmp_path):
-    path_repo = Path(tmp_path / "corio")
-    path_repo.mkdir(parents=True)
-    incrementor = _make_incrementor(path_repo, test_envs=True)
-    (incrementor.paths.tests / "test_path.py").write_text("", encoding="utf-8")
-    (incrementor.paths.tests / "test_strings.py").write_text("", encoding="utf-8")
-
-    dependencies = {
-        "test": ["pytest", "pytest-cov"],
-        "path": [],
-        "path.app": ["appdirs"],
-        "path.type": ["filetype"],
-        "strings": [],
-    }
-    envs = incrementor._tox_envs(dependencies=dependencies)
+    generator = _make_test_env_generator(path_repo, test_envs=True, dependencies=dependencies)
+    (generator.paths.path / "path.py").write_text("", encoding="utf-8")
+    (generator.paths.path / "strings.py").write_text("", encoding="utf-8")
+    (generator.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    (generator.paths.tests / "test_strings.py").write_text("", encoding="utf-8")
+    envs = generator.envs
 
     assert set(envs) == {"path", "strings"}
     assert envs["path"]["deps"] == ["appdirs", "filetype", "pytest", "pytest-cov"]
     assert envs["strings"]["deps"] == ["pytest", "pytest-cov"]
 
 
-def test_incrementor_tox_envs_fall_back_to_single_env_when_test_envs_disabled(tmp_path):
+def test_generator_test_envs_fall_back_to_single_env_when_test_envs_disabled(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
-    incrementor = _make_incrementor(path_repo, test_envs=False)
-    (incrementor.paths.tests / "test_path.py").write_text("", encoding="utf-8")
-
-    envs = incrementor._tox_envs(dependencies={"test": ["pytest", "pytest-cov"]})
+    generator = _make_test_env_generator(path_repo, test_envs=False, dependencies={"test": ["pytest", "pytest-cov"]})
+    (generator.paths.path / "path.py").write_text("", encoding="utf-8")
+    (generator.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    envs = generator.envs
 
     assert set(envs) == {"corio"}
     assert envs["corio"]["deps"] == ["pytest", "pytest-cov"]
 
 
-def test_incrementor_tox_envs_canonicalizes_dotted_extras(tmp_path):
+def test_generator_test_envs_resolves_dotted_extras(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
-    incrementor = _make_incrementor(path_repo, test_envs=True)
-    (incrementor.paths.tests / "test_env.py").write_text("", encoding="utf-8")
-
-    envs = incrementor._tox_envs(
+    generator = _make_test_env_generator(
+        path_repo,
+        test_envs=True,
         dependencies={
             "test": ["pytest", "pytest-cov"],
             "env": [],
             "env.io": ["dotenv"],
-        }
+        },
     )
+    (generator.paths.path / "env.py").write_text("", encoding="utf-8")
+    (generator.paths.tests / "test_env.py").write_text("", encoding="utf-8")
+    envs = generator.envs
 
     assert envs["env"]["deps"] == ["dotenv", "pytest", "pytest-cov"]
 

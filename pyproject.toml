@@ -175,11 +175,11 @@ corio = ["pyproject.package.toml"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "strings", "toml", "tools", "yaml"]
+env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "strings", "toml", "tools"]
 
 [tool.tox.env.caching]
 description = "Run caching tests."
-deps = ["diskcache", "cachetools", "pytest", "pytest-cov"]
+deps = ["cachetools", "diskcache", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_caching.py"]]
 
 [tool.tox.env.datatype]
@@ -189,7 +189,7 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_datatype.py"]]
 
 [tool.tox.env.dns]
 description = "Run dns tests."
-deps = ["dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "diskcache", "cachetools", "pytest", "pytest-cov"]
+deps = ["cachetools", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dns.py"]]
 
 [tool.tox.env.dt]
@@ -219,7 +219,7 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_hook.py"]]
 
 [tool.tox.env.infra]
 description = "Run infra tests."
-deps = ["semver", "logfire", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov"]
+deps = ["build", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-cov", "python-on-whales", "pyyaml", "semver", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_infra.py"]]
 
 [tool.tox.env.iterator]
@@ -244,7 +244,7 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_path.py"]]
 
 [tool.tox.env.patterns]
 description = "Run patterns tests."
-deps = ["regex", "pytest", "pytest-cov"]
+deps = ["pytest", "pytest-cov", "regex"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_patterns.py"]]
 
 [tool.tox.env.rand]
@@ -259,18 +259,13 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_strings.py"]]
 
 [tool.tox.env.toml]
 description = "Run toml tests."
-deps = ["tomlkit", "pytest", "pytest-cov"]
+deps = ["pytest", "pytest-cov", "tomlkit"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_toml.py"]]
 
 [tool.tox.env.tools]
 description = "Run tools tests."
 deps = ["pytest", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_tools.py"]]
-
-[tool.tox.env.yaml]
-description = "Run yaml tests."
-deps = ["yamlscript", "pyyaml", "pytest", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "corio/tests/test_yaml.py"]]
 
 [build-system]
 requires = ["setuptools>=82", "wheel"]

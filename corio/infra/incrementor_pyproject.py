@@ -12,16 +12,12 @@ from corio.path import Path, PackagePaths
 from corio.path.path import Metadata
 from corio.toml import ensure_table
 
-
 class IncrementorPyproject(Incrementor):
     AUTHOR_EMAIL = "innovative.fowler@mask.pro.fmtr.dev"
     ENTRYPOINT_COMMAND_SEP = "-"
     ENTRYPOINT_FUNCTION_SEP = "_"
     ENTRYPOINT_FUNC_NAME = "main"
     DEPENDENCIES_SECTION_PATH = ("tool", "corio", "dependencies")
-    TEST_FILENAME_PREFIX = "test_"
-    TEST_FILENAME_SUFFIX = ".py"
-    TOX_REQUIRES = ["tox>=4.22", "tox-uv>=1"]
 
     @cached_property
     def path(self) -> Path:
@@ -86,7 +82,7 @@ class IncrementorPyproject(Incrementor):
 
         if requirement.specifier:
             operators = {specifier.operator for specifier in requirement.specifier}
-            if not operators.issubset({"==", "==="}):
+            if operators != {"~="}:
                 return dep
 
         extras = ""
@@ -97,22 +93,21 @@ class IncrementorPyproject(Incrementor):
         if requirement.marker:
             marker = f"; {requirement.marker}"
 
-        pinned = f"{requirement.name}{extras}=={metadata.version}{marker}"
+        pinned = f"{requirement.name}{extras}~={metadata.version}{marker}"
         logger.info(f'Pinning editable dependency "{dep}" -> "{pinned}".')
         return pinned
 
-    def _process_deps(self, deps: str|list[str]) -> str|list[str]:
+    def _process_deps(self, deps: str | list[str]) -> str | list[str]:
 
         if isinstance(deps, list):
-            deps=[self._process_deps(dep) for dep in deps]
-            deps=dedupe(deps)
+            deps = [self._process_deps(dep) for dep in deps]
+            deps = dedupe(deps)
             return deps
 
-        dep=deps
-        dep=self._pin_editable(dep)
+        dep = deps
+        dep = self._pin_editable(dep)
 
         return dep
-
 
     def apply(self) -> Path | list[Path] | None:
         if not self.path.exists():
@@ -131,7 +126,6 @@ class IncrementorPyproject(Incrementor):
 
         self.path.write_toml(data)
         return self.path
-
 
     @property
     def _author(self) -> str:
@@ -196,12 +190,10 @@ class IncrementorPyproject(Incrementor):
                     values_resolved += resolve_values(value)
             return values_resolved
 
-
         extras = {key: dedupe(resolve_values(key)) for key in dependencies}
         install = extras.pop("install", [])
         extras["all"] = dedupe(list(chain.from_iterable(extras.values())))
         return install, extras
-
 
     def _enrich_toml(self, data):
         version = str(self.version)
@@ -223,7 +215,6 @@ class IncrementorPyproject(Incrementor):
         elif "license-files" in project:
             del project["license-files"]
 
-
         deps_corio = data.get("tool", {}).get("corio", {}).get("dependencies", None)
         if deps_corio is not None:
             install, extras = self._flatten_dependencies(deps_corio)
@@ -231,7 +222,6 @@ class IncrementorPyproject(Incrementor):
             project["optional-dependencies"] = extras
         else:
             logger.info(f'No dependencies section found in "{self.path}". Skipping dependency enrichment.')
-
 
         deps = project.get("dependencies")
         if deps is not None:
@@ -278,89 +268,93 @@ class IncrementorPyproject(Incrementor):
             del setuptools["script-files"]
 
         dependencies = project.get("optional-dependencies", {})
-        envs = self._tox_envs(dependencies=dependencies)
+        gen = GeneratorTestEnvs(paths=self.paths, optionals=dependencies)
+
         tox = ensure_table(data, ("tool", "tox"))
-        tox["requires"] = list(self.TOX_REQUIRES)
-        tox["env_list"] = list(envs.keys())
-        tox["env"] = envs
+        tox["requires"] = gen.TOX_REQUIRES
+        tox["env_list"] = list(gen.envs.keys())
+        tox["env"] = gen.envs
 
         return data
 
+class GeneratorTestEnvs:
+    TEST_FILENAME_PREFIX = "test_"
+    TEST_FILENAME_SUFFIX = ".py"
+    TOX_REQUIRES = ["tox>=4.22", "tox-uv>=1"]
+
+    def __init__(self, *, paths, optionals: dict[str, list[str]]):
+        self.paths = paths
+        self.optionals = optionals
+
     @cached_property
     def _tests_modules(self) -> list[str]:
-        if not self.paths.tests.exists():
-            return []
-
         modules = []
-        for path in sorted(self.paths.tests.glob(f"{self.TEST_FILENAME_PREFIX}*{self.TEST_FILENAME_SUFFIX}")):
-            module = path.stem.removeprefix(self.TEST_FILENAME_PREFIX)
-            if module:
-                modules.append(module)
-        return modules
+        for path in self.paths.path.iterdir():
+            if path.is_dir():
+                if path.name in {"tests", "__pycache__"}:
+                    continue
+                module = path.name
+            else:
+                if path.suffix != self.TEST_FILENAME_SUFFIX:
+                    continue
+                if path.stem.startswith("_"):
+                    continue
+                module = path.stem
 
-    def _tox_get_extras_module(self, module: str, dependencies: dict[str, list[str]]) -> list[str]:
-        extras = ["test"]
-        extras_available = set(dependencies.keys())
-        module_canonical = canonicalize_name(module)
+            path_test = self.get_path_test(module)
+            if not path_test.exists():
+                continue
+            modules.append(module)
 
-        extras_exact = [extra for extra in extras_available if canonicalize_name(extra) == module_canonical]
-        if extras_exact:
-            extras = sorted(extras_exact) + extras
+        return dedupe(sorted(modules))
 
-        extras_children = sorted(
-            extra
-            for extra in extras_available
-            if canonicalize_name(extra).startswith(f"{module_canonical}-")
-        )
-        return extras_children + extras
+    @property
+    def deps_test(self):
+        return sorted(self.optionals['test'])
 
-    def _tox_get_deps_extras(self, extras: list[str], dependencies: dict[str, list[str]]) -> list[str]:
+    def get_deps(self, name):
+
         deps = []
-        for extra in extras:
-            deps += dependencies.get(extra, [])
-        deps = dedupe(deps)
+        keys = [key for key in self.optionals.keys() if key == name or key.startswith(f"{name}.")]
+        for key in keys:
+            deps += self.optionals[key]
+
+        deps += self.deps_test
+
+        deps = sorted(dedupe(deps))
+
         return deps
 
-    def _tox_get_env(
-        self,
-        *,
-        name: str,
-        path_tests: Path,
-        extras: list[str],
-        dependencies: dict[str, list[str]],
-    ) -> dict:
-        if path_tests.is_relative_to(self.paths.repo):
-            path_tests = path_tests.relative_to(self.paths.repo)
-        deps = self._tox_get_deps_extras(extras=extras, dependencies=dependencies)
-        env = {
-            "description": f"Run {name} tests.",
-            "deps": deps,
-            "commands": [["python", "-m", "pytest", "-q", str(path_tests)]],
-        }
-        return env
+    def get_path_test(self, module: str) -> Path:
+        return self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
 
-    def _tox_envs(self, dependencies: dict[str, list[str]]) -> dict[str, dict]:
+    def get_env(self, name, deps, path):
+        path=path.relative_to(self.paths.repo)
+        return {
+            name: dict(
+                description=f"Run {name} tests.",
+                deps=deps,
+                commands=[["python", "-m", "pytest", "-q", str(path)]],
+            )
+        }
+
+    @cached_property
+    def env(self):
+        name = self.paths.name_ns
+        path_tests = self.paths.tests
+        return self.get_env(name, self.deps_test, path_tests)
+
+    @cached_property
+    def envs(self) -> dict[str, dict]:
+
+        if not self._tests_modules:
+            return {}
+
         if not self.paths.metadata.test_envs:
-            if not self._tests_modules:
-                return {}
-            return {
-                self.paths.name_ns: self._tox_get_env(
-                    name=self.paths.name_ns,
-                    path_tests=self.paths.tests,
-                    extras=["test"],
-                    dependencies=dependencies,
-                )
-            }
+            return self.env
 
         envs = {}
         for module in self._tests_modules:
-            extras = self._tox_get_extras_module(module=module, dependencies=dependencies)
-            path_test = self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
-            name = module
-            envs[name] = self._tox_get_env(
-                name=name,
-                path_tests=path_test,
-                extras=extras,
-                dependencies=dependencies,
-            )
+            path_test = self.get_path_test(module)
+            envs |= self.get_env(module, self.get_deps(module), path_test)
         return envs
