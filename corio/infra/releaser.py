@@ -40,13 +40,12 @@ class Releaser(Inherit[Project]):
     """
 
     @logger.instrument("Releasing {self.paths.name_ns}...")
-    def run(self, increment: bool = True, build: bool = False, release: bool = True, cache: bool = True):
+    def run(self, build: bool = False, release: bool = True, cache: bool = True):
 
         from corio.infra.stack import ProductionPrivate, ProductionPublic
 
-        if increment:
-            self.repo.fetch()
-            self.increment()
+        self.repo.fetch()
+        self.increment()
 
         is_passed = self.tester.run()
         if not is_passed:
@@ -55,9 +54,9 @@ class Releaser(Inherit[Project]):
             else:
                 raise RuntimeError("Tests failed. Aborting release.")
 
-        if increment:
-            self.repo.push()
-            self.repo.fetch()
+        self.commit()
+        self.repo.push()
+        self.repo.fetch()
 
         stack_types = []
         if build:
@@ -78,22 +77,28 @@ class Releaser(Inherit[Project]):
     def message(self):
         return f"Release version {self.version}"
 
-    @logger.instrument("Incrementing version numbers {self.repo.origin.url}...")
+    @cached_property
+    def main_ref(self):
+        return self.repo.lookup_reference("refs/heads/main")
+
+    @cached_property
+    def parent_commit(self):
+        return self.main_ref.peel(vcs.Commit)
+
+    @cached_property
+    def index(self):
+        index = self.repo.index
+        # Make sure we're building on main's HEAD (not whatever HEAD currently is).
+        index.read_tree(self.parent_commit.tree)
+        return index
+
+    @logger.instrument("Applying version incrementors {self.repo.origin.url}...")
     def increment(self):
         """
 
-        Increment version numbers in project files, create a new commit, and rebase the release branch.
-        
+        Apply incrementors and stage changed files.
+
         """
-        repo = self.repo
-
-        main_ref = repo.lookup_reference("refs/heads/main")  # todo raise if not main?
-        parent = main_ref.peel(vcs.Commit)
-
-        # Make sure we're building on main's HEAD (not whatever HEAD currently is).
-        index = repo.index
-        index.read_tree(parent.tree)
-
         # Apply incrementors (they edit files in the working tree), then stage results.
         for incrementor in self.incrementors:
             paths = incrementor.apply()
@@ -104,18 +109,22 @@ class Releaser(Inherit[Project]):
 
             for path in paths:
                 rel = str(Path(path).relative_to(self.paths.repo))
-                index.add(rel)
+                self.index.add(rel)
 
-        index.write()
-        tree = index.write_tree(repo)
+        self.index.write()
+
+    @logger.instrument("Committing release changes {self.repo.origin.url}...")
+    def commit(self):
+        repo = self.repo
+        tree = self.index.write_tree(repo)
 
         commit_id = repo.create_commit(
-            main_ref.name,
+            self.main_ref.name,
             repo.default_signature,
             repo.default_signature,
             self.message,
             tree,
-            [parent.id],
+            [self.parent_commit.id],
         )
 
         try:
@@ -218,8 +227,28 @@ class IncrementorVersion(Incrementor):
     @logger.instrument('Incrementing release version in-memory for "{self.paths.name_ns}"...')
     def apply(self) -> Path | list[Path] | None:
         old = self.versions.old
+
+        old_tag = f"v{old}"
+        has_old_tag = old_tag in self.repo.tags.all
+
         if self.versions.pinned:
             new = self.versions.pinned
+            if not has_old_tag and new != old:
+                logger.warning(
+                    f'Current version tag "{old_tag}" was not found. '
+                    f'Using pinned version "{new}" and continuing.'
+                )
+            elif not has_old_tag:
+                logger.warning(
+                    f'Current version tag "{old_tag}" was not found. '
+                    f'Assuming previous release failed and reusing version "{new}".'
+                )
+        elif not has_old_tag:
+            logger.warning(
+                f'Current version tag "{old_tag}" was not found. '
+                f'Assuming previous release failed and reusing version "{old}".'
+            )
+            new = old
         elif old.prerelease:
             new = old.bump_prerelease()
         else:
@@ -370,17 +399,33 @@ class ReleaseGithub(Release):
     
     """
 
+    @cached_property
+    def previous_version(self):
+        return self.repo.get_most_recent_release_tag(
+            include_pre=self.versions.is_pre,
+            before=self.version,
+        )
+
+    @property
+    def previous_tag(self):
+        if not self.previous_version:
+            return None
+        return self.previous_version.tag
+
     @property
     def url(self):
-        return f"{self.repo_url}/compare/v{self.versions.old}...v{self.versions.new}"
+        if not self.previous_tag:
+            return None
+        return f"{self.repo_url}/compare/{self.previous_tag}...{self.tag}"
 
     @property
     def body(self):
         path_changelog = self.incrementors.cls[IncrementorChangelog].dest
         if path_changelog.exists():
             return path_changelog.read_text()
-        else:
-            return f'**Full Changelog**: [{self.versions.old} {Constants.ARROW_RIGHT} {self.versions.new}]({self.url})'
+        if not self.previous_version:
+            return None
+        return f'**Full Changelog**: [{self.previous_tag} {Constants.ARROW_RIGHT} {self.tag}]({self.url})'
 
     def release(self):
         url = f"{self.repo_api_url}/releases"

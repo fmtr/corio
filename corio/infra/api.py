@@ -39,11 +39,10 @@ class Api(api.Base):
             self,
             name: str,
             pinned: str = None,
-            increment: bool = True,
             build: bool = False,
             release: bool = True,
             cache: bool = True,
     ):
         project = Project(name, pinned=pinned)
 
-        project.releaser.run(increment=increment, build=build, release=release, cache=cache)
+        project.releaser.run(build=build, release=release, cache=cache)

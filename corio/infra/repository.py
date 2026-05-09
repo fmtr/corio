@@ -2,6 +2,7 @@ import pygit2 as vcs
 from functools import cached_property
 from typing import Any
 
+from corio import version
 from corio.inherit import Inherit
 from corio.logs import logger
 from corio.path import Path
@@ -60,6 +61,36 @@ class Repository(vcs.Repository):
                 ] + [f"{tag_ref}:{tag_ref}"]
 
         return self.origin.push(specs, callbacks=self.callbacks)
+
+    def get_most_recent_release_tag(self, include_pre: bool = True, before=None):
+        before_version = None
+        if before is not None:
+            if isinstance(before, str):
+                before = before.removeprefix("v")
+                before_version = version.parse(before)
+            else:
+                before_version = before
+
+        candidates = []
+        for tag in self.tags.all:
+            if not tag.startswith("v"):
+                continue
+            text = tag.removeprefix("v")
+            parsed = version.parse(text)
+
+            if before_version is not None and parsed >= before_version:
+                continue
+
+            if not include_pre and parsed.prerelease:
+                continue
+
+            candidates.append(parsed)
+
+        if not candidates:
+            return None
+
+        candidates.sort(reverse=True)
+        return candidates[0]
 
 
 

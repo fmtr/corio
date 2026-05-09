@@ -2,8 +2,10 @@ from types import SimpleNamespace
 
 from packaging.requirements import Requirement
 
+from corio import version
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
-from corio.infra.releaser import Tester as ReleaserTester
+from corio.infra.releaser import Releaser, IncrementorVersion, Tester as ReleaserTester
+from corio.infra.repository import Repository
 from corio.path import Path
 
 
@@ -319,3 +321,114 @@ def test_tester_run_returns_false_when_subprocess_fails(tmp_path, monkeypatch):
     monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: 1)
 
     assert tester.run() is False
+
+
+def test_repository_get_most_recent_release_tag_filters_and_orders():
+    repo = SimpleNamespace(tags=SimpleNamespace(all={
+        "v1.2.1",
+        "v1.2.2-rc.1",
+        "v1.2.2",
+        "v1.3.0-rc.1",
+        "junk",
+    }))
+
+    any_tag = Repository.get_most_recent_release_tag(repo, include_pre=True)
+    stable_tag = Repository.get_most_recent_release_tag(repo, include_pre=False)
+    previous_stable = Repository.get_most_recent_release_tag(
+        repo, include_pre=False, before=version.parse("1.2.2"),
+    )
+    previous_any = Repository.get_most_recent_release_tag(
+        repo, include_pre=True, before=version.parse("1.2.2"),
+    )
+
+    assert any_tag == version.parse("1.3.0-rc.1")
+    assert stable_tag == version.parse("1.2.2")
+    assert previous_stable == version.parse("1.2.1")
+    assert previous_any == version.parse("1.2.2-rc.1")
+    assert stable_tag.tag == "v1.2.2"
+
+
+def _make_version_incrementor(*, old: str, pinned: str | None, tags: set[str]):
+    metadata = SimpleNamespace(version=old)
+    parent = SimpleNamespace(
+        paths=SimpleNamespace(name_ns="corio", metadata=metadata),
+        versions=SimpleNamespace(old=version.parse(old), pinned=version.parse(pinned) if pinned else None),
+        repo=SimpleNamespace(tags=SimpleNamespace(all=tags)),
+    )
+    return IncrementorVersion(parent), metadata
+
+
+def test_incrementor_version_does_not_increment_when_old_tag_missing():
+    incrementor, metadata = _make_version_incrementor(
+        old="1.2.3",
+        pinned=None,
+        tags={"v1.2.2"},
+    )
+
+    incrementor.apply()
+
+    assert metadata.version == "1.2.3"
+
+
+def test_incrementor_version_uses_pinned_even_when_old_tag_missing():
+    incrementor, metadata = _make_version_incrementor(
+        old="1.2.3",
+        pinned="2.0.0",
+        tags={"v1.2.2"},
+    )
+
+    incrementor.apply()
+
+    assert metadata.version == "2.0.0"
+
+
+def test_releaser_run_commits_only_after_tests_pass(monkeypatch):
+    events = []
+
+    class _Repo:
+        def fetch(self):
+            events.append("fetch")
+
+        def push(self):
+            events.append("push")
+
+    releaser = Releaser(SimpleNamespace(
+        name="corio",
+        paths=SimpleNamespace(name_ns="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
+    ))
+    releaser.repo = _Repo()
+    releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or True)
+
+    monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
+    monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
+
+    releaser.run(build=False, release=False)
+
+    assert events == ["fetch", "increment", "tests", "commit", "push", "fetch"]
+
+
+def test_releaser_run_continues_when_pre_tests_fail(monkeypatch):
+    events = []
+
+    class _Repo:
+        def fetch(self):
+            events.append("fetch")
+
+        def push(self):
+            events.append("push")
+
+    releaser = Releaser(SimpleNamespace(
+        name="corio",
+        version=version.parse("1.2.3-rc.1"),
+        versions=SimpleNamespace(is_pre=True),
+        paths=SimpleNamespace(name_ns="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
+    ))
+    releaser.repo = _Repo()
+    releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or False)
+
+    monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
+    monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
+
+    releaser.run(build=False, release=False)
+
+    assert events == ["fetch", "increment", "tests", "commit", "push", "fetch"]

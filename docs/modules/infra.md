@@ -23,7 +23,7 @@ pip install "corio[infra]" --upgrade
 from corio import infra
 
 project = infra.Project("corio")
-project.releaser.run(increment=True, build=False, release=True, cache=True)
+project.releaser.run(build=False, release=True, cache=True)
 ```
 
 ## API Usage
@@ -53,4 +53,3 @@ Docs release expects:
 2. optional container build/push
 3. package build/upload
 4. docs deploy
-
