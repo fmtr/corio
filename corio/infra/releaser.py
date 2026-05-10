@@ -229,12 +229,8 @@ class IncrementorVersion(Incrementor):
         return self.paths.metadata.version_obj
 
     @cached_property
-    def old_tag(self):
-        return self.old.tag
-
-    @cached_property
     def has_old_tag(self):
-        return self.old_tag in self.repo.tags.all
+        return self.old.tag in self.repo.tags.all
 
     @cached_property
     def pinned_tag(self):
@@ -250,7 +246,7 @@ class IncrementorVersion(Incrementor):
 
         if not self.has_old_tag:
             raise RuntimeError(
-                f'Current version tag "{self.old_tag}" was not found. '
+                f'Current version tag "{self.old.tag}" was not found. '
                 f'Refusing pinned release "{new}" until the previous release state is resolved.'
             )
 
@@ -267,7 +263,7 @@ class IncrementorVersion(Incrementor):
 
         if not self.has_old_tag:
             logger.warning(
-                f'Current version tag "{self.old_tag}" was not found. '
+                f'Current version tag "{self.old.tag}" was not found. '
                 f'Assuming previous release failed and reusing version "{self.old}".'
             )
             return self.old
