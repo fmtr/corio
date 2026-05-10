@@ -1,4 +1,3 @@
-from copy import deepcopy
 from functools import cached_property
 from itertools import chain
 from packaging.requirements import Requirement, InvalidRequirement
@@ -115,13 +114,9 @@ class IncrementorPyproject(Incrementor):
             return None
 
         data = self.path.read_toml()
-        original_data = deepcopy(data)
 
         data = self._enrich_toml(data)
         if data is None:
-            return None
-
-        if data == original_data:
             return None
 
         self.path.write_toml(data)

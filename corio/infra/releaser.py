@@ -224,40 +224,65 @@ class Incrementor(Inherit[Releaser]):
 
 
 class IncrementorVersion(Incrementor):
+    @cached_property
+    def old(self):
+        return self.paths.metadata.version_obj
+
+    @cached_property
+    def old_tag(self):
+        return self.old.tag
+
+    @cached_property
+    def has_old_tag(self):
+        return self.old_tag in self.repo.tags.all
+
+    @cached_property
+    def pinned_tag(self):
+        if not self.versions.pinned:
+            return None
+        return self.versions.pinned.tag
+
+    @cached_property
+    def pinned(self):
+        new = self.versions.pinned
+        if not new:
+            return None
+
+        if not self.has_old_tag:
+            raise RuntimeError(
+                f'Current version tag "{self.old_tag}" was not found. '
+                f'Refusing pinned release "{new}" until the previous release state is resolved.'
+            )
+
+        if self.pinned_tag in self.repo.tags.all:
+            raise RuntimeError(f'Pinned version tag already exists: "{self.pinned_tag}".')
+
+        return new
+
+    @cached_property
+    def new(self):
+        new = self.pinned
+        if new:
+            return new
+
+        if not self.has_old_tag:
+            logger.warning(
+                f'Current version tag "{self.old_tag}" was not found. '
+                f'Assuming previous release failed and reusing version "{self.old}".'
+            )
+            return self.old
+
+        if self.old.prerelease:
+            return self.old.bump_prerelease()
+        else:
+            return self.old.bump_patch()
+
     @logger.instrument('Incrementing release version in-memory for "{self.paths.name_ns}"...')
     def apply(self) -> Path | list[Path] | None:
-        old = self.versions.old
+        if self.old != self.new:
+            logger.info(f'Incrementing runtime version {self.old} {Constants.ARROW_RIGHT} {self.new}...')
 
-        old_tag = f"v{old}"
-        has_old_tag = old_tag in self.repo.tags.all
-
-        if self.versions.pinned:
-            new = self.versions.pinned
-            if not has_old_tag and new != old:
-                logger.warning(
-                    f'Current version tag "{old_tag}" was not found. '
-                    f'Using pinned version "{new}" and continuing.'
-                )
-            elif not has_old_tag:
-                logger.warning(
-                    f'Current version tag "{old_tag}" was not found. '
-                    f'Assuming previous release failed and reusing version "{new}".'
-                )
-        elif not has_old_tag:
-            logger.warning(
-                f'Current version tag "{old_tag}" was not found. '
-                f'Assuming previous release failed and reusing version "{old}".'
-            )
-            new = old
-        elif old.prerelease:
-            new = old.bump_prerelease()
-        else:
-            new = old.bump_patch()
-
-        if old != new:
-            logger.info(f'Incrementing runtime version {old} {Constants.ARROW_RIGHT} {new}...')
-
-        self.paths.metadata.version = str(new)
+        self.paths.metadata.version = str(self.new)
         return None
 
 

@@ -103,8 +103,6 @@ class Versions(Inherit[Project]):
 
     def __init__(self, project: Project, pinned: str | None = None):
         super().__init__(project)
-        self.old = self.get()
-
         self.pinned = None
         if pinned:
             self.pinned = version.Version.parse(pinned)

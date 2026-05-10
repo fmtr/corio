@@ -34,7 +34,7 @@ class Pyproject(dm.Base):
         from corio.paths import paths
 
         project = Project(paths.name_ns)
-        project.versions.pinned = project.versions.old
+        project.versions.pinned = project.versions.new
         return IncrementorPyproject(project.releaser).apply()
 
 

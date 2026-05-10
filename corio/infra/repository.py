@@ -76,7 +76,10 @@ class Repository(vcs.Repository):
             if not tag.startswith("v"):
                 continue
             text = tag.removeprefix("v")
-            parsed = version.parse(text)
+            try:
+                parsed = version.parse(text)
+            except ValueError:
+                continue
 
             if before_version is not None and parsed >= before_version:
                 continue
