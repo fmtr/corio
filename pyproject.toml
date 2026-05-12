@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.3.4"
+version = "2.3.5"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
@@ -83,7 +83,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.3.4"
+version = "2.3.5"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -177,7 +177,7 @@ corio = ["pyproject.package.toml"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "strings", "toml", "tools", "yml"]
+env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "shell", "strings", "toml", "tools", "yml"]
 
 [tool.tox.env.caching]
 description = "Run caching tests."
@@ -253,6 +253,11 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_patterns.py"]]
 description = "Run rand tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_rand.py"]]
+
+[tool.tox.env.shell]
+description = "Run shell tests."
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_shell.py"]]
 
 [tool.tox.env.strings]
 description = "Run strings tests."
