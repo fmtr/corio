@@ -1,14 +1,21 @@
+from __future__ import annotations
+
 import logging
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable, List, Optional, Union, Self
+from typing import Callable, List, Optional, Union, Self, TYPE_CHECKING
 
+import httpx
 import uvicorn
 from fastapi import FastAPI, Request
 
-from corio import env
+from corio import env, strings
 from corio.iterator import enlist
 from corio.logs import logger
+
+if TYPE_CHECKING:
+    from corio.api.mcp import FastMCP
 
 for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:
     logger_uvicorn = logging.getLogger(name)
@@ -44,6 +51,9 @@ class Base:
     URL = None
     URL_DOCS = '/'
     URL_PREFIX = None
+    IS_MCP = False
+    MCP_PATH = '/mcp'
+
 
     def add_endpoint(self, endpoint: Endpoint):
         """
@@ -63,7 +73,13 @@ class Base:
         )(endpoint.method)
 
     def __init__(self):
-        self.app = FastAPI(title=self.TITLE, swagger_ui_parameters=self.SWAGGER_PARAMS, docs_url=self.URL_DOCS)
+        self.app = FastAPI(
+            title=self.TITLE,
+            swagger_ui_parameters=self.SWAGGER_PARAMS,
+            docs_url=self.URL_DOCS,
+            lifespan=self.lifespan,
+            description=self.description,
+        )
         logger.instrument_fastapi(self.app)
 
         for endpoint in self.get_endpoints():
@@ -74,6 +90,10 @@ class Base:
 
         for child in self.children:
             self.app.mount(child.url_prefix, child.app)
+
+        if self.IS_MCP:
+            self.app.mount(self.MCP_PATH, self.mcp_app)
+            self.app.router.lifespan_context = self.lifespan_mcp
 
     @cached_property
     def children(self) -> List[Self]:
@@ -92,7 +112,7 @@ class Base:
 
         """
         if self.URL_PREFIX:
-            self.URL_PREFIX
+            return self.URL_PREFIX
 
         return f'/{self.__class__.__name__.lower()}'
 
@@ -137,7 +157,29 @@ class Base:
         Launch message.
 
         """
-        return f"Launching {self.TITLE} at {self.url}"
+        message = f"Launching {self.TITLE} at {self.url}"
+        if self.IS_MCP:
+            message = f"{message} (with MCP at {self.MCP_PATH})"
+        return message
+
+    @property
+    def description(self) -> str|None:
+        """
+
+        Optional OpenAPI description with immediate child API links.
+
+        """
+        if not self.children:
+            return None
+
+        lines = [f"- [{child.TITLE}]({child.url_prefix})" for child in self.children]
+        lines= "\n".join(lines)
+        description=strings.trim(f"""
+        ### APIs
+        
+        {lines}
+        """)
+        return description
 
     @property
     def config(self) -> uvicorn.Config:
@@ -178,3 +220,74 @@ class Base:
         """
         import asyncio
         return asyncio.run(cls.launch_async(*args, **kwargs))
+
+    @staticmethod
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        """
+
+        Default app lifespan.
+
+        """
+        yield
+        logger.info(f"Closing {app.title}")
+
+
+    # MCP integration methods
+
+    @cached_property
+    def mcp(self) -> FastMCP:
+        """
+
+        Build an MCP server from this API's OpenAPI schema.
+
+        """
+        from corio.api.mcp import FastMCP
+        client = httpx.AsyncClient(transport=httpx.ASGITransport(app=self.app), base_url=self.url)
+        return FastMCP.from_openapi(openapi_spec=self.app.openapi(), client=client, name=self.TITLE)
+
+    @cached_property
+    def mcp_app(self):
+        """
+
+        HTTP ASGI app for this API's MCP server.
+
+        """
+        return self.mcp.http_app(path='/')
+
+
+    @cached_property
+    def mcp_lifespans_flat(self) -> list[tuple[Callable, FastAPI]]:
+        """
+
+        Flattened MCP lifespans for this API and immediate descendants.
+
+        """
+
+        if self.IS_MCP:
+            lifespans = [(self.mcp_app.lifespan, self.mcp_app)]
+        else:
+            lifespans = []
+
+        for child in self.children:
+            lifespans.extend(child.mcp_lifespans_flat)
+        return lifespans
+
+    @cached_property
+    def lifespan_mcp(self):
+        """
+
+        Combined lifespan wrapper for FastAPI and mounted MCP apps.
+
+        """
+        original_lifespan = self.app.router.lifespan_context
+
+        @asynccontextmanager
+        async def lifespan(app):
+            async with AsyncExitStack() as stack:
+                await stack.enter_async_context(original_lifespan(app))
+                for mcp_lifespan, mcp_owner_app in self.mcp_lifespans_flat:
+                    await stack.enter_async_context(mcp_lifespan(mcp_owner_app))
+                yield
+
+        return lifespan
