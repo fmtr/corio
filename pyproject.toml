@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.3.5"
+version = "2.3.6"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 dependencies = []
@@ -28,7 +28,7 @@ netrc = ["tinynetrc"]
 hfh = ["huggingface_hub"]
 merging = ["deepmerge"]
 api = ["fastapi", "uvicorn[standard]", "logfire", "pydantic", "pydantic-extra-types", "pycountry", "logfire[fastapi]", "httpx"]
-"api.mcp" = ["fastmcp"]
+"api.mcp" = ["fastapi", "uvicorn[standard]", "logfire", "pydantic", "pydantic-extra-types", "pycountry", "logfire[fastapi]", "httpx", "fastmcp"]
 dm = ["pydantic", "pydantic-extra-types", "pycountry"]
 ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "pydantic", "pydantic-extra-types", "pycountry"]
 "ai.compute" = ["cuda-bindings==13.2.0", "cuda-pathfinder==1.5.4", "cuda-toolkit==13.0.2", "nvidia-cublas==13.1.0.3", "nvidia-cuda-cupti==13.0.85", "nvidia-cuda-nvrtc==13.0.88", "nvidia-cuda-runtime==13.0.96", "nvidia-cudnn-cu13==9.19.0.56", "nvidia-cufft==12.0.0.61", "nvidia-cufile==1.15.1.6", "nvidia-curand==10.4.0.35", "nvidia-cusolver==12.0.4.66", "nvidia-cusparse==12.6.3.3", "nvidia-cusparselt-cu13==0.8.0", "nvidia-nccl-cu13==2.28.9", "nvidia-nvjitlink==13.0.88", "nvidia-nvshmem-cu13==3.4.5", "nvidia-nvtx==13.0.85", "torch==2.11.0", "triton==3.6.0"]
@@ -71,7 +71,7 @@ tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
 secrets = ["pyrage", "dotenv", "yamlscript", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "logfire"]
-all = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "cuda-bindings==13.2.0", "cuda-pathfinder==1.5.4", "cuda-toolkit==13.0.2", "nvidia-cublas==13.1.0.3", "nvidia-cuda-cupti==13.0.85", "nvidia-cuda-nvrtc==13.0.88", "nvidia-cuda-runtime==13.0.96", "nvidia-cudnn-cu13==9.19.0.56", "nvidia-cufft==12.0.0.61", "nvidia-cufile==1.15.1.6", "nvidia-curand==10.4.0.35", "nvidia-cusolver==12.0.4.66", "nvidia-cusparse==12.6.3.3", "nvidia-cusparselt-cu13==0.8.0", "nvidia-nccl-cu13==2.28.9", "nvidia-nvjitlink==13.0.88", "nvidia-nvshmem-cu13==3.4.5", "nvidia-nvtx==13.0.85", "torch==2.11.0", "triton==3.6.0", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+all = ["logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "cuda-bindings==13.2.0", "cuda-pathfinder==1.5.4", "cuda-toolkit==13.0.2", "nvidia-cublas==13.1.0.3", "nvidia-cuda-cupti==13.0.85", "nvidia-cuda-nvrtc==13.0.88", "nvidia-cuda-runtime==13.0.96", "nvidia-cudnn-cu13==9.19.0.56", "nvidia-cufft==12.0.0.61", "nvidia-cufile==1.15.1.6", "nvidia-curand==10.4.0.35", "nvidia-cusolver==12.0.4.66", "nvidia-cusparse==12.6.3.3", "nvidia-cusparselt-cu13==0.8.0", "nvidia-nccl-cu13==2.28.9", "nvidia-nvjitlink==13.0.88", "nvidia-nvshmem-cu13==3.4.5", "nvidia-nvtx==13.0.85", "torch==2.11.0", "triton==3.6.0", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -84,7 +84,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.3.5"
+version = "2.3.6"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -179,7 +179,12 @@ corio = ["pyproject.package.toml"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "shell", "strings", "toml", "tools", "yml"]
+env_list = ["api", "caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "iterator", "jsn", "name", "path", "patterns", "rand", "shell", "strings", "toml", "tools", "yml"]
+
+[tool.tox.env.api]
+description = "Run api tests."
+deps = ["fastapi", "fastmcp", "httpx", "logfire", "logfire[fastapi]", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "uvicorn[standard]"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_api.py"]]
 
 [tool.tox.env.caching]
 description = "Run caching tests."
