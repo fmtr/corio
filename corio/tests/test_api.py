@@ -1,10 +1,66 @@
 import asyncio
 import inspect
+from corio import api
 from functools import cached_property
 
-from corio import api
-from corio.sandbox.api import SandboxApi
 
+class Child(api.Base):
+    TITLE = 'Sandbox Child API'
+    IS_MCP = True
+
+
+    def get_endpoints(self):
+        """
+
+        Sandbox child endpoints.
+
+        """
+        endpoints = [
+            api.Endpoint(method_http=self.app.get, path='/pong', method=self.pong, tags='sandbox'),
+        ]
+        return endpoints
+
+    async def pong(self, value: str = 'ok'):
+        """
+
+        Child ping variant.
+
+        """
+        return dict(child=value)
+
+
+class SandboxApi(api.Base):
+    TITLE = 'Sandbox API'
+    PORT = 8001
+    IS_MCP = True
+
+    def get_endpoints(self):
+        """
+
+        Sandbox parent endpoints.
+
+        """
+        endpoints = [
+            api.Endpoint(method_http=self.app.get, path='/ping', method=self.ping, tags='sandbox'),
+        ]
+        return endpoints
+
+    async def ping(self, name: str = 'world'):
+        """
+
+        Parent ping endpoint.
+
+        """
+        return dict(message=f'hello {name}')
+
+    @cached_property
+    def children(self):
+        """
+
+        Immediate sandbox child APIs.
+
+        """
+        return [Child()]
 
 def test_api_package_exports_base_symbols():
     assert api.Base.__module__ == "corio.api.api"
