@@ -142,3 +142,5 @@ cython_debug/
 **/artifacts
 **/.idea
 /data/
+/data/db/search/
+/corio/db/sandbox/

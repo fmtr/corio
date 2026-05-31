@@ -1,4 +1,5 @@
-import importlib
+
+from __future__ import annotations
 
 from corio import api as api
 from corio.constants import Constants
@@ -12,30 +13,45 @@ class Api(api.Base):
     URL_DOCS = '/'
     PORT = api.Base.PORT + paths.metadata.port
 
-    def get_endpoints(self):
-        endpoints = [
-            api.Endpoint(method_http=self.app.get, path='/{name}/recreate', method=self.recreate),
-            api.Endpoint(method_http=self.app.get, path='/{name}/release', method=self.release),
-            api.Endpoint(method_http=self.app.get, path='/{name}/build', method=self.build),
+    @property
+    def ENDPOINTS(self):
+        """
 
-        ]
+        Infrastructure endpoint classes.
 
-        return endpoints
+        """
+        return [Recreate, Release, Build]
 
-    def get_project(self, name: str, **kwargs) -> Project:  # todo allow pre-project override
-        mod = importlib.import_module(f"{name}.project")
-        mod = importlib.reload(mod)
-        return mod.Project(**kwargs)
 
-    async def recreate(self, name: str, extra: str = 'all', cache: bool = True):
+class Recreate(api.endpoint.API):
+    """
+
+    Recreate the development stack for a project.
+
+    """
+
+    PATH = "/{name}/recreate"
+
+    async def run(self, name: str, extra: str = "all", cache: bool = True):
+        """
+
+        Recreate a project's development stack.
+
+        """
         project = Project(name, extras=[extra])
         project.stacks.channel[Constants.DEVELOPMENT].recreate(cache=cache)
 
-    async def build(self, name: str, extra: str = 'all', context: str = None, cache: bool = True):
-        project = Project(name, context=context, extras=[extra])
-        project.stacks.cls[ProductionPublic].build(cache=cache)
 
-    async def release(
+class Release(api.endpoint.API):
+    """
+
+    Run the project release workflow.
+
+    """
+
+    PATH = "/{name}/release"
+
+    async def run(
             self,
             name: str,
             pinned: str = None,
@@ -43,6 +59,29 @@ class Api(api.Base):
             release: bool = True,
             cache: bool = True,
     ):
-        project = Project(name, pinned=pinned)
+        """
 
+        Run a project's release workflow.
+
+        """
+        project = Project(name, pinned=pinned)
         project.releaser.run(build=build, release=release, cache=cache)
+
+
+class Build(api.endpoint.API):
+    """
+
+    Build the public production stack for a project.
+
+    """
+
+    PATH = "/{name}/build"
+
+    async def run(self, name: str, extra: str = "all", context: str = None, cache: bool = True):
+        """
+
+        Build a project's public production stack.
+
+        """
+        project = Project(name, context=context, extras=[extra])
+        project.stacks.cls[ProductionPublic].build(cache=cache)

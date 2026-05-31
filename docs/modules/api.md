@@ -1,11 +1,16 @@
 # api
 `from corio import api`
 
-`api` provides a lightweight FastAPI base where endpoints are defined as dataclass configuration.
+`api` provides a lightweight FastAPI base where endpoints are defined as classes.
 
 Main pieces:
 
-- `Endpoint`: endpoint metadata + target method
+- `endpoint.Base`: base endpoint contract (`run`)
+- `endpoint.API`: class-based HTTP endpoint with registration helpers
+- `endpoint.MCP`: class-based MCP endpoint with tool registration helpers
+- `endpoint.Tool`: MCP tool endpoint
+- `endpoint.Prompt`: MCP prompt endpoint
+- `endpoint.Resource`: MCP resource endpoint
 - `Base`: app bootstrap, endpoint registration, child API mounting, and uvicorn launch helpers
 
 Install:
@@ -17,19 +22,31 @@ pip install "corio[api]" --upgrade
 ## Typical Endpoint Pattern
 
 ```python
+from __future__ import annotations
+
 from corio import api
+from corio.inherit import Inherit
 
 
 class HealthApi(api.Base):
     TITLE = "Health API"
+    
+    @property
+    def ENDPOINTS(self):
+        return [Health]
 
-    def get_endpoints(self):
-        return [
-            api.Endpoint(method_http=self.app.get, path="/health", method=self.health, tags="status"),
-        ]
+    @property
+    def TRANSFORMS(self):
+        return []
 
-    async def health(self):
-        """Service health."""
+
+class Health(Inherit[HealthApi], api.endpoint.API):
+    """Service health."""
+
+    PATH = "/health"
+    TAGS = "status"
+
+    async def run(self):
         return {"ok": True}
 ```
 
@@ -44,7 +61,8 @@ HealthApi.launch()
 Sibling repos commonly:
 
 - subclass `api.Base`
-- keep endpoint list in `get_endpoints()`
+- keep endpoint class list in `ENDPOINTS` (can include `api.endpoint.API` and `api.endpoint.MCP`)
+- keep MCP transform class list in `TRANSFORMS` (each class is initialized with `self.mcp`)
 - attach tags per feature area (`cache`, `blocking`, `documents`, etc.)
 - mount child APIs using `children` when composing a larger API surface
 
@@ -52,4 +70,6 @@ Sibling repos commonly:
 
 - `Base` instruments FastAPI via `corio.logs`.
 - In dev mode, exception handling is configured to re-raise for easier debugging.
-- Default endpoint method is POST unless `method_http` is set.
+- Endpoints register as GET routes.
+- MCP endpoint classes register tools via `self.mcp.tool(...)`.
+- Default endpoint path is `/{endpoint_class_name_lower}` unless `PATH` is overridden.

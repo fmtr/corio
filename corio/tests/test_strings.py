@@ -49,6 +49,17 @@ def test_mask_supports_incremental_filling():
     assert mask.format(place="London") == "Hello Ada from London"
 
 
+def test_get_docstring_trims_multiline_docstring():
+    class Demo:
+        """
+
+        Demo docs.
+
+        """
+
+    assert strings.get_docstring(Demo) == "Demo docs."
+
+
 def test_sanitize_and_camel_to_snake():
     assert strings.sanitize("Hello,", "World!", sep="-") == "hello-world"
     assert strings.camel_to_snake("HTTPRequestJSON") == "http_request_json"

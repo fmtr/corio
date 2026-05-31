@@ -2,40 +2,26 @@ from __future__ import annotations
 
 import logging
 from contextlib import AsyncExitStack, asynccontextmanager
-from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable, List, Optional, Union, Self, TYPE_CHECKING
+from typing import Callable, List, Self, TYPE_CHECKING
 
 import httpx
 import uvicorn
 from fastapi import FastAPI, Request
 
 from corio import env, strings
-from corio.iterator import enlist
+from corio import api
+from corio.iterator import IndexList
 from corio.logs import logger
 
 if TYPE_CHECKING:
-    from corio.api.mcp import FastMCP
+    from fastmcp import FastMCP
+    from fastmcp.server.transforms import Transform
 
 for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:
     logger_uvicorn = logging.getLogger(name)
     logger_uvicorn.handlers.clear()
     logger_uvicorn.propagate = False
-
-@dataclass
-class Endpoint:
-    """
-
-    Endpoint-as-method config
-
-    """
-    method: Callable
-    path: str | None = None
-    tags: Optional[Union[str, List[str]]] = None
-    method_http: Optional[Callable] = None
-
-    def __post_init__(self):
-        self.tags = enlist(self.tags)
 
 
 class Base:
@@ -51,28 +37,32 @@ class Base:
     URL = None
     URL_DOCS = '/'
     URL_PREFIX = None
-    IS_MCP = False
     MCP_PATH = '/mcp'
 
-
-    def add_endpoint(self, endpoint: Endpoint):
+    @cached_property
+    def ENDPOINTS(self) -> list[type[api.endpoint.Base]]:
         """
 
-        Add endpoints from definitions using a single dataclass instance.
+        Endpoint classes registered on this API.
 
         """
-        method_http = endpoint.method_http or self.app.post
-        doc = (endpoint.method.__doc__ or '').strip() or None
-        path = endpoint.path or f'/{endpoint.method.__name__}'
+        return []
 
-        method_http(
-            path=path,
-            tags=endpoint.tags,
-            summary=doc,
-            operation_id=endpoint.method.__name__,
-        )(endpoint.method)
+    @cached_property
+    def TRANSFORMS(self) -> list[type[Transform]]:
+        """
+
+        MCP transform classes applied when MCP endpoints are present.
+
+        """
+        return []
 
     def __init__(self):
+        """
+
+        Build the FastAPI app and register child APIs, endpoints, and MCP mounts.
+
+        """
         self.app = FastAPI(
             title=self.TITLE,
             swagger_ui_parameters=self.SWAGGER_PARAMS,
@@ -82,8 +72,11 @@ class Base:
         )
         logger.instrument_fastapi(self.app)
 
-        for endpoint in self.get_endpoints():
-            self.add_endpoint(endpoint)
+        self.endpoints = IndexList[api.endpoint.Base]()
+        for cls in self.ENDPOINTS:
+            endpoint = cls(self)
+            endpoint.register()
+            self.endpoints.append(endpoint)
 
         if env.IS_DEV:
             self.app.exception_handler(Exception)(self.handle_exception)
@@ -91,9 +84,21 @@ class Base:
         for child in self.children:
             self.app.mount(child.url_prefix, child.app)
 
-        if self.IS_MCP:
-            self.app.mount(self.MCP_PATH, self.mcp_app)
+        if self.is_mcp:
+            for cls in self.TRANSFORMS:
+                transform = cls(self.mcp)
+                self.mcp.add_transform(transform)
+            self.app.mount(self.MCP_PATH, self.mcp_http)
             self.app.router.lifespan_context = self.lifespan_mcp
+
+    @cached_property
+    def is_mcp(self):
+        """
+
+        Whether this API exposes any MCP endpoints.
+
+        """
+        return any(endpoint.IS_MCP for endpoint in self.endpoints)
 
     @cached_property
     def children(self) -> List[Self]:
@@ -116,17 +121,6 @@ class Base:
 
         return f'/{self.__class__.__name__.lower()}'
 
-    def get_endpoints(self) -> List[Endpoint]:
-        """
-
-        Define endpoints using a dataclass instance.
-
-        """
-        endpoints = [
-
-        ]
-
-        return endpoints
 
     async def handle_exception(self, request: Request, exception: Exception):
         """
@@ -158,7 +152,7 @@ class Base:
 
         """
         message = f"Launching {self.TITLE} at {self.url}"
-        if self.IS_MCP:
+        if self.is_mcp:
             message = f"{message} (with MCP at {self.MCP_PATH})"
         return message
 
@@ -192,7 +186,7 @@ class Base:
 
     @property
     def server(self) -> uvicorn.Server:
-        """"
+        """
 
         Uvicorn server.
 
@@ -242,19 +236,18 @@ class Base:
         Build an MCP server from this API's OpenAPI schema.
 
         """
-        from corio.api.mcp import FastMCP
+        from fastmcp import FastMCP
         client = httpx.AsyncClient(transport=httpx.ASGITransport(app=self.app), base_url=self.url)
         return FastMCP.from_openapi(openapi_spec=self.app.openapi(), client=client, name=self.TITLE)
 
     @cached_property
-    def mcp_app(self):
+    def mcp_http(self):
         """
 
-        HTTP ASGI app for this API's MCP server.
+        ASGI app exposing the MCP server over HTTP.
 
         """
         return self.mcp.http_app(path='/')
-
 
     @cached_property
     def mcp_lifespans_flat(self) -> list[tuple[Callable, FastAPI]]:
@@ -264,8 +257,8 @@ class Base:
 
         """
 
-        if self.IS_MCP:
-            lifespans = [(self.mcp_app.lifespan, self.mcp_app)]
+        if self.is_mcp:
+            lifespans = [(self.mcp_http.lifespan, self.mcp_http)]
         else:
             lifespans = []
 
@@ -284,6 +277,11 @@ class Base:
 
         @asynccontextmanager
         async def lifespan(app):
+            """
+
+            Enter the FastAPI lifespan and all mounted MCP lifespans.
+
+            """
             async with AsyncExitStack() as stack:
                 await stack.enter_async_context(original_lifespan(app))
                 for mcp_lifespan, mcp_owner_app in self.mcp_lifespans_flat:

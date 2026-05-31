@@ -10,13 +10,14 @@ class Inherit(Generic[T]):
 
     """
 
-    def __init__(self, parent: T):
+    def __init__(self, parent: T, *args, **kwargs):
         """
 
         Set parent
 
         """
         object.__setattr__(self, "_parent", parent)
+        super().__init__(*args, **kwargs)
 
     def __getattribute__(self, name):
         """

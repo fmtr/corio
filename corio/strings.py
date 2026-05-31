@@ -3,7 +3,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 from string import Formatter
 from textwrap import dedent
-from typing import List
+from typing import Any, List
 
 from corio.datatype import is_none
 
@@ -247,6 +247,19 @@ def trim(text: str) -> str:
 
     """
     return dedent(text).strip()
+
+
+def get_docstring(obj: Any) -> str | None:
+    """
+
+    Get a trimmed docstring from an object.
+
+    """
+    docstring = getattr(obj, '__doc__', None)
+    if docstring is None:
+        return None
+
+    return trim(docstring) or None
 
 
 ACRONYM_BOUNDARY = re.compile(r'([A-Z]+)([A-Z][a-z])')

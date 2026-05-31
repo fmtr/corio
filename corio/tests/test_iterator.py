@@ -43,6 +43,7 @@ class _Obj:
 def test_index_list_lookup_by_attr_and_key():
     objects = iterator.IndexList([_Obj(key="a", value=1), _Obj(key="b", value=2)])
     assert objects.key["a"].value == 1
+    assert objects.cls[_Obj].value == 2
 
     dicts = iterator.IndexList([{"id": "x", "value": 1}, {"id": "y", "value": 2}])
     assert dicts.id["y"]["value"] == 2

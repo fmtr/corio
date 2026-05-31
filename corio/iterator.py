@@ -160,6 +160,10 @@ class IndexList(list[IndexListT], Generic[IndexListT]):
             result[value] = obj
         return result
 
+    @property
+    def cls(self) -> dict[type, IndexListT]:
+        return {obj.__class__: obj for obj in self}
+
 
 IterDifferT = TypeVar("IterDifferT")
 
