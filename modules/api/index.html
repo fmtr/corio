@@ -2453,29 +2453,45 @@
 
 <h1 id="api">api</h1>
 <p><code>from corio import api</code></p>
-<p><code>api</code> provides a lightweight FastAPI base where endpoints are defined as dataclass configuration.</p>
+<p><code>api</code> provides a lightweight FastAPI base where endpoints are defined as classes.</p>
 <p>Main pieces:</p>
 <ul>
-<li><code>Endpoint</code>: endpoint metadata + target method</li>
+<li><code>endpoint.Base</code>: base endpoint contract (<code>run</code>)</li>
+<li><code>endpoint.API</code>: class-based HTTP endpoint with registration helpers</li>
+<li><code>endpoint.MCP</code>: class-based MCP endpoint with tool registration helpers</li>
+<li><code>endpoint.Tool</code>: MCP tool endpoint</li>
+<li><code>endpoint.Prompt</code>: MCP prompt endpoint</li>
+<li><code>endpoint.Resource</code>: MCP resource endpoint</li>
 <li><code>Base</code>: app bootstrap, endpoint registration, child API mounting, and uvicorn launch helpers</li>
 </ul>
 <p>Install:</p>
 <div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corio[api]&quot;</span><span class="w"> </span>--upgrade
 </code></pre></div>
 <h2 id="typical-endpoint-pattern">Typical Endpoint Pattern</h2>
-<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">api</span>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">api</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">HealthApi</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">TITLE</span> <span class="o">=</span> <span class="s2">&quot;Health API&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_endpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span>
-            <span class="n">api</span><span class="o">.</span><span class="n">Endpoint</span><span class="p">(</span><span class="n">method_http</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">health</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="s2">&quot;status&quot;</span><span class="p">),</span>
-        <span class="p">]</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ENDPOINTS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">Health</span><span class="p">]</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Service health.&quot;&quot;&quot;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">TRANSFORMS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Health</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">endpoint</span><span class="o">.</span><span class="n">API</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Service health.&quot;&quot;&quot;</span>
+
+    <span class="n">PATH</span> <span class="o">=</span> <span class="s2">&quot;/health&quot;</span>
+    <span class="n">TAGS</span> <span class="o">=</span> <span class="s2">&quot;status&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;ok&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
 </code></pre></div>
 <p>Run with:</p>
@@ -2485,7 +2501,8 @@
 <p>Sibling repos commonly:</p>
 <ul>
 <li>subclass <code>api.Base</code></li>
-<li>keep endpoint list in <code>get_endpoints()</code></li>
+<li>keep endpoint class list in <code>ENDPOINTS</code> (can include <code>api.endpoint.API</code> and <code>api.endpoint.MCP</code>)</li>
+<li>keep MCP transform class list in <code>TRANSFORMS</code> (each class is initialized with <code>self.mcp</code>)</li>
 <li>attach tags per feature area (<code>cache</code>, <code>blocking</code>, <code>documents</code>, etc.)</li>
 <li>mount child APIs using <code>children</code> when composing a larger API surface</li>
 </ul>
@@ -2493,7 +2510,9 @@
 <ul>
 <li><code>Base</code> instruments FastAPI via <code>corio.logs</code>.</li>
 <li>In dev mode, exception handling is configured to re-raise for easier debugging.</li>
-<li>Default endpoint method is POST unless <code>method_http</code> is set.</li>
+<li>Endpoints register as GET routes.</li>
+<li>MCP endpoint classes register tools via <code>self.mcp.tool(...)</code>.</li>
+<li>Default endpoint path is <code>/{endpoint_class_name_lower}</code> unless <code>PATH</code> is overridden.</li>
 </ul>
 
 
