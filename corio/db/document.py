@@ -16,6 +16,8 @@ ModifyEvents = [
     actions.Update
 ]
 
+PORT=27017
+HOST='document.db.gex.fmtr.dev'
 
 class Document(beanie.Document, dm.Base):
     """
@@ -27,13 +29,26 @@ class Document(beanie.Document, dm.Base):
 
 class Client:
 
-    def __init__(self, name, host=Constants.FMTR_DEV_HOST, port=27017, documents: List[beanie.Document] | None = None):
+    def __init__(
+            self,
+            name,
+            host=HOST,
+            port=PORT,
+            documents: List[beanie.Document] | None = None,
+            is_tls: bool = True,
+    ):
         self.name = name
         self.host = host
         self.port = port
         self.documents = documents
+        self.is_tls = is_tls
 
-        self.client = AsyncMongoClient(self.uri, tz_aware=True)
+        self.client_options = {
+            'tz_aware': True,
+            'tls': self.is_tls,
+        }
+
+        self.client = AsyncMongoClient(self.uri, **self.client_options)
         self.db = self.client[self.name]
 
     @cached_property

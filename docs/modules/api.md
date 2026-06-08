@@ -25,7 +25,6 @@ pip install "corio[api]" --upgrade
 from __future__ import annotations
 
 from corio import api
-from corio.inherit import Inherit
 
 
 class HealthApi(api.Base):
@@ -40,7 +39,7 @@ class HealthApi(api.Base):
         return []
 
 
-class Health(Inherit[HealthApi], api.endpoint.API):
+class Health(api.endpoint.API):
     """Service health."""
 
     PATH = "/health"

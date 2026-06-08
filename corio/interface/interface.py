@@ -60,7 +60,7 @@ class Base(Generic[T], ft.Column):
     """
     TITLE = 'Base Interface'
     HOST = '0.0.0.0'
-    PORT = 8080
+    PORT = 8000
     URL = Constants.FMTR_DEV_INTERFACE_URL if env.IS_DEV else None
     APPVIEW = AppView.WEB_BROWSER
     PATH_ASSETS = None

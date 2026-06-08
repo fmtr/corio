@@ -3,7 +3,7 @@ from functools import cached_property
 
 import qdrant_client as qc
 
-
+from corio import Path
 from corio.constants import Constants
 from corio.logs import logger
 
@@ -11,11 +11,12 @@ models=qc.models
 
 class Client:
 
-    def __init__(self, name, path: corio.Path, host: str | None = None, port: int = 6333):
+    def __init__(self, name, path: Path|None=None, host: str | None = None,url: str | None = None, port: int = 6333):
         self.name = name
-        self.path = corio.Path(path)
+        self.path = path
         self.host = host
         self.port = port
+        self.url=url
         self.client = self._get_client()
 
     @cached_property
@@ -23,9 +24,7 @@ class Client:
         return self.host is None
 
     def _get_client(self):
-        if self.is_local:
-            return qc.QdrantClient(path=str(self.path))
-        return qc.QdrantClient(host=self.host or Constants.FMTR_DEV_HOST, port=self.port)
+        return qc.QdrantClient(path=self.path, host=self.host, port=self.port, url=self.url)
 
     def connect(self):
         """
