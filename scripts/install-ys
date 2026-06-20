@@ -1,5 +1,0 @@
-#!/bin/bash
-
-. parse-args "$@"
-
-curl https://yamlscript.org/install | bash

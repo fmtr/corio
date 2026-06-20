@@ -1,59 +1,9 @@
-import importlib.metadata
 from functools import lru_cache
 from typing import Any
 from yaml import CDumper as Dumper
 from yaml import dump
 
-try:
-    import yamlscript
-except ImportError:
-    raise  # Raise if even the package isn't installed, to trigger the regular missing extra exception.
-except Exception as exception:
-    pass  # Allow missing binary, so we can install on-demand
-
-
-def get_version(module):
-    """
-
-    Retrieve the version of a specified module.
-
-    """
-
-    if type(module) is not str:
-        module = module.__name__
-    version = importlib.metadata.version(module)
-    return version
-
-def install():
-    """
-
-    Installs the YAML Script runtime binary of the specified version.
-
-    """
-    import subprocess
-    from corio import logger
-
-    version = get_version('yamlscript')
-    logger.warning(f"Installing YAML Script runtime binary version {version}...")
-    result = subprocess.run(f"curl https://yamlscript.org/install | VERSION={version} LIB=1 bash", shell=True, check=True)
-    return result
-
-
-@lru_cache
-def get_module(is_auto=True):
-    """
-
-    Get the YAML Script runtime module, installing the runtime if specified
-
-    """
-    try:
-        import yamlscript
-    except Exception as exception:
-        if not is_auto:
-            raise ImportError(f'YAML Script runtime missing and {is_auto=}. Set to {True} to install.') from exception
-        install()
-        import yamlscript
-    return yamlscript
+import yamlscript
 
 
 @lru_cache
@@ -63,8 +13,7 @@ def get_interpreter():
     Fetches and returns a cached instance of the YAMLScript interpreter.
 
     """
-    module = get_module()
-    interpreter = module.YAMLScript()
+    interpreter = yamlscript.YAMLScript()
     return interpreter
 
 
