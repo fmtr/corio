@@ -1,7 +1,15 @@
+import datetime
+from datetime import timedelta
+from functools import cached_property
 from itertools import chain, batched
-from typing import List, Dict, Any, TypeVar, Generic, Iterable, Mapping, Sequence
+from time import monotonic
+from typing import List, Dict, Any, TypeVar, Generic, Iterable, Mapping, Sequence, Iterator as TypingIterator
 
+from corio import dt, Constants
 from corio.datatype import is_none
+from corio.inherit import Inherit
+from corio.logs import logger
+from corio.strings import join
 
 
 def enlist(value) -> List[Any]:
@@ -120,6 +128,7 @@ def flatten_tree(data, node=None, flat=None, sep=None):
 
 IndexListT = TypeVar('IndexListT')  # Generic type for list items
 
+
 class IndexList(list[IndexListT], Generic[IndexListT]):
     """
 
@@ -166,6 +175,7 @@ class IndexList(list[IndexListT], Generic[IndexListT]):
 
 
 IterDifferT = TypeVar("IterDifferT")
+IteratorT = TypeVar("IteratorT")
 
 
 class IterDiffer(Generic[IterDifferT]):
@@ -210,3 +220,228 @@ class IterDiffer(Generic[IterDifferT]):
 
         """
         return bool(self.added or self.removed)
+
+
+class Iterator(Generic[IteratorT]):
+    """
+
+    Integrate an iterable with observability and progress/throughput stats.
+
+    """
+
+    def __init__(self, iterable: Iterable[IteratorT], *, total: int | None = None):
+        """
+
+        Initialize with iterable and optional explicit total.
+
+        """
+        self.iterable = iterable
+        self.total = total if total is not None else self._get_total(iterable)
+        self.count = 0
+        self.started_at = None
+        self.item: IteratorT | None = None
+
+    @staticmethod
+    def _get_total(iterable: Iterable[IteratorT]) -> int | None:
+        """
+
+        Return len(iterable) when available, else None.
+
+        """
+        try:
+            return len(iterable)
+        except TypeError:
+            return None
+
+    @property
+    def elapsed(self) -> timedelta:
+        """
+
+        Time elapsed since iteration started.
+
+        """
+        elapsed = dt.now() - self.started_at
+        return elapsed
+
+    @property
+    def rate(self) -> float | None:
+        """
+
+        Current processed items per second.
+
+        """
+        elapsed = self.elapsed
+        if elapsed.seconds <= 0:
+            return None
+        return self.count / elapsed.seconds
+
+    @property
+    def percentage(self) -> float | None:
+        """
+
+        Completion percentage when total is known.
+
+        """
+        if not self.total:
+            return None
+        return (self.count / self.total) * 100.0
+
+    @property
+    def eta(self) -> timedelta | None:
+        """
+
+        Estimated remaining time when total and rate are known.
+
+        """
+        if not self.total:
+            return None
+        if not self.rate:
+            return None
+        seconds = max((self.total - self.count) / self.rate, 0.0)
+        delta = timedelta(seconds=round(seconds))
+        return delta
+
+    @cached_property
+    def item_desc(self) -> str:
+        """
+
+        Current item class name for logging text.
+
+        """
+        return self.item.__class__.__name__
+
+    @property
+    def span_iteration(self):
+        """
+
+        Span context for overall iteration lifecycle.
+
+        """
+        return logger.span(f"Iterating count={self.total or 'unknown'} items...")
+
+    @property
+    def span_item(self):
+        """
+
+        Span context for per-item processing with stats.
+
+        """
+        texts = [self.count_text, self.percentage_text, self.rate_text, self.elapsed_text, self.eta_text, ]
+        stats = join(texts, sep=" | ", )
+        return logger.span(f"Processing {self.item_desc} {self.count}/{self.total or '?'}: {stats}")
+
+    @property
+    def is_over_count(self)-> bool:
+        """
+
+        True if count exceeds configured total.
+
+        """
+        if self.total is None:
+            return False
+        return self.count > self.total
+
+    def log_completion(self) -> None:
+        """
+
+        Log successful completion summary for iteration.
+
+        """
+        logger.info(f"Completed {self.count} {self.item_desc}(s) in {self.elapsed} {self.avg_rate_text}")
+
+    def log_over_total_warning(self) -> None:
+        """
+
+        Log a warning when processed count exceeds configured total.
+
+        """
+        logger.warning(f"Count exceeded total: {self.count}/{self.total}")
+
+    def __iter__(self) -> TypingIterator[IteratorT]:
+        """
+
+        Yield items while updating stats and ensuring iterator cleanup.
+
+        """
+        self.count = 0
+        self.started_at = dt.now()
+        self.item = None
+        iterator = iter(self.iterable)
+
+        with self.span_iteration:
+            try:
+                for item in iterator:
+                    self.count += 1
+                    self.item = item
+                    if self.is_over_count:
+                        self.log_over_total_warning()
+                    with self.span_item:
+                        yield item
+                self.log_completion()
+            finally:
+                close = getattr(iterator, "close", lambda: None)
+                close()
+
+    @property
+    def count_text(self) -> str:
+        """
+
+        Formatted count text for span stats.
+
+        """
+        return f"count={self.count}"
+
+    @property
+    def percentage_text(self) -> str | None:
+        """
+
+        Formatted percentage text for span stats.
+
+        """
+        if self.percentage is None:
+            return None
+        return f"{self.percentage:.1f}%"
+
+    @property
+    def rate_text(self) -> str | None:
+        """
+
+        Formatted rate text for span stats.
+
+        """
+        if self.rate is None:
+            return None
+        return f"{self.rate:.2f} {self.item_desc}(s)/s"
+
+    @property
+    def eta_text(self) -> str | None:
+        """
+
+        Formatted ETA text for span stats.
+
+        """
+        if self.eta is None:
+            return None
+        eta_dt = dt.now() + self.eta
+        return f"eta={self.eta} wall={eta_dt.strftime(Constants.DATETIME_FILENAME_FORMAT)}"
+
+    @property
+    def elapsed_text(self) -> str | None:
+        """
+
+        Formatted elapsed-time text for span stats.
+
+        """
+        return f"elapsed={self.elapsed}"
+
+    @property
+    def avg_rate_text(self) -> str | None:
+        """
+
+        Formatted average rate text for completion logs.
+
+        """
+        if self.rate is None:
+            return None
+        return f"avg={self.rate:.2f} {self.item_desc}(s)/s"
+
