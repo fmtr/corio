@@ -9,7 +9,7 @@ from corio import dt, Constants
 from corio.datatype import is_none
 from corio.inherit import Inherit
 from corio.logs import logger
-from corio.strings import join
+from corio.strings import join, suffix_plural
 
 
 def enlist(value) -> List[Any]:
@@ -326,7 +326,7 @@ class Iterator(Generic[IteratorT]):
         Span context for per-item processing with stats.
 
         """
-        texts = [self.count_text, self.percentage_text, self.rate_text, self.elapsed_text, self.eta_text, ]
+        texts = [self.percentage_text, self.rate_text, self.elapsed_text, self.eta_text, ]
         stats = join(texts, sep=" | ", )
         return logger.span(f"Processing {self.item_desc} {self.count}/{self.total or '?'}: {stats}")
 
@@ -409,9 +409,11 @@ class Iterator(Generic[IteratorT]):
         Formatted rate text for span stats.
 
         """
-        if self.rate is None:
+        rate=self.rate
+        if rate is None:
             return None
-        return f"{self.rate:.2f} {self.item_desc}(s)/s"
+
+        return f"{rate:.2f} {suffix_plural(count=rate,name=self.item_desc)}/s"
 
     @property
     def eta_text(self) -> str | None:

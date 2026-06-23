@@ -28,6 +28,7 @@ class Constants:
     FMTR_LOG_LEVEL_KEY = 'FMTR_LOG_LEVEL'
     FMTR_OBS_API_KEY_KEY = 'FMTR_OBS_API_KEY'
     FMTR_OBS_HOST = 'obs.sv.fmtr.dev'
+    FMTR_DB_SEARCH_URL_DEFAULT = 'https://search.db.gex.fmtr.dev'
 
     FMTR_REMOTE_DEBUG_HOST_KEY = 'FMTR_DEBUG_HOST'
     FMTR_REMOTE_DEBUG_HOST_DEFAULT = 'ws.lan'

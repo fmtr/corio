@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import hashlib
 from zlib import crc32
@@ -28,3 +30,13 @@ def get_hash_readable(string, length=None):
     for old, new in SPECIALS.items():
         value = value.replace(old, new)
     return value
+
+
+def get_hash_int(string: str, size: int=8) -> int:
+    """
+
+    Hash a string to a big int
+
+    """
+    digest = hashlib.blake2b(string.encode(),digest_size=size).digest()
+    return int.from_bytes(digest, byteorder="big", signed=False)

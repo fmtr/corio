@@ -1,6 +1,7 @@
 import re
 from collections import namedtuple
 from dataclasses import dataclass
+from numbers import Number
 from string import Formatter
 from textwrap import dedent
 from typing import Any, List
@@ -275,3 +276,14 @@ def camel_to_snake(name: str) -> str:
     name = ACRONYM_BOUNDARY.sub(r'\1_\2', name)
     name = CAMEL_BOUNDARY.sub(r'\1_\2', name)
     return name.lower()
+
+def suffix_plural(count: Number, name: str, singular: str='',plural: str='s') -> str:
+    """
+
+    Get natural language singlar/plural form from a count/name
+
+    """
+    suffix = singular if count == 1 else plural
+    text=f'{name}{suffix}'
+    return text
+
