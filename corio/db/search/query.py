@@ -40,10 +40,7 @@ class Query(Inherit[Collection]):
 
     @cached_property
     def query(self):
-        return {
-            "prefetch": models.Prefetch(**self.fusion),
-            **self.multi,
-        }
+        return dict(prefetch=models.Prefetch(**self.fusion), **self.multi)
 
     @cached_property
     def request(self):
@@ -53,7 +50,7 @@ class Query(Inherit[Collection]):
 class QueryBasic(Query):
     @cached_property
     def query(self):
-        return self.bm25 | {"with_payload": True}
+        return self.bm25 | dict(with_payload=True)
 
 class QueryIndex(Inherit[Query]):
     ...
@@ -61,53 +58,53 @@ class QueryIndex(Inherit[Query]):
 class Sparse(QueryIndex):
     @cached_property
     def data(self):
-        return {
-            "query": models.SparseVector(**self.embedding.sparse),
-            "using": SPARSE,
-            "limit": self.limit * 10,
-        }
+        return dict(
+            query=models.SparseVector(**self.embedding.sparse),
+            using=SPARSE,
+            limit=self.limit * 10,
+        )
 
 
 class Dense(QueryIndex):
     @cached_property
     def data(self):
-        return {
-            "query": self.embedding.dense.tolist(),
-            "using": DENSE,
-            "limit": self.limit * 10,
-        }
+        return dict(
+            query=self.embedding.dense.tolist(),
+            using=DENSE,
+            limit=self.limit * 10,
+        )
 
 
 class Bm25(QueryIndex):
     @cached_property
     def data(self):
-        return {
-            "query": models.SparseVector(**self.embedding.bm25),
-            "using": BM25,
-            "limit": self.limit * 10,
-        }
+        return dict(
+            query=models.SparseVector(**self.embedding.bm25),
+            using=BM25,
+            limit=self.limit * 10,
+        )
 
 
 class Fusion(QueryIndex):
     @cached_property
     def data(self):
-        return {
-            "prefetch": [
+        return dict(
+            prefetch=[
                 models.Prefetch(**self.sparse),
                 models.Prefetch(**self.dense),
                 models.Prefetch(**self.bm25),
             ],
-            "query": models.FusionQuery(fusion=models.Fusion.RRF),
-            "limit": self.limit * 5,
-        }
+            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            limit=self.limit * 5,
+        )
 
 
 class Multi(QueryIndex):
     @cached_property
     def data(self):
-        return {
-            "query": self.embedding.multi.tolist(),
-            "using": MULTI,
-            "limit": self.limit,
-            "with_payload": True,
-        }
+        return dict(
+            query=self.embedding.multi.tolist(),
+            using=MULTI,
+            limit=self.limit,
+            with_payload=True,
+        )

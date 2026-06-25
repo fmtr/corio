@@ -19,9 +19,9 @@ class Collection:
 
     @cached_property
     def COLLECTION_CONFIG(self):
-        return {
-            "collection_name": self.COLLECTION_NAME,
-            "vectors_config": {
+        return dict(
+            collection_name=self.COLLECTION_NAME,
+            vectors_config={
                 DENSE: models.VectorParams(
                     size=self.DENSE_SIZE,
                     distance=models.Distance.COSINE,
@@ -34,7 +34,7 @@ class Collection:
                     ),
                 ),
             },
-            "sparse_vectors_config": {
+            sparse_vectors_config={
                 SPARSE: models.SparseVectorParams(
                     index=models.SparseIndexParams(on_disk=True),
                     modifier=models.Modifier.IDF,
@@ -44,12 +44,12 @@ class Collection:
                     modifier=models.Modifier.IDF,
                 ),
             },
-            "quantization_config": models.ScalarQuantization(
+            quantization_config=models.ScalarQuantization(
                 scalar=models.ScalarQuantizationConfig(
                     type=models.ScalarType.INT8,
                 ),
             ),
-        }
+        )
 
     @cached_property
     def client(self) -> Client:
