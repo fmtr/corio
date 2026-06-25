@@ -16,4 +16,4 @@ sudo apt-headless \
     libnvidia-container-tools \
     libnvidia-container1
 
-echo DOCKER RESTART NEEDED: sudo systemctl restart docker
+echo "DOCKER RESTART NEEDED: sudo systemctl restart docker"
