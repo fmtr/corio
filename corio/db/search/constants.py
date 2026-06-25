@@ -1,0 +1,5 @@
+SPARSE = "sparse"
+DENSE = "dense"
+MULTI = "multi"
+BM25 = "bm25"
+BM25_MODEL = "Qdrant/bm25"
