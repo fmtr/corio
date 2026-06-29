@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -exu
+
+. parse-args "$@"
+
+ GPU_NAME="${NAME:-GeForce RTX 3090}"
+ GPU_BDF="$(lspci -D | grep -iE 'VGA|3D|Display' | grep -i "$GPU_NAME" | head -n1 | awk '{print $1}')"
+ : "${GPU_BDF:?}"
+ AUDIO_BDF="${GPU_BDF%.*}.1"
+ : "${AUDIO_BDF:?}"
+ for bdf in "$GPU_BDF" "$AUDIO_BDF"; do
+   drv="$(basename "$(readlink -f "/sys/bus/pci/devices/$bdf/driver")")"
+   echo "$bdf" > "/sys/bus/pci/drivers/$drv/unbind"
+   echo 1 > "/sys/bus/pci/devices/$bdf/remove"
+ done
+ echo "Done. Safe to unplug Thunderbolt cable now."
