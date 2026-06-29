@@ -1,6 +1,5 @@
 import datetime
 from datetime import timedelta
-from functools import cached_property
 from itertools import chain, batched
 from time import monotonic
 from typing import List, Dict, Any, TypeVar, Generic, Iterable, Mapping, Sequence, Iterator as TypingIterator
@@ -240,6 +239,16 @@ class Iterator(Generic[IteratorT]):
         self.count = 0
         self.started_at = None
         self.item: IteratorT | None = None
+        self._span_context = None
+
+    @classmethod
+    def span(cls):
+        """
+
+        Return an iterator usable as a lightweight timing/logging context manager.
+
+        """
+        return cls([None], total=1)
 
     @staticmethod
     def _get_total(iterable: Iterable[IteratorT]) -> int | None:
@@ -301,13 +310,15 @@ class Iterator(Generic[IteratorT]):
         delta = timedelta(seconds=round(seconds))
         return delta
 
-    @cached_property
+    @property
     def item_desc(self) -> str:
         """
 
         Current item class name for logging text.
 
         """
+        if self.item is None:
+            return "item"
         return self.item.__class__.__name__
 
     @property
@@ -382,6 +393,33 @@ class Iterator(Generic[IteratorT]):
                 close = getattr(iterator, "close", lambda: None)
                 close()
 
+    def __enter__(self):
+        """
+
+        Enter timing/logging context without consuming the wrapped iterable.
+
+        """
+        self.count = 1
+        self.started_at = dt.now()
+        self.item = None
+        self._span_context = self.span_iteration
+        self._span_context.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        """
+
+        Exit timing/logging context and emit completion on success.
+
+        """
+        try:
+            if exc_type is None:
+                self.log_completion()
+        finally:
+            if self._span_context is not None:
+                self._span_context.__exit__(exc_type, exc, traceback)
+                self._span_context = None
+
     @property
     def count_text(self) -> str:
         """
@@ -446,4 +484,3 @@ class Iterator(Generic[IteratorT]):
         if self.rate is None:
             return None
         return f"avg={self.rate:.2f} {self.item_desc}(s)/s"
-

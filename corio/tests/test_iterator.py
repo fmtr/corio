@@ -219,3 +219,61 @@ def test_iterator_unknown_total_when_len_unavailable_and_no_total(monkeypatch):
     assert wrapped.count == 2
     assert wrapped.percentage is None
     assert wrapped.eta is None
+
+
+def test_iterator_supports_context_manager():
+    events = []
+
+    class DummyLogger:
+        @staticmethod
+        def span(message):
+            events.append(("span", message))
+            return nullcontext()
+
+        @staticmethod
+        def info(message):
+            events.append(("info", message))
+
+    original_logger = iterator.logger
+    iterator.logger = DummyLogger()
+    try:
+        with iterator.Iterator([1, 2, 3]):
+            pass
+    finally:
+        iterator.logger = original_logger
+
+    span_events = [message for kind, message in events if kind == "span"]
+    info_events = [message for kind, message in events if kind == "info"]
+
+    assert len(span_events) == 1
+    assert span_events[0].startswith("Iterating")
+    assert any(message.startswith("Completed 1 item(s)") for message in info_events)
+
+
+def test_iterator_span_context_manager():
+    events = []
+
+    class DummyLogger:
+        @staticmethod
+        def span(message):
+            events.append(("span", message))
+            return nullcontext()
+
+        @staticmethod
+        def info(message):
+            events.append(("info", message))
+
+    original_logger = iterator.logger
+    iterator.logger = DummyLogger()
+    try:
+        with iterator.Iterator.span():
+            pass
+    finally:
+        iterator.logger = original_logger
+
+    span_events = [message for kind, message in events if kind == "span"]
+    info_events = [message for kind, message in events if kind == "info"]
+
+    assert len(span_events) == 1
+    assert span_events[0].startswith("Iterating")
+    assert any(message.startswith("Completed 1 item(s)") for message in info_events)
