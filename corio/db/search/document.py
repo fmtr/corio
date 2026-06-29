@@ -32,7 +32,7 @@ class Payload(dm.Base):
 class Document(PointStruct):
     Payload: ClassVar[type] = Payload
 
-    STRIDE_FACTOR = 0.25
+    STRIDE_FACTOR: ClassVar[float] = 0.25
 
     @property
     def payload_obj(self) -> Payload:
