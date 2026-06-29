@@ -1,16 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from functools import cached_property
 from itertools import batched
-
-from qdrant_client.http import models
 
 from corio import iterator
 from corio.logs import logger
-
-from .client import Client
-from .constants import SIMPLE, DENSE, MULTI, SPARSE
 
 
 class Querier:
