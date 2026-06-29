@@ -2,20 +2,16 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from functools import cached_property
-from itertools import batched
-from typing import Iterable, Any
+from typing import Any
 
 from qdrant_client.http import models
 from qdrant_client.http.models import CollectionInfo
 
-from corio.inherit import Inherit
 from corio.iterator import Iterator
-
-from .collection import Collection
+from .client import Client
 from .constants import DENSE
 from .document import Document
 from .embedder import Embedder
-from .client import Client
 from ... import logger
 
 
