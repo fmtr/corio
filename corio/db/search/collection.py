@@ -2,14 +2,18 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from functools import cached_property
+from itertools import batched
 
 from qdrant_client.http import models
 
+from corio import iterator
+from corio.logs import logger
+
 from .client import Client
-from .constants import BM25, DENSE, MULTI, SPARSE
+from .constants import SIMPLE, DENSE, MULTI, SPARSE
 
 
-class Collection:
+class Querier:
     COLLECTION_NAME = "search"
     BATCH_SIZE_EMBEDDING = 50
 
@@ -17,88 +21,81 @@ class Collection:
     DENSE_SIZE = 1024
     MULTI_SIZE = 1024
 
-    @cached_property
-    def COLLECTION_CONFIG(self):
-        return dict(
-            collection_name=self.COLLECTION_NAME,
-            vectors_config={
-                DENSE: models.VectorParams(
-                    size=self.DENSE_SIZE,
-                    distance=models.Distance.COSINE,
-                ),
-                MULTI: models.VectorParams(
-                    size=self.MULTI_SIZE,
-                    distance=models.Distance.COSINE,
-                    multivector_config=models.MultiVectorConfig(
-                        comparator=models.MultiVectorComparator.MAX_SIM,
-                    ),
-                ),
-            },
-            sparse_vectors_config={
-                SPARSE: models.SparseVectorParams(
-                    index=models.SparseIndexParams(on_disk=True),
-                    modifier=models.Modifier.IDF,
-                ),
-                BM25: models.SparseVectorParams(
-                    index=models.SparseIndexParams(on_disk=True),
-                    modifier=models.Modifier.IDF,
-                ),
-            },
-            quantization_config=models.ScalarQuantization(
-                scalar=models.ScalarQuantizationConfig(
-                    type=models.ScalarType.INT8,
-                ),
-            ),
-        )
 
-    @cached_property
-    def client(self) -> Client:
-        return Client()
-
-    @cached_property
-    def models(self):
-        return models
-
-    @cached_property
-    def embedder(self):
-        from corio.db.search.embedder import Embedder
-        return Embedder(self)
-
-    @property
-    def collection(self) -> None:
-        if not self.client.collection_exists(collection_name=self.COLLECTION_NAME):
-            self.client.create_collection(**self.COLLECTION_CONFIG)
-        return ...
 
     def query(self, texts: Iterable[str], *, limit: int = 10, query_cls=None):
         from .query import Query
-        query_cls=query_cls or Query
+
+        query_cls = query_cls or Query
 
         queries = [query_cls(self, text=text, limit=limit) for text in texts]
         queries = self.embedder.embed(queries)
         requests = [query.request for query in queries]
 
-        results = self.client.query_batch_points(
-            collection_name=self.COLLECTION_NAME,
-            requests=requests,
-        )
-        return [result.points for result in results]
+        points_by_query = []
+        for request_batch in batched(requests, self.BATCH_SIZE_EMBEDDING):
+            results = self.client.query_batch_points(
+                collection_name=self.COLLECTION_NAME,
+                requests=list(request_batch),
+            )
+            points_by_query.extend(result.points for result in results)
 
-    def insert(self, dataset_cls) -> None:
+        return points_by_query
+
+
+    def evaluate(self, dataset_cls, query_classes, *, limit: int = 100, metrics=None):
+        from ranx import Run, evaluate as run_evaluate
+
         self.collection
         dataset = dataset_cls(self)
+        metrics = metrics or dataset.EVAL_METRICS
+        qrel_sets = dataset.qrel_sets
+        eval_queries = list(dataset.eval_queries)
+        collection_meta = self.client.get_collection(collection_name=self.COLLECTION_NAME)
 
-        self.client.local_inference_batch_size = dataset.BATCH_SIZE_DATASET
-        self.client.update_collection(
-            collection_name=self.COLLECTION_NAME,
-            optimizer_config=models.OptimizersConfigDiff(indexing_threshold=0),
-        )
-        self.client.upload_points(
-            collection_name=self.COLLECTION_NAME,
-            points=dataset.points,
-            batch_size=dataset.BATCH_SIZE_DATASET,
-            parallel=1,
-            method="fork",
-            max_retries=dataset.MAX_RETRIES,
-            wait=True,
-        )
+        scores_by_query_desc: dict[str, dict[str, dict[str, float]]] = {}
+
+        with logger.span("Evaluating query classes..."):
+            for query_cls in query_classes:
+                query_desc = query_cls.DESCRIPTION
+                with logger.span(f"Doing eval... {query_desc}"):
+                    hits_by_query = self.query(
+                        [item.text for item in eval_queries],
+                        limit=limit,
+                        query_cls=query_cls,
+                    )
+                    run_dict = {
+                        item.query_id: {
+                            hit.payload["id"]: float(hit.score)
+                            for hit in hits
+                        }
+                        for item, hits in zip(eval_queries, hits_by_query)
+                    }
+                    run = Run(run_dict)
+
+                    scores_by_qrel_desc: dict[str, dict[str, float]] = {}
+                    for qrel_desc, qrels in qrel_sets.items():
+                        scores = run_evaluate(
+                            qrels,
+                            run,
+                            metrics,
+                            make_comparable=True,
+                        )
+
+                        eval_data = dict(
+                            name=self.COLLECTION_NAME,
+                            is_metrics=True,
+                            collection=collection_meta.model_dump(),
+                            query_desc=query_desc,
+                            query_class=query_cls.__name__,
+                            qrels_desc=qrel_desc,
+                            scores=scores,
+                        )
+                        otel_data = iterator.flatten_tree(dict(eval=eval_data), sep="_")
+                        logger.info(f"Eval scores: {scores}", **otel_data)
+
+                        scores_by_qrel_desc[qrel_desc] = scores
+
+                    scores_by_query_desc[query_desc] = scores_by_qrel_desc
+
+        return scores_by_query_desc

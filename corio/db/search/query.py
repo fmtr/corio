@@ -1,18 +1,19 @@
 from __future__ import annotations
 
-import typing
 from functools import cached_property
 
 from qdrant_client.http import models
 
 from corio.inherit import Inherit
 
-from .constants import BM25, DENSE, MULTI, SPARSE
+from .constants import SIMPLE, DENSE, MULTI, SPARSE
 
-from corio.db.search.collection import Collection
 
-class Query(Inherit[Collection]):
-    def __init__(self, parent: Collection, text: str, *, limit: int):
+
+class Query:
+    DESCRIPTION = "rrf_sparse_dense_bm25_then_multi"
+
+    def __init__(self, parent: Any, text: str, *, limit: int):
         super().__init__(parent)
         self.text = text
         self.embedding = None
@@ -48,12 +49,16 @@ class Query(Inherit[Collection]):
 
 
 class QueryBasic(Query):
+    DESCRIPTION = "bm25_only"
+
     @cached_property
     def query(self):
         return self.bm25 | dict(with_payload=True)
 
+
 class QueryIndex(Inherit[Query]):
     ...
+
 
 class Sparse(QueryIndex):
     @cached_property
@@ -80,7 +85,7 @@ class Bm25(QueryIndex):
     def data(self):
         return dict(
             query=models.SparseVector(**self.embedding.bm25),
-            using=BM25,
+            using=SIMPLE,
             limit=self.limit * 10,
         )
 

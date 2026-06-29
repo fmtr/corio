@@ -287,3 +287,17 @@ def suffix_plural(count: Number, name: str, singular: str='',plural: str='s') ->
     text=f'{name}{suffix}'
     return text
 
+
+
+def chunk_sliding(text: str, window: int, stride: int) -> list[str]:
+    """
+
+    Split the given text into chunks of size 'window' sliding over the text by 'stride' words each time.
+
+    """
+    words = text.split()
+    chunks = []
+    for i in range(0, len(words) - window + 1, stride):
+        chunk = " ".join(words[i:i + window])
+        chunks.append(chunk)
+    return chunks
