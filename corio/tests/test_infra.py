@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 from packaging.requirements import Requirement
 
+from corio import entrypoint
 from corio import version
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
 from corio.infra.releaser import Releaser, IncrementorVersion, Tester as ReleaserTester
@@ -171,6 +172,47 @@ def test_process_deps_pins_project_dependencies(tmp_path):
 
     assert incrementor._process_deps(dependencies) == ["haco~=1.2.3", "requests>=2"]
     assert incrementor._process_deps(optional_dev) == ["haco[logging]~=1.2.3", "pytest"]
+
+
+def test_pyproject_cli_endpoint_returns_success_exit_code(monkeypatch):
+    events = []
+    releaser = SimpleNamespace()
+    project = SimpleNamespace(
+        releaser=releaser,
+        versions=SimpleNamespace(new="1.2.3", pinned=None),
+    )
+
+    class _Project:
+        def __init__(self, name):
+            events.append(("project", name))
+
+        @property
+        def releaser(self):
+            return project.releaser
+
+        @property
+        def versions(self):
+            return project.versions
+
+    class _IncrementorPyproject:
+        def __init__(self, value):
+            events.append(("incrementor", value))
+
+        def apply(self):
+            events.append(("apply", None))
+            return Path("/repo/pyproject.toml")
+
+    monkeypatch.setattr("corio.infra.project.Project", _Project)
+    monkeypatch.setattr("corio.infra.incrementor_pyproject.IncrementorPyproject", _IncrementorPyproject)
+    monkeypatch.setattr("corio.paths.paths", SimpleNamespace(name_ns="corio"))
+
+    assert entrypoint.Pyproject().run() == 0
+    assert project.versions.pinned == "1.2.3"
+    assert events == [
+        ("project", "corio"),
+        ("incrementor", releaser),
+        ("apply", None),
+    ]
 
 
 def _make_test_env_generator(path_repo: Path, *, test_envs: bool, dependencies: dict[str, list[str]]) -> GeneratorTestEnvs:

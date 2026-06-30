@@ -35,7 +35,8 @@ class Pyproject(dm.Base):
 
         project = Project(paths.name_ns)
         project.versions.pinned = project.versions.new
-        return IncrementorPyproject(project.releaser).apply()
+        IncrementorPyproject(project.releaser).apply()
+        return 0
 
 
 class EpTest(dm.Base):
