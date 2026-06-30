@@ -1,8 +1,9 @@
 [project]
 name = "corio"
-version = "2.4.3"
+version = "2.5.0"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
+requires-python = ">=3.14"
 dependencies = []
 license = "Apache-2.0"
 license-files = ["LICENSE"]
@@ -35,7 +36,7 @@ ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "pydan
 "openai.api" = ["openai"]
 "ai.client" = ["logfire", "pydantic", "pydantic-extra-types", "pycountry", "openai", "pydantic-ai-slim[logfire,openai]", "ollama"]
 json-fix = ["json_repair"]
-semantic = ["sentence_transformers", "metric"]
+semantic = ["sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 metrics = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
 html = ["html2text"]
@@ -72,7 +73,7 @@ tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
 secrets = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "logfire"]
-all = ["torch>=2.12", "torchvision", "torchaudio", "logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "metric", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright", "qdrant-client[fastembed]", "FlagEmbedding", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+all = ["torch>=2.12", "torchvision", "torchaudio", "logfire", "semver", "pydevd-pycharm~=251.25410.159", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright", "qdrant-client[fastembed]", "FlagEmbedding", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -85,7 +86,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.4.3"
+version = "2.5.0"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -130,7 +131,7 @@ ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "dm"]
 "openai.api" = ["openai"]
 "ai.client" = ["logging", "dm", "openai.api", "pydantic-ai-slim[logfire,openai]", "ollama"]
 json-fix = ["json_repair"]
-semantic = ["sentence_transformers", "metric"]
+semantic = ["sentence_transformers", "metrics"]
 metrics = ["tabular", "ranx"]
 tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
 html = ["html2text"]
