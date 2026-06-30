@@ -3,6 +3,9 @@
 . parse-args "$@"
 
 disk="/opt/dev/vm/${NAME-default}/disk.qcow2"
+bridge="${BR-bridge0}"
+
+
 
 if [[ -n "${CREATE-}" ]]; then
   mkdir -p "$(dirname "$disk")"
@@ -12,6 +15,11 @@ fi
 USB_LINE=()
 if [[ -n "${USB-}" ]]; then
   USB_LINE+=( -device "usb-host,vendorid=0x${USB%:*},productid=0x${USB#*:}" )
+fi
+
+sudo mkdir -p /etc/qemu
+if ! sudo grep -qxF "allow $bridge" /etc/qemu/bridge.conf 2>/dev/null; then
+  echo "allow $bridge" | sudo tee -a /etc/qemu/bridge.conf >/dev/null
 fi
 
 
@@ -27,6 +35,6 @@ sudo qemu-system-x86_64 \
   -device qemu-xhci \
   "${USB_LINE[@]}" \
   -device virtio-net-pci,netdev=net0 \
-  -netdev bridge,id=net0,br=${BR-br0} \
+  -netdev bridge,id=net0,br="$bridge" \
   -display ${DISPLAY_VM-gtk} \
   -serial mon:stdio
