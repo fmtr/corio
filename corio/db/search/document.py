@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 from functools import cached_property, lru_cache
-from typing import ClassVar, TYPE_CHECKING
+from typing import ClassVar, Generic, TYPE_CHECKING, TypeVar
 
 from qdrant_client.http import models
 from qdrant_client.http.models import PointStruct
 
 from .constants import SIMPLE, DENSE, MULTI, SPARSE, TOKENS_WORDS_FACTOR
 from corio import dm, Client
-from .embedder import Vectors
+from .embedder import Embedder, Vectors
 from ...hash import get_hash_int
 from ...strings import chunk_sliding
 
 if TYPE_CHECKING:
-    from .dataset import Builder
+    from .builder import Builder
 
 
 
@@ -29,17 +29,23 @@ class Payload(dm.Base):
         raise NotImplementedError()
 
 
-class Document(PointStruct):
-    Payload: ClassVar[type] = Payload
+PayloadT = TypeVar("PayloadT", bound=Payload)
+EmbedderT = TypeVar("EmbedderT", bound=Embedder)
+
+
+class Document(PointStruct, Generic[PayloadT, EmbedderT]):
+    Payload: ClassVar[type[PayloadT]] = Payload
+    Embedder: ClassVar[type[EmbedderT]] = Embedder
+    IS_MULTI: ClassVar[bool] = True
 
     STRIDE_FACTOR: ClassVar[float] = 0.25
 
     @property
-    def payload_obj(self) -> Payload:
+    def payload_obj(self) -> PayloadT:
         return self.Payload.model_validate(self.payload)
 
     @payload_obj.setter
-    def payload_obj(self, value: Payload) -> None:
+    def payload_obj(self, value: PayloadT) -> None:
         self.payload = value.model_dump()
 
     @property
@@ -75,8 +81,13 @@ class Document(PointStruct):
     @classmethod
     @lru_cache()
     def get_builder(self) -> type[Builder]:
-        from .dataset import Builder
+        from .builder import Builder
         return Builder
+
+    @classmethod
+    @lru_cache()
+    def get_embedder(cls) -> EmbedderT:
+        return cls.Embedder(is_multi=cls.IS_MULTI)
 
     @classmethod
     def build(cls, client: Client | None = None):

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from functools import cached_property
 from itertools import batched
 
+import numpy as np
 from FlagEmbedding import BGEM3FlagModel
 from fastembed import SparseTextEmbedding
 from typing import Self, List, ClassVar, Dict, Any, TYPE_CHECKING
@@ -56,25 +58,27 @@ class Embedder:
     BATCH_SIZE_EMBEDDING = 1_500
     MAX_LENGTH = 256
 
-    def __init__(self):
+    def __init__(self, *, is_multi: bool = True):
+        self.is_multi = is_multi
+
         with logger.span(f'Initialising {self.__class__.__name__}...'):
             for name in SIMPLE, M3:
                 with logger.span(f'Initialising {name}...'):
                     getattr(self, name)
 
     @cached_property
-    def config(self):
+    def config(self) -> Mapping:
         return dict(
             # collection_name=self.COLLECTION_NAME,
             vectors_config={
                 DENSE: models.VectorParams(
-                    size=self.m3.model.model.config.hidden_size,
+                    size=self.dense_size,
                     distance=models.Distance.COSINE,
                     on_disk=True,
                     hnsw_config=models.HnswConfigDiff(m=16),
                 ),
                 MULTI: models.VectorParams(
-                    size=self.m3.model.colbert_linear.out_features,
+                    size=self.multi_size,
                     distance=models.Distance.COSINE,
                     on_disk=True,
                     multivector_config=models.MultiVectorConfig(
@@ -122,8 +126,23 @@ class Embedder:
         return BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
 
     @cached_property
+    def dense_size(self):
+        return self.m3.model.model.config.hidden_size
+
+    @cached_property
+    def multi_size(self):
+        return self.m3.model.colbert_linear.out_features
+
+    @cached_property
     def simple(self) -> SparseTextEmbedding:
         return SparseTextEmbedding(model_name="Qdrant/bm25")
+
+    def get_multi(self, m3):
+        if self.is_multi:
+            return m3["colbert_vecs"]
+
+        batch_size = len(m3["dense_vecs"])
+        return np.zeros((batch_size, 1, self.multi_size), dtype=np.float32).tolist()
 
     def embed(self, batch: Iterator[Document]):
         texts = [item.payload_obj.text_vector for item in batch]
@@ -136,7 +155,7 @@ class Embedder:
                 max_length=self.MAX_LENGTH,
                 return_dense=True,
                 return_sparse=True,
-                return_colbert_vecs=True,
+                return_colbert_vecs=self.is_multi,
             )
         logger.info('Encoding simples...')
         with Iterator.span():
@@ -144,10 +163,8 @@ class Embedder:
                 texts,
                 batch_size=self.BATCH_SIZE_EMBEDDING,
             )
-        m3 = zip(m3["dense_vecs"], m3["lexical_weights"], m3["colbert_vecs"], simples)
+        m3 = zip(m3["dense_vecs"], m3["lexical_weights"], self.get_multi(m3), simples)
         for item, (dense, sparse, multi, simple) in zip(batch, m3):
-            multi=[0.]*self.m3.model.colbert_linear.out_features
-            multi=[multi] # todo fix.
             sparse_vector = SparseVector(indices=list(sparse.keys()), values=list(sparse.values()))
             simple_vector = SparseVector(indices=list(simple.indices), values=list(simple.values))
             vectors = self.Vectors(

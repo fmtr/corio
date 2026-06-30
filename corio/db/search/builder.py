@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from functools import cached_property
-from typing import Any
+from typing import Any, Generic
 
 from qdrant_client.http import models
 from qdrant_client.http.models import CollectionInfo
@@ -10,14 +10,12 @@ from qdrant_client.http.models import CollectionInfo
 from corio.iterator import Iterator
 from .client import Client
 from .constants import DENSE
-from .document import Document
-from .embedder import Embedder
+from .document import Document, EmbedderT, PayloadT
 from ... import logger
 
 
-class Builder:
-    Document = Document
-    Embedder = Embedder
+class Builder(Generic[PayloadT, EmbedderT]):
+    Document: type[Document[PayloadT, EmbedderT]] = Document
     MAX_LENGTH = 256
     MAX_RETRIES = 3
 
@@ -28,7 +26,7 @@ class Builder:
     def name(self):
         return self.Document.__name__
 
-    def get_document(self, data: Any) -> Document:
+    def get_document(self, data: Any) -> Document[PayloadT, EmbedderT]:
         raise NotImplementedError()
 
     @property
@@ -75,11 +73,11 @@ class Builder:
             )
 
     @cached_property
-    def embedder(self):
-        return self.Embedder()
+    def embedder(self) -> EmbedderT:
+        return self.Document.get_embedder()
 
     @property
-    def docs(self) -> Iterator[Document]:
+    def docs(self) -> Iterator[Document[PayloadT, EmbedderT]]:
         raise NotImplementedError()
 
     def build(self):
