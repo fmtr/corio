@@ -144,8 +144,8 @@ class Embedder:
         batch_size = len(m3["dense_vecs"])
         return np.zeros((batch_size, 1, self.multi_size), dtype=np.float32).tolist()
 
-    def embed(self, batch: Iterator[Document]):
-        texts = [item.payload_obj.text_vector for item in batch]
+    def embed(self, batch):
+        texts = [item.text_vector for item in batch]
 
         logger.info('Encoding M3...')
         with Iterator.span():
@@ -167,13 +167,12 @@ class Embedder:
         for item, (dense, sparse, multi, simple) in zip(batch, m3):
             sparse_vector = SparseVector(indices=list(sparse.keys()), values=list(sparse.values()))
             simple_vector = SparseVector(indices=list(simple.indices), values=list(simple.values))
-            vectors = self.Vectors(
+            item.vectors_obj = self.Vectors(
                 simple=simple_vector,
                 sparse=sparse_vector,
                 dense=dense,
                 multi=multi
             )
-            item.vectors_obj = vectors
         return batch
 
     def add_vectors(self, documents: Iterator[Document]) -> Iterator[Document]:

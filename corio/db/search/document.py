@@ -9,11 +9,13 @@ from qdrant_client.http.models import PointStruct
 from .constants import SIMPLE, DENSE, MULTI, SPARSE, TOKENS_WORDS_FACTOR
 from corio import dm, Client
 from .embedder import Embedder, Vectors
+from .query import Query
 from ...hash import get_hash_int
 from ...strings import chunk_sliding
 
 if TYPE_CHECKING:
     from .builder import Builder
+    from .querier import Querier
 
 
 
@@ -26,7 +28,7 @@ class Payload(dm.Base):
 
     @cached_property
     def text_vector(self) -> str:
-        raise NotImplementedError()
+        return self.text
 
 
 PayloadT = TypeVar("PayloadT", bound=Payload)
@@ -36,8 +38,9 @@ EmbedderT = TypeVar("EmbedderT", bound=Embedder)
 class Document(PointStruct, Generic[PayloadT, EmbedderT]):
     Payload: ClassVar[type[PayloadT]] = Payload
     Embedder: ClassVar[type[EmbedderT]] = Embedder
-    IS_MULTI: ClassVar[bool] = True
+    Query: ClassVar[type[Query[PayloadT, EmbedderT]]] = Query
 
+    IS_MULTI: ClassVar[bool] = True
     STRIDE_FACTOR: ClassVar[float] = 0.25
 
     @property
@@ -55,6 +58,10 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT]):
     @vectors_obj.setter
     def vectors_obj(self, value: Vectors) -> None:
         self.vector = value.model_dump()
+
+    @property
+    def text_vector(self) -> str:
+        return self.payload_obj.text_vector
         
     def chunk(self,text: str)->list[str]:
         max_length=self.get_builder().MAX_LENGTH
@@ -86,6 +93,12 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT]):
 
     @classmethod
     @lru_cache()
+    def get_querier(self) -> type[Querier]:
+        from .querier import Querier
+        return Querier
+
+    @classmethod
+    @lru_cache()
     def get_embedder(cls) -> EmbedderT:
         return cls.Embedder(is_multi=cls.IS_MULTI)
 
@@ -94,3 +107,9 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT]):
         Builder=cls.get_builder()
         builder = Builder(client)
         return builder.build()
+
+    @classmethod
+    def query(cls, texts: list[str], client: Client | None = None):
+        Querier = cls.get_querier()
+        querier = Querier(doc_type=cls, client=client)
+        return querier.query(texts)

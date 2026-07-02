@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import cached_property
+from typing import Generic, TypeVar
 
 from qdrant_client.http import models
 
@@ -9,15 +10,29 @@ from corio.inherit import Inherit
 from .constants import SIMPLE, DENSE, MULTI, SPARSE
 
 
+PayloadT = TypeVar("PayloadT")
+EmbedderT = TypeVar("EmbedderT")
 
-class Query:
+
+class Query(Generic[PayloadT, EmbedderT]):
     DESCRIPTION = "rrf_sparse_dense_bm25_then_multi"
 
-    def __init__(self, parent: Any, text: str, *, limit: int):
-        super().__init__(parent)
+    def __init__(self, text: str, *, limit: int):
         self.text = text
         self.embedding = None
         self.limit = limit
+
+    @property
+    def text_vector(self) -> str:
+        return self.text
+
+    @property
+    def vectors_obj(self):
+        return self.embedding
+
+    @vectors_obj.setter
+    def vectors_obj(self, value) -> None:
+        self.embedding = value
 
     @cached_property
     def sparse(self):
@@ -48,7 +63,7 @@ class Query:
         return models.QueryRequest(**self.query)
 
 
-class QueryBasic(Query):
+class QueryBasic(Query[PayloadT, EmbedderT]):
     DESCRIPTION = "bm25_only"
 
     @cached_property
@@ -56,41 +71,41 @@ class QueryBasic(Query):
         return self.bm25 | dict(with_payload=True)
 
 
-class QueryIndex(Inherit[Query]):
+class QueryIndex(Inherit[Query[PayloadT, EmbedderT]], Generic[PayloadT, EmbedderT]):
     ...
 
 
-class Sparse(QueryIndex):
+class Sparse(QueryIndex[PayloadT, EmbedderT]):
     @cached_property
     def data(self):
         return dict(
-            query=models.SparseVector(**self.embedding.sparse),
+            query=self.embedding.sparse,
             using=SPARSE,
             limit=self.limit * 10,
         )
 
 
-class Dense(QueryIndex):
+class Dense(QueryIndex[PayloadT, EmbedderT]):
     @cached_property
     def data(self):
         return dict(
-            query=self.embedding.dense.tolist(),
+            query=self.embedding.dense,
             using=DENSE,
             limit=self.limit * 10,
         )
 
 
-class Bm25(QueryIndex):
+class Bm25(QueryIndex[PayloadT, EmbedderT]):
     @cached_property
     def data(self):
         return dict(
-            query=models.SparseVector(**self.embedding.bm25),
+            query=self.embedding.simple,
             using=SIMPLE,
             limit=self.limit * 10,
         )
 
 
-class Fusion(QueryIndex):
+class Fusion(QueryIndex[PayloadT, EmbedderT]):
     @cached_property
     def data(self):
         return dict(
@@ -104,11 +119,11 @@ class Fusion(QueryIndex):
         )
 
 
-class Multi(QueryIndex):
+class Multi(QueryIndex[PayloadT, EmbedderT]):
     @cached_property
     def data(self):
         return dict(
-            query=self.embedding.multi.tolist(),
+            query=self.embedding.multi,
             using=MULTI,
             limit=self.limit,
             with_payload=True,

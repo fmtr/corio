@@ -1,37 +1,69 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from functools import cached_property
 from itertools import batched
+from typing import Generic
 
-from corio import iterator
-from corio.logs import logger
+from qdrant_client.http.models import CollectionInfo
 
+from corio import iterator, logger
+from corio.iterator import Iterator
 
-class Querier:
-    COLLECTION_NAME = "search"
-    BATCH_SIZE_EMBEDDING = 50
-
-    MAX_LENGTH = 1024
-    DENSE_SIZE = 1024
-    MULTI_SIZE = 1024
+from .client import Client
+from .document import Document, EmbedderT, PayloadT
+from .query import Query
 
 
+class Querier(Generic[PayloadT, EmbedderT]):
+    Document: type[Document[PayloadT, EmbedderT]] = Document
 
-    def query(self, texts: Iterable[str], *, limit: int = 10, query_cls=None):
-        from .query import Query
+    def __init__(
+        self,
+        doc_type: type[Document[PayloadT, EmbedderT]] | None = None,
+        client: Client | None = None,
+    ):
+        self.Document = doc_type or self.Document
+        self.client = client or Client()
 
-        query_cls = query_cls or Query
+    @cached_property
+    def name(self):
+        return self.Document.__name__
 
-        queries = [query_cls(self, text=text, limit=limit) for text in texts]
-        queries = self.embedder.embed(queries)
-        requests = [query.request for query in queries]
+    @property
+    def collection(self) -> CollectionInfo:
+        collection = self.client.get_collection(collection_name=self.name)
+        logger.info(f'Fetched collection: "{collection}"')
+        return collection
+
+    @cached_property
+    def embedder(self) -> EmbedderT:
+        return self.Document.get_embedder()
+
+    def query(
+        self,
+        texts: Iterable[str],
+        *,
+        limit: int = 10,
+        query_cls: type[Query[PayloadT, EmbedderT]] | None = None,
+    ):
+        query_cls = query_cls or self.Document.Query
+        batch_size = self.embedder.BATCH_SIZE_EMBEDDING
+        self.collection
+
+        queries = (query_cls(text=text, limit=limit) for text in texts)
+        queries = Iterator(queries)
 
         points_by_query = []
-        for request_batch in batched(requests, self.BATCH_SIZE_EMBEDDING):
-            results = self.client.query_batch_points(
-                collection_name=self.COLLECTION_NAME,
-                requests=list(request_batch),
-            )
+        for query_batch in batched(queries, batch_size):
+            self.embedder.embed(query_batch)
+
+            requests = [query.request for query in query_batch]
+            with Iterator.span():
+                results = self.client.query_batch_points(
+                    collection_name=self.name,
+                    requests=requests,
+                )
             points_by_query.extend(result.points for result in results)
 
         return points_by_query
@@ -40,12 +72,11 @@ class Querier:
     def evaluate(self, dataset_cls, query_classes, *, limit: int = 100, metrics=None):
         from ranx import Run, evaluate as run_evaluate
 
-        self.collection
         dataset = dataset_cls(self)
         metrics = metrics or dataset.EVAL_METRICS
         qrel_sets = dataset.qrel_sets
         eval_queries = list(dataset.eval_queries)
-        collection_meta = self.client.get_collection(collection_name=self.COLLECTION_NAME)
+        collection_meta = self.client.get_collection(collection_name=self.name)
 
         scores_by_query_desc: dict[str, dict[str, dict[str, float]]] = {}
 
@@ -77,7 +108,7 @@ class Querier:
                         )
 
                         eval_data = dict(
-                            name=self.COLLECTION_NAME,
+                            name=self.name,
                             is_metrics=True,
                             collection=collection_meta.model_dump(),
                             query_desc=query_desc,
