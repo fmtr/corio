@@ -100,8 +100,10 @@ def test_iterator_logs_spans_and_completion():
     info_events = [message for kind, message in events if kind == "info"]
 
     assert span_events[0].startswith("Iterating")
-    assert span_events[1].startswith("Processing Doc 1/2: count=1")
-    assert span_events[2].startswith("Processing Doc 2/2: count=2")
+    assert span_events[1].startswith("Processing Doc 1/2: 50.0%")
+    assert "elapsed=" in span_events[1]
+    assert span_events[2].startswith("Processing Doc 2/2: 100.0%")
+    assert "elapsed=" in span_events[2]
     assert any(message.startswith("Completed 2 Doc(s)") for message in info_events)
 
 
