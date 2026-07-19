@@ -60,6 +60,19 @@ def test_get_docstring_trims_multiline_docstring():
     assert strings.get_docstring(Demo) == "Demo docs."
 
 
+def test_trim_handles_varargs_input():
+    actual = strings.trim(
+        """
+            first
+        """,
+        """
+            second
+        """,
+    )
+
+    assert actual == "first\n\nsecond"
+
+
 def test_sanitize_and_camel_to_snake():
     assert strings.sanitize("Hello,", "World!", sep="-") == "hello-world"
     assert strings.camel_to_snake("HTTPRequestJSON") == "http_request_json"

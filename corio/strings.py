@@ -198,6 +198,7 @@ def join_natural(items, sep=', ', conj='and', mask=MASK_IDENTITY, if_empty=f'({N
     text = f"{firsts_str} {conj} {last}"
     return text
 
+
 class Mask:
     """
 
@@ -241,13 +242,16 @@ class Mask:
 
         return self.mask.format(**fills)
 
-def trim(text: str) -> str:
+def trim(*texts: str) -> str:
     """
 
     Trim strings both horizontally and vertically. Useful when multiline strings are defined in an indented context.
 
     """
-    return dedent(text).strip()
+    if len(texts) == 1:
+        text=next(iter(texts))
+        return dedent(text).strip()
+    return join((trim(text) for text in texts), sep='\n\n')
 
 
 def get_docstring(obj: Any) -> str | None:
@@ -277,16 +281,16 @@ def camel_to_snake(name: str) -> str:
     name = CAMEL_BOUNDARY.sub(r'\1_\2', name)
     return name.lower()
 
-def suffix_plural(count: Number, name: str, singular: str='',plural: str='s') -> str:
+
+def suffix_plural(count: Number, name: str, singular: str = '', plural: str = 's') -> str:
     """
 
     Get natural language singlar/plural form from a count/name
 
     """
     suffix = singular if count == 1 else plural
-    text=f'{name}{suffix}'
+    text = f'{name}{suffix}'
     return text
-
 
 
 def chunk_sliding(text: str, window: int, stride: int) -> list[str]:
