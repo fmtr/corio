@@ -42,8 +42,8 @@ def trace(
         is_debug=None,
         host=env.get(Constants.FMTR_REMOTE_DEBUG_HOST_KEY, Constants.FMTR_REMOTE_DEBUG_HOST_DEFAULT),
         port=Constants.FMTR_REMOTE_DEBUG_PORT_DEFAULT,
-        stdoutToServer=True,
-        stderrToServer=True,
+        stdout_to_server=True,
+        stderr_to_server=True,
         **kwargs
 ):
     """
@@ -63,7 +63,7 @@ def trace(
     logger.info(msg)
 
     import pydevd_pycharm
-    pydevd_pycharm.settrace(host, port=port, stdoutToServer=stdoutToServer, stderrToServer=stderrToServer, **kwargs)
+    pydevd_pycharm.settrace(host, port=port, stdout_to_server=stdout_to_server, stderr_to_server=stderr_to_server, **kwargs)
 
 
 def debug_shell():
