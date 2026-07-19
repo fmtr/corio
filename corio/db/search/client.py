@@ -4,6 +4,7 @@ from corio.logs import logger
 
 from qdrant_client.http import models
 
+
 class Client(qc.QdrantClient):
     """
 

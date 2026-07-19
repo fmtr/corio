@@ -19,6 +19,9 @@ from corio.db.search import models
 from corio.iterator import Iterator
 
 from FlagEmbedding.inference.embedder.encoder_only import m3 as flag_m3_module
+
+from fmtr.sandbox.acp.pda import models
+
 # Force-disable tqdm bars emitted inside FlagEmbedding's M3 module.
 
 
@@ -127,7 +130,7 @@ class Embedder:
 
     @cached_property
     def dense_size(self):
-        return self.m3.model.model.config.hidden_size
+        return models.model.config.hidden_size
 
     @cached_property
     def multi_size(self):

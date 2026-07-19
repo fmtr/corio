@@ -17,10 +17,12 @@ EmbedderT = TypeVar("EmbedderT")
 class Query(Generic[PayloadT, EmbedderT]):
     DESCRIPTION = "rrf_sparse_dense_bm25_then_multi"
 
-    def __init__(self, text: str, *, limit: int):
+    def __init__(self, text: str, *, limit: int, is_multi: bool = True):
         self.text = text
         self.embedding = None
         self.limit = limit
+        self.is_multi = is_multi
+        self.hits=[]
 
     @property
     def text_vector(self) -> str:
@@ -43,8 +45,8 @@ class Query(Generic[PayloadT, EmbedderT]):
         return Dense(self).data
 
     @cached_property
-    def bm25(self):
-        return Bm25(self).data
+    def simple(self):
+        return Simple(self).data
 
     @cached_property
     def fusion(self):
@@ -55,20 +57,35 @@ class Query(Generic[PayloadT, EmbedderT]):
         return Multi(self).data
 
     @cached_property
+    def data(self):
+        if self.is_multi:
+            data=dict(prefetch=models.Prefetch(**self.fusion), **self.multi)
+        else:
+            data=self.fusion
+        return data
+
+    @cached_property
     def query(self):
-        return dict(prefetch=models.Prefetch(**self.fusion), **self.multi)
+        return self.data|self.root
+
+    @cached_property
+    def root(self):
+        return dict(with_payload=True,limit=self.limit)
 
     @cached_property
     def request(self):
         return models.QueryRequest(**self.query)
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({repr(self.text)})"
+
 
 class QueryBasic(Query[PayloadT, EmbedderT]):
-    DESCRIPTION = "bm25_only"
+    DESCRIPTION = "simple"
 
     @cached_property
-    def query(self):
-        return self.bm25 | dict(with_payload=True)
+    def data(self):
+        return self.simple
 
 
 class QueryIndex(Inherit[Query[PayloadT, EmbedderT]], Generic[PayloadT, EmbedderT]):
@@ -95,7 +112,7 @@ class Dense(QueryIndex[PayloadT, EmbedderT]):
         )
 
 
-class Bm25(QueryIndex[PayloadT, EmbedderT]):
+class Simple(QueryIndex[PayloadT, EmbedderT]):
     @cached_property
     def data(self):
         return dict(
@@ -108,11 +125,12 @@ class Bm25(QueryIndex[PayloadT, EmbedderT]):
 class Fusion(QueryIndex[PayloadT, EmbedderT]):
     @cached_property
     def data(self):
+
         return dict(
             prefetch=[
                 models.Prefetch(**self.sparse),
                 models.Prefetch(**self.dense),
-                models.Prefetch(**self.bm25),
+                models.Prefetch(**self.simple),
             ],
             query=models.FusionQuery(fusion=models.Fusion.RRF),
             limit=self.limit * 5,
@@ -125,6 +143,4 @@ class Multi(QueryIndex[PayloadT, EmbedderT]):
         return dict(
             query=self.embedding.multi,
             using=MULTI,
-            limit=self.limit,
-            with_payload=True,
         )

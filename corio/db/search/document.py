@@ -3,11 +3,14 @@ from __future__ import annotations
 from functools import cached_property, lru_cache
 from typing import ClassVar, Generic, TYPE_CHECKING, TypeVar
 
+from pydantic import Field
+from pydantic.json_schema import SkipJsonSchema
 from qdrant_client.http import models
 from qdrant_client.http.models import PointStruct
 
+from .client import Client
 from .constants import SIMPLE, DENSE, MULTI, SPARSE, TOKENS_WORDS_FACTOR
-from corio import dm, Client
+from corio import dm
 from .embedder import Embedder, Vectors
 from .query import Query
 from ...hash import get_hash_int
@@ -15,7 +18,7 @@ from ...strings import chunk_sliding
 
 if TYPE_CHECKING:
     from .builder import Builder
-    from .querier import Querier
+    from .evaluator import Evaluator
 
 
 
@@ -25,6 +28,7 @@ class Payload(dm.Base):
     text: str
     is_doc: bool = True
     chunk_idx: int | None = None
+    score: SkipJsonSchema[float | None] = Field(default=None, exclude=True)
 
     @cached_property
     def text_vector(self) -> str:
@@ -33,12 +37,12 @@ class Payload(dm.Base):
 
 PayloadT = TypeVar("PayloadT", bound=Payload)
 EmbedderT = TypeVar("EmbedderT", bound=Embedder)
+EvaluatorT = TypeVar("EvaluatorT", bound="Evaluator")
 
-
-class Document(PointStruct, Generic[PayloadT, EmbedderT]):
-    Payload: ClassVar[type[PayloadT]] = Payload
-    Embedder: ClassVar[type[EmbedderT]] = Embedder
-    Query: ClassVar[type[Query[PayloadT, EmbedderT]]] = Query
+class Document(PointStruct, Generic[PayloadT, EmbedderT, EvaluatorT]):
+    Payload: ClassVar = Payload
+    Embedder: ClassVar = Embedder
+    Query: ClassVar = Query
 
     IS_MULTI: ClassVar[bool] = True
     STRIDE_FACTOR: ClassVar[float] = 0.25
@@ -91,11 +95,7 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT]):
         from .builder import Builder
         return Builder
 
-    @classmethod
-    @lru_cache()
-    def get_querier(self) -> type[Querier]:
-        from .querier import Querier
-        return Querier
+
 
     @classmethod
     @lru_cache()
@@ -110,6 +110,23 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT]):
 
     @classmethod
     def query(cls, texts: list[str], client: Client | None = None):
-        Querier = cls.get_querier()
+        from .querier import Querier
         querier = Querier(doc_type=cls, client=client)
         return querier.query(texts)
+
+    @classmethod
+    def evaluate(
+        cls,
+        query_classes: list[type[Query]] | None = None,
+        *,
+        limit: int = 100,
+        metrics=None,
+        client: Client | None = None,
+    ):
+        Evaluator = cls.Evaluator
+        evaluator = Evaluator(Document=cls, client=client)
+        return evaluator.evaluate(
+            query_classes=query_classes,
+            limit=limit,
+            metrics=metrics,
+        )

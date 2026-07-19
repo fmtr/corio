@@ -15,7 +15,7 @@ from ... import logger
 
 
 class Builder(Generic[PayloadT, EmbedderT]):
-    Document: type[Document[PayloadT, EmbedderT]] = Document
+    Document: type[Document[PayloadT, EmbedderT, Any]] = Document
     MAX_LENGTH = 256
     MAX_RETRIES = 3
 
@@ -26,7 +26,7 @@ class Builder(Generic[PayloadT, EmbedderT]):
     def name(self):
         return self.Document.__name__
 
-    def get_document(self, data: Any) -> Document[PayloadT, EmbedderT]:
+    def get_document(self, data: Any) -> Document[PayloadT, EmbedderT, Any]:
         raise NotImplementedError()
 
     @property
@@ -77,18 +77,12 @@ class Builder(Generic[PayloadT, EmbedderT]):
         return self.Document.get_embedder()
 
     @property
-    def docs(self) -> Iterator[Document[PayloadT, EmbedderT]]:
+    def docs(self) -> Iterator[Document[PayloadT, EmbedderT, Any]]:
         raise NotImplementedError()
 
     def build(self):
-
-        # batch_size=int(self.embedder.BATCH_SIZE_EMBEDDING*0.5)
         batch_size = self.embedder.BATCH_SIZE_EMBEDDING
         self.collection
-
-        # for doc in self.docs:
-        #     path=Path(paths.data/'json'/f'{doc.id}.json')
-        #     path.write_data(doc.model_dump(warnings=False))
 
         with self.disable_hnsw():
             self.client.upload_points(
@@ -100,5 +94,3 @@ class Builder(Generic[PayloadT, EmbedderT]):
                 max_retries=self.MAX_RETRIES,
                 # wait=True,
             )
-
-        return ...
