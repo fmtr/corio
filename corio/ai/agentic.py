@@ -4,7 +4,7 @@ from pydantic import PlainValidator
 from pydantic_ai import RunContext, ModelRetry
 from pydantic_ai._output import OutputDataT
 from pydantic_ai.agent import AgentRunResult, Agent
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.output import OutputSpec, NativeOutput, ToolOutput
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.tools import AgentDepsT
@@ -41,14 +41,14 @@ class Task(Generic[AgentDepsT, OutputDataT]):
     TypeDeps = str
     TypeOutput = str
 
-    PROVIDER = OpenAIProvider(api_key=api_key) if api_key else None
+    PROVIDER = OpenAIProvider(api_key=api_key) if api_key else 'openai'
 
     API_HOST_FMTR = env.get(Constants.FMTR_AI_HOST_KEY, Constants.FMTR_AI_HOST_DEFAULT)
     API_URL_FMTR = f'https://{API_HOST_FMTR}/v1'
     PROVIDER_FMTR = OpenAIProvider(base_url=API_URL_FMTR)
 
     MODEL_ID = 'gpt-4o'
-    MODEL_ID_FMTR = 'qwen2.5-coder:32b'
+    MODEL_ID_FMTR = 'glm-4.7-flash-64k:latest'
     SYSTEM_PROMPT_STATIC = None
     RESULT_RETRIES = 5
     VALIDATORS: List[Validator] = []
@@ -60,14 +60,14 @@ class Task(Generic[AgentDepsT, OutputDataT]):
 
         """
 
-        self.model = OpenAIModel(self.MODEL_ID, provider=self.PROVIDER)
+        self.model = OpenAIChatModel(self.MODEL_ID, provider=self.PROVIDER)
         self.agent = Agent[AgentDepsT, OutputDataT](
             *args,
             model=self.model,
             system_prompt=self.SYSTEM_PROMPT_STATIC or [],
             deps_type=self.TypeDeps,
             output_type=self.tool_output,
-            output_retries=self.RESULT_RETRIES,
+            retries={'output': self.RESULT_RETRIES},
             **kwargs
         )
 
