@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#core-io-corio" class="md-skip">
+        <a href="#corio" class="md-skip">
           Skip to content
         </a>
       
@@ -297,10 +297,82 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-example" class="md-nav__link">
+  <a href="#why-use-it" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Example
+        Why Use It
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#typed-paths-and-data-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typed Paths And Data Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observable-iteration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observable Iteration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fastapi-and-mcp-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FastAPI And MCP Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-areas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Useful Areas
       
     </span>
   </a>
@@ -2417,10 +2489,82 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-example" class="md-nav__link">
+  <a href="#why-use-it" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Example
+        Why Use It
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#typed-paths-and-data-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typed Paths And Data Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observable-iteration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observable Iteration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fastapi-and-mcp-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FastAPI And MCP Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-areas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Useful Areas
       
     </span>
   </a>
@@ -2473,19 +2617,112 @@
 <p class="admonition-title">Start Here</p>
 <p>Use <a href="quick-start/">Quick Start</a>, then the <a href="modules/">Modules Overview</a>.</p>
 </div>
-<h1 id="core-io-corio">Core IO (<code>corio</code>)</h1>
-<p>A collection of high-level tools that simplify everyday development work, with a focus on practical Python and AI/ML workflows.</p>
-<p><code>corio</code> is designed as a single utility package with opt-in extras, so projects can install only what they use.</p>
+<h1 id="corio">Corio</h1>
+<p>Corio is a practical Python toolkit for building small services, automation, data pipelines, and AI/ML support code without re-solving the same project plumbing every time.</p>
+<p>It bundles the pieces that tend to sit between "standard library" and "application code": typed paths with serialization helpers, pydantic-friendly data models, CLI settings, structured logging spans, iterator progress, FastAPI/MCP endpoint scaffolding, release metadata generation, test environment generation, and opt-in integrations for docs, Docker, search, tabular data, PDFs, OpenAI, Home Assistant, DNS, caching, encryption, and more.</p>
+<p>Corio is organized as one package with optional extras. Install the small core by default, then opt into the heavier tools a project actually needs.</p>
 <h2 id="install">Install</h2>
 <div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>corio
 </code></pre></div>
-<h2 id="quick-example">Quick Example</h2>
-<div class="language-python highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">corio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="n">value</span> <span class="o">=</span> <span class="n">corio</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">get_int</span><span class="p">(</span><span class="s2">&quot;MY_VALUE&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-<span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_json</span><span class="p">({</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+<p>Examples:</p>
+<div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corio[api]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corio[tabular]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corio[db.search]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corio[infra]&quot;</span>
 </code></pre></div>
+<h2 id="why-use-it">Why Use It</h2>
+<ul>
+<li><strong>Use paths as real application objects.</strong> Read and write JSON, YAML, TOML, text, and derived paths directly from <code>corio.Path</code>.</li>
+<li><strong>Make CLIs from typed models.</strong> Corio builds on pydantic settings patterns so small tools can stay declarative.</li>
+<li><strong>Wrap iteration with observability.</strong> <code>corio.iterator.Iterator</code> tracks count, percentage, elapsed time, ETA, completion, and cleanup.</li>
+<li><strong>Expose tools as HTTP and MCP endpoints.</strong> Define endpoint classes once and mount them into FastAPI and MCP surfaces.</li>
+<li><strong>Keep release metadata generated.</strong> <code>corio pyproject</code> turns Corio dependency groups and project metadata into the generated <code>pyproject.toml</code> sections.</li>
+<li><strong>Install integrations only when needed.</strong> Extras keep heavy dependencies like API servers, vector search, ML, PDFs, and tabular tooling out of the base install.</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<h3 id="typed-paths-and-data-files">Typed Paths And Data Files</h3>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;runs/latest/config.yaml&quot;</span><span class="p">)</span>
+<span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdirf</span><span class="p">()</span>
+<span class="n">path</span><span class="o">.</span><span class="n">write_data</span><span class="p">({</span>
+    <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;embedder-v2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_data</span><span class="p">()</span>
+<span class="n">json_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">get_conversion_path</span><span class="p">(</span><span class="s2">&quot;json&quot;</span><span class="p">)</span>
+<span class="n">json_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdirf</span><span class="p">()</span>
+<span class="n">json_path</span><span class="o">.</span><span class="n">write_data</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="observable-iteration">Observable Iteration</h3>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio.iterator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
+
+<span class="n">documents</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;b&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;c&quot;</span><span class="p">}]</span>
+
+<span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">Iterator</span><span class="p">(</span><span class="n">documents</span><span class="p">):</span>
+    <span class="c1"># Work happens inside per-item logging spans with progress stats.</span>
+    <span class="n">process</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+</code></pre></div>
+<p>The iterator tracks <code>count</code>, <code>total</code>, <code>percentage</code>, elapsed time, rate, ETA, completion logs, and closes the wrapped iterator when possible.</p>
+<h3 id="fastapi-and-mcp-tools">FastAPI And MCP Tools</h3>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_property</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">api</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Search</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">endpoint</span><span class="o">.</span><span class="n">API</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Search indexed documents.&quot;&quot;&quot;</span>
+
+    <span class="n">PATH</span> <span class="o">=</span> <span class="s2">&quot;/search&quot;</span>
+    <span class="n">TAGS</span> <span class="o">=</span> <span class="s2">&quot;documents&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span> <span class="s2">&quot;results&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Reindex</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">endpoint</span><span class="o">.</span><span class="n">Tool</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rebuild the document index.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;queued&quot;</span><span class="p">}</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Service</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">TITLE</span> <span class="o">=</span> <span class="s2">&quot;Document Service&quot;</span>
+    <span class="n">PORT</span> <span class="o">=</span> <span class="mi">8080</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ENDPOINTS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">Search</span><span class="p">,</span> <span class="n">Reindex</span><span class="p">]</span>
+
+
+<span class="n">Service</span><span class="p">()</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
+</code></pre></div>
+<p>The same endpoint model can feed HTTP routes and MCP tools, so internal automation and external APIs stay aligned.</p>
+<h3 id="project-metadata">Project Metadata</h3>
+<p>Corio projects keep dependency intent in <code>[tool.corio.dependencies]</code>; generated package metadata lives in <code>[project.optional-dependencies]</code>.</p>
+<div class="language-toml highlight"><pre><span></span><code><span class="k">[tool.corio.dependencies]</span>
+<span class="n">semantic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;sentence_transformers&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;metrics&quot;</span><span class="p">]</span>
+<span class="n">metrics</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;tabular&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ranx&quot;</span><span class="p">]</span>
+<span class="n">tabular</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;pandas&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;tabulate&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;openpyxl&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;odfpy&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;deepdiff&quot;</span><span class="p">]</span>
+</code></pre></div>
+<p>Then regenerate:</p>
+<div class="language-bash highlight"><pre><span></span><code>corio<span class="w"> </span>pyproject
+</code></pre></div>
+<p>That keeps extras flattened for packaging while preserving a maintainable source-of-truth dependency graph.</p>
+<h2 id="useful-areas">Useful Areas</h2>
+<ul>
+<li><code>corio.path</code>: typed path helpers, app paths, file type guessing, serialization helpers.</li>
+<li><code>corio.dm</code> and <code>corio.sets</code>: pydantic-oriented models and settings/CLI support.</li>
+<li><code>corio.api</code>: FastAPI and MCP endpoint composition.</li>
+<li><code>corio.iterator</code>: progress-aware iterable wrapper and small collection helpers.</li>
+<li><code>corio.infra</code>: release, docs, tox, and pyproject generation tooling.</li>
+<li><code>corio.db.search</code>: vector search helpers around qdrant and embeddings.</li>
+<li><code>corio.tabular</code>, <code>corio.semantic</code>, <code>corio.metric</code>: data and retrieval metrics helpers.</li>
+<li><code>corio.encrypt</code>, <code>corio.sec</code>: project secret and encryption workflows.</li>
+<li><code>corio.ha</code>, <code>corio.dns</code>, <code>corio.mqtt</code>, <code>corio.webhook</code>: operations and home automation integrations.</li>
+</ul>
 <h2 id="documentation">Documentation</h2>
 <ul>
 <li>Published docs: https://fmtr.github.io/corio</li>
