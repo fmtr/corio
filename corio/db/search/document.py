@@ -1,16 +1,21 @@
+"""
+
+Document and payload models for `corio.db.search`.
+
+"""
+
 from __future__ import annotations
 
 from functools import cached_property, lru_cache
-from typing import ClassVar, Generic, TYPE_CHECKING, TypeVar
-
 from pydantic import Field
 from pydantic.json_schema import SkipJsonSchema
 from qdrant_client.http import models
 from qdrant_client.http.models import PointStruct
+from typing import ClassVar, Generic, TYPE_CHECKING, TypeVar
 
-from .client import Client
-from .constants import SIMPLE, DENSE, MULTI, SPARSE, TOKENS_WORDS_FACTOR
 from corio import dm
+from .client import Client
+from .constants import TOKENS_WORDS_FACTOR
 from .embedder import Embedder, Vectors
 from .query import Query
 from ...hash import get_hash_int
@@ -24,6 +29,12 @@ if TYPE_CHECKING:
 
 
 class Payload(dm.Base):
+    """
+
+    Base payload stored with each search point.
+
+    """
+
     id: str
     text: str
     is_doc: bool = True
@@ -40,6 +51,12 @@ EmbedderT = TypeVar("EmbedderT", bound=Embedder)
 EvaluatorT = TypeVar("EvaluatorT", bound="Evaluator")
 
 class Document(PointStruct, Generic[PayloadT, EmbedderT, EvaluatorT]):
+    """
+
+    Search point model with helpers for payload, vectors, and chunking.
+
+    """
+
     Payload: ClassVar = Payload
     Embedder: ClassVar = Embedder
     Query: ClassVar = Query
@@ -65,9 +82,21 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT, EvaluatorT]):
 
     @property
     def text_vector(self) -> str:
+        """
+
+        Return the text used for embedding and retrieval.
+
+        """
+
         return self.payload_obj.text_vector
         
     def chunk(self,text: str)->list[str]:
+        """
+
+        Split text into overlapping windows sized for the builder.
+
+        """
+
         max_length=self.get_builder().MAX_LENGTH
         window = int(max_length * TOKENS_WORDS_FACTOR)
         stride = int(window * self.STRIDE_FACTOR)
@@ -75,6 +104,12 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT, EvaluatorT]):
 
     @property
     def points(self):
+        """
+
+        Yield the document and its derived chunk points.
+
+        """
+
         yield self
 
         payload = self.payload_obj
@@ -92,6 +127,12 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT, EvaluatorT]):
     @classmethod
     @lru_cache()
     def get_builder(self) -> type[Builder]:
+        """
+
+        Return the builder class bound to this document type.
+
+        """
+
         from .builder import Builder
         return Builder
 
@@ -100,16 +141,34 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT, EvaluatorT]):
     @classmethod
     @lru_cache()
     def get_embedder(cls) -> EmbedderT:
+        """
+
+        Return the embedder configured for this document type.
+
+        """
+
         return cls.Embedder(is_multi=cls.IS_MULTI)
 
     @classmethod
     def build(cls, client: Client | None = None):
+        """
+
+        Build the collection for this document type.
+
+        """
+
         Builder=cls.get_builder()
         builder = Builder(client)
         return builder.build()
 
     @classmethod
     def query(cls, texts: list[str], client: Client | None = None):
+        """
+
+        Run search queries for the given texts.
+
+        """
+
         from .querier import Querier
         querier = Querier(doc_type=cls, client=client)
         return querier.query(texts)
@@ -123,6 +182,12 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT, EvaluatorT]):
         metrics=None,
         client: Client | None = None,
     ):
+        """
+
+        Evaluate configured query classes against stored qrels.
+
+        """
+
         Evaluator = cls.Evaluator
         evaluator = Evaluator(Document=cls, client=client)
         return evaluator.evaluate(

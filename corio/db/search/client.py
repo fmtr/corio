@@ -1,14 +1,20 @@
+"""
+
+Qdrant client wrapper used by `corio.db.search`.
+
+"""
+
 import qdrant_client as qc
+from qdrant_client.http import models
+
 from corio.constants import Constants
 from corio.logs import logger
-
-from qdrant_client.http import models
 
 
 class Client(qc.QdrantClient):
     """
 
-    Stub Qdrant Client
+    Qdrant client with Corio defaults and startup logging.
 
     """
 
@@ -21,6 +27,11 @@ class Client(qc.QdrantClient):
         timeout: int = 180,
         **kwargs,
     ):
+        """
+
+        Connect to the configured search backend and log the collections.
+
+        """
 
         self.port = port
         self.url = url
@@ -34,5 +45,3 @@ class Client(qc.QdrantClient):
 
         with logger.span(f'Connecting to search database {self.url=} {self.port=}'):
             logger.info(f'Found collections: {self.get_collections().collections}')
-
-

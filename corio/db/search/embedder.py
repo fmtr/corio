@@ -1,3 +1,9 @@
+"""
+
+Embedding helpers for `corio.db.search`.
+
+"""
+
 from __future__ import annotations
 
 import numpy as np
@@ -18,6 +24,12 @@ if TYPE_CHECKING:
     from .document import Document
 
 class Vectors(dm.Base):
+    """
+
+    Vector payload returned by the embedder.
+
+    """
+
     simple: SparseVector
     sparse: SparseVector
     dense: List[StrictFloat]
@@ -26,12 +38,24 @@ class Vectors(dm.Base):
 
 
 class Embedder:
+    """
+
+    Build dense, sparse, and multi-vector representations.
+
+    """
+
     Vectors = Vectors
 
     BATCH_SIZE_EMBEDDING = 1_500
     MAX_LENGTH = 256
 
     def __init__(self, *, is_multi: bool = True):
+        """
+
+        Prime the sparse and M3 embedder state for this instance.
+
+        """
+
         self.is_multi = is_multi
 
         with logger.span(f'Initialising {self.__class__.__name__}...'):
@@ -41,6 +65,12 @@ class Embedder:
 
     @cached_property
     def config(self) -> Mapping:
+        """
+
+        Return the collection vector and quantization configuration.
+
+        """
+
         return dict(
             # collection_name=self.COLLECTION_NAME,
             vectors_config={
@@ -79,6 +109,12 @@ class Embedder:
 
     @cached_property
     def indexes(self):
+        """
+
+        Return the payload indexes required by the collection.
+
+        """
+
         return [
             dict(
                 field_name="id",
@@ -96,23 +132,53 @@ class Embedder:
 
     @cached_property
     def m3(self) -> BGEM3FlagModel:
+        """
+
+        Load the BGE-M3 embedding model.
+
+        """
+
         from FlagEmbedding import BGEM3FlagModel
 
         return BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
 
     @cached_property
     def dense_size(self):
+        """
+
+        Return the dense vector width used by the model.
+
+        """
+
         return models.model.config.hidden_size
 
     @cached_property
     def multi_size(self):
+        """
+
+        Return the ColBERT vector width used by the model.
+
+        """
+
         return self.m3.model.colbert_linear.out_features
 
     @cached_property
     def simple(self) -> SparseTextEmbedding:
+        """
+
+        Load the sparse BM25 embedder.
+
+        """
+
         return SparseTextEmbedding(model_name="Qdrant/bm25")
 
     def get_multi(self, m3):
+        """
+
+        Return ColBERT vectors or a zero-filled fallback.
+
+        """
+
         if self.is_multi:
             return m3["colbert_vecs"]
 
@@ -120,6 +186,12 @@ class Embedder:
         return np.zeros((batch_size, 1, self.multi_size), dtype=np.float32).tolist()
 
     def embed(self, batch):
+        """
+
+        Populate each document in a batch with vectors.
+
+        """
+
         texts = [item.text_vector for item in batch]
 
         logger.info('Encoding M3...')
@@ -151,6 +223,11 @@ class Embedder:
         return batch
 
     def add_vectors(self, documents: Iterator[Document]) -> Iterator[Document]:
+        """
+
+        Embed documents in batches and yield them back.
+
+        """
 
         for batch in batched(documents, self.BATCH_SIZE_EMBEDDING):
             yield from self.embed(batch)

@@ -1,20 +1,29 @@
+"""
+
+Query shapes for `corio.db.search`.
+
+"""
+
 from __future__ import annotations
 
 from functools import cached_property
+from qdrant_client.http import models
 from typing import Generic, TypeVar
 
-from qdrant_client.http import models
-
 from corio.inherit import Inherit
-
 from .constants import SIMPLE, DENSE, MULTI, SPARSE
-
 
 PayloadT = TypeVar("PayloadT")
 EmbedderT = TypeVar("EmbedderT")
 
 
 class Query(Generic[PayloadT, EmbedderT]):
+    """
+
+    Base qdrant query shape for the search stack.
+
+    """
+
     DESCRIPTION = "rrf_sparse_dense_bm25_then_multi"
 
     def __init__(self, text: str, *, limit: int, is_multi: bool = True):
@@ -81,6 +90,12 @@ class Query(Generic[PayloadT, EmbedderT]):
 
 
 class QueryBasic(Query[PayloadT, EmbedderT]):
+    """
+
+    Query shape that skips multi-vector reranking.
+
+    """
+
     DESCRIPTION = "simple"
 
     @cached_property
@@ -89,10 +104,20 @@ class QueryBasic(Query[PayloadT, EmbedderT]):
 
 
 class QueryIndex(Inherit[Query[PayloadT, EmbedderT]], Generic[PayloadT, EmbedderT]):
-    ...
+    """
+
+    Shared base for cached query variants.
+
+    """
 
 
 class Sparse(QueryIndex[PayloadT, EmbedderT]):
+    """
+
+    Sparse vector query payload.
+
+    """
+
     @cached_property
     def data(self):
         return dict(
@@ -103,6 +128,12 @@ class Sparse(QueryIndex[PayloadT, EmbedderT]):
 
 
 class Dense(QueryIndex[PayloadT, EmbedderT]):
+    """
+
+    Dense vector query payload.
+
+    """
+
     @cached_property
     def data(self):
         return dict(
@@ -113,6 +144,12 @@ class Dense(QueryIndex[PayloadT, EmbedderT]):
 
 
 class Simple(QueryIndex[PayloadT, EmbedderT]):
+    """
+
+    BM25 query payload.
+
+    """
+
     @cached_property
     def data(self):
         return dict(
@@ -123,6 +160,12 @@ class Simple(QueryIndex[PayloadT, EmbedderT]):
 
 
 class Fusion(QueryIndex[PayloadT, EmbedderT]):
+    """
+
+    Multi-source fusion query payload.
+
+    """
+
     @cached_property
     def data(self):
 
@@ -138,6 +181,12 @@ class Fusion(QueryIndex[PayloadT, EmbedderT]):
 
 
 class Multi(QueryIndex[PayloadT, EmbedderT]):
+    """
+
+    ColBERT multi-vector query payload.
+
+    """
+
     @cached_property
     def data(self):
         return dict(
