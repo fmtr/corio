@@ -170,15 +170,18 @@ class EvaluatorMsMarco(DatasetMsMarco, Evaluator):
             qrels.add_score(qrel.query_id, qrel.doc_id, qrel.relevance)
         return qrels
 
+def build():
+    return DocumentMsMarco.build()
 
+def eval():
+    scores = DocumentMsMarco.evaluate(query_classes=[Query, QueryBasic])
+    return scores
 
-
-
-
-
-if __name__ == "__main__":
-    #DocumentMsMarco.build()
+def query():
     texts=['sql queries in access', 'rivers in south america']
     results=list(DocumentMsMarco.query(texts=texts))
-    scores = DocumentMsMarco.evaluate(query_classes=[Query, QueryBasic])
-    results
+    return results
+
+if __name__ == "__main__":
+    query()
+

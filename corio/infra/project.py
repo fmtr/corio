@@ -14,7 +14,7 @@ class Project:
 
     """
 
-    def __init__(self, name, context='ws', channel='dev', extras=None, pinned=None):
+    def __init__(self, name, context='gex', channel='dev', extras=None, pinned=None):
         self.paths = PackagePaths(PackagePaths.dev_repo / name)
 
         # project settings:
