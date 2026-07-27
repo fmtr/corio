@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from pydantic_ai import RunContext
 from pydantic_ai.toolsets import FunctionToolset
 
+from corio import strings
 from corio.iterator import IndexList
+from corio.strings import get_docstring, join_natural
 
-from corio.ai.agentic.tool import Base as ToolBase
+from corio.ai.agentic import tool
 
 
 class Base(FunctionToolset):
@@ -17,13 +20,26 @@ class Base(FunctionToolset):
 
     """
 
+    DESCRIPTION: str | None = None
+
     def __init__(self):
         super().__init__()
         for tool in self.tool_instances:
             tool.register()
 
+    @property
+    def description(self) -> str | None:
+        """
+
+        Toolset description from an override or the class docstring.
+
+        """
+        if self.DESCRIPTION is not None:
+            return self.DESCRIPTION
+        return get_docstring(self.__class__)
+
     @cached_property
-    def TOOLS(self) -> list[type[ToolBase]]:
+    def TOOLS(self) -> list[type[tool.Base]]:
         """
 
         Tool classes registered on this toolset.
@@ -32,10 +48,28 @@ class Base(FunctionToolset):
         return []
 
     @cached_property
-    def tool_instances(self) -> IndexList[ToolBase]:
+    def tool_instances(self) -> IndexList[tool.Base]:
         """
 
         Instantiated tool objects for this toolset.
 
         """
-        return IndexList(tool_cls(self) for tool_cls in self.TOOLS)
+        return IndexList[tool.Base](tool_cls(self) for tool_cls in self.TOOLS)
+
+    async def get_instructions(self, ctx: RunContext[Any]) -> list[str]:
+        """
+
+        Tool instructions derived from the registered toolset.
+
+        """
+        names = self.tool_instances.name.keys()
+        names = join_natural(names)
+        return [
+            strings.trim(
+                f"""
+                ## {self.description}
+
+                You have access to {self.description} like {names}. Read each tool's description for detailed usage guidance.
+                """
+            )
+        ]
