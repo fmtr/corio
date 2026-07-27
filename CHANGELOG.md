@@ -1,1 +1,1 @@
-docs/changelog/2.2.2.md
+docs/changelog/2.6.1.md
