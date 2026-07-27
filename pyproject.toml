@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.5.0"
+version = "2.6.0-alpha000"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -11,7 +11,7 @@ keywords = []
 
 [project.optional-dependencies]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
-dev = ["logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "FlagEmbedding", "torch>=2.12", "torchvision", "torchaudio", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
+dev = ["logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "flagembedding", "torch>=2.12", "torchvision", "torchaudio", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript>=0.2.20", "pyyaml"]
 yaml = ["yamlscript>=0.2.20", "pyyaml"]
@@ -56,7 +56,7 @@ webhook = ["httpx", "httpx_retries", "logfire", "logfire[httpx]"]
 browsers = ["playwright"]
 db = []
 "db.document" = ["beanie"]
-"db.search" = ["qdrant-client[fastembed]", "pydantic", "pydantic-extra-types", "pycountry", "FlagEmbedding", "torch>=2.12", "torchvision", "torchaudio", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
+"db.search" = ["qdrant-client[fastembed]", "pydantic", "pydantic-extra-types", "pycountry", "flagembedding", "torch>=2.12", "torchvision", "torchaudio", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 mqtt = ["aiomqtt"]
 av = ["av"]
 env = []
@@ -73,7 +73,7 @@ tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
 secrets = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "logfire"]
-all = ["torch>=2.12", "torchvision", "torchaudio", "logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "FlagEmbedding", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+all = ["torch>=2.12", "torchvision", "torchaudio", "logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "flagembedding", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "json_repair", "sentence_transformers", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -86,7 +86,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.5.0"
+version = "2.6.0-alpha000"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -299,4 +299,4 @@ requires = ["setuptools>=82", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = ["logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "FlagEmbedding", "torch>=2.12", "torchvision", "torchaudio", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
+dev = ["logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "flagembedding", "torch>=2.12", "torchvision", "torchaudio", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
