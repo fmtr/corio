@@ -1,51 +1,21 @@
 from __future__ import annotations
 
+import numpy as np
 from collections.abc import Mapping
+from fastembed import SparseTextEmbedding
 from functools import cached_property
 from itertools import batched
-
-import numpy as np
-from FlagEmbedding import BGEM3FlagModel
-from fastembed import SparseTextEmbedding
-from typing import Self, List, ClassVar, Dict, Any, TYPE_CHECKING
-
 from pydantic import StrictFloat
 from qdrant_client.http.models import SparseVector
+from typing import Self, List, ClassVar, Dict, Any, TYPE_CHECKING
 
 from corio import dm, logger
-from corio.inherit import Inherit
-from corio.db.search.constants import DENSE, MULTI, SPARSE, SIMPLE, M3
 from corio.db.search import models
+from corio.db.search.constants import DENSE, MULTI, SPARSE, SIMPLE, M3
 from corio.iterator import Iterator
-
-from FlagEmbedding.inference.embedder.encoder_only import m3 as flag_m3_module
-
-from fmtr.sandbox.acp.pda import models
-
-# Force-disable tqdm bars emitted inside FlagEmbedding's M3 module.
-
 
 if TYPE_CHECKING:
     from .document import Document
-
-_m3_tqdm = flag_m3_module.tqdm
-_m3_trange = flag_m3_module.trange
-
-
-
-def _m3_tqdm_disabled(*args, **kwargs):
-    kwargs["disable"] = True
-    return _m3_tqdm(*args, **kwargs)
-
-
-def _m3_trange_disabled(*args, **kwargs):
-    kwargs["disable"] = True
-    return _m3_trange(*args, **kwargs)
-
-
-flag_m3_module.tqdm = _m3_tqdm_disabled
-flag_m3_module.trange = _m3_trange_disabled
-
 
 class Vectors(dm.Base):
     simple: SparseVector
@@ -126,6 +96,8 @@ class Embedder:
 
     @cached_property
     def m3(self) -> BGEM3FlagModel:
+        from FlagEmbedding import BGEM3FlagModel
+
         return BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
 
     @cached_property
