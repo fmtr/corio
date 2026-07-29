@@ -84,7 +84,7 @@ class Base(BaseSettings, CliRunMixin):
 
         """
 
-        class ConfigPathOverride(Base, cli_parse_args=True):
+        class ConfigPathOverride(Base, cli_parse_args=True, cli_ignore_unknown_args=True):
             """
 
             Check if the YAML file location has been overridden. If so, we'll provide that location as the source.
