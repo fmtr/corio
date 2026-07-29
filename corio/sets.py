@@ -1,10 +1,13 @@
 from typing import ClassVar, Any
 
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, \
+    CliSettingsSource
 
 from corio import Constants
 from corio.dm import CliRunMixin
-from corio.path import PackagePaths, Path
+from corio.iterator import strip_none
+from corio.path import Path
+from corio.paths import paths
 
 
 class YamlScriptConfigSettingsSource(YamlConfigSettingsSource):
@@ -34,7 +37,8 @@ class Base(BaseSettings, CliRunMixin):
     """
 
     ENV_NESTED_DELIMITER: ClassVar = Constants.ENV_NESTED_DELIMITER
-    paths: ClassVar = PackagePaths()
+    paths: ClassVar = paths
+    config: Path | None = None
 
     @classmethod
     def settings_customise_sources(
@@ -55,26 +59,48 @@ class Base(BaseSettings, CliRunMixin):
         if cli_parse_args is None:
             cli_parse_args = False
 
-        sources = (
+        sources = strip_none(
             init_settings,
             CliSettingsSource(
                 settings_cls,
                 cli_parse_args=cli_parse_args,
             ),
             EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix(), env_nested_delimiter=cls.ENV_NESTED_DELIMITER),
-            YamlScriptConfigSettingsSource(settings_cls, yaml_file=cls.find_yaml_file()),
+            cls.get_yaml_source(settings_cls)
         )
+        sources = tuple(sources)
 
         return sources
 
     @classmethod
-    def find_yaml_file(self) -> Path:
+    def get_yaml_source(cls, settings_cls):
+        return YamlScriptConfigSettingsSource(settings_cls, yaml_file=cls.find_yaml_file())
+
+    @classmethod
+    def find_yaml_file(cls) -> Path:
         """
 
         Overridable find YAML config file method
 
         """
-        return self.paths.settings
+
+        class ConfigPathOverride(Base, cli_parse_args=True):
+            """
+
+            Check if the YAML file location has been overridden. If so, we'll provide that location as the source.
+
+            """
+            paths = cls.paths
+
+            @classmethod
+            def get_yaml_source(cls, settings_cls):
+                return None
+
+        config_override = ConfigPathOverride()
+        if config_override.config:
+            return config_override.config
+
+        return cls.paths.settings
 
     @classmethod
     def get_env_prefix(cls):

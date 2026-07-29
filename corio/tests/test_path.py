@@ -109,6 +109,49 @@ def test_find_up_and_chdir(tmp_path):
     assert path.Path.cwd() == cwd_before
 
 
+def test_find_site_accepts_uv_archive_layout(tmp_path, monkeypatch):
+    import corio.path.path as path_mod
+
+    path_package = path.Path(
+        tmp_path
+        / "archive-v0"
+        / "h_Y5xD0yLtWh1w4P"
+        / "lib"
+        / "python3.14"
+        / "site-packages"
+        / "corio"
+    )
+    path_package.mkdir(parents=True)
+
+    monkeypatch.setattr(
+        path_mod.site,
+        "getsitepackages",
+        lambda: [str(tmp_path / "venv" / "lib" / "python3.14" / "site-packages")],
+    )
+    monkeypatch.setattr(path_mod.site, "getusersitepackages", lambda: str(tmp_path / "user-site"))
+
+    actual = path_mod.PathsSearchData.find_site(path_package)
+    assert actual == path_package.parent
+
+
+def test_find_site_accepts_injected_sys_path(tmp_path, monkeypatch):
+    import corio.path.path as path_mod
+
+    path_package = path.Path(tmp_path / "injected" / "corio")
+    path_package.mkdir(parents=True)
+
+    monkeypatch.setattr(
+        path_mod.site,
+        "getsitepackages",
+        lambda: [str(tmp_path / "venv" / "lib" / "python3.14" / "site-packages")],
+    )
+    monkeypatch.setattr(path_mod.site, "getusersitepackages", lambda: str(tmp_path / "user-site"))
+    monkeypatch.setattr(path_mod.sys, "path", [str(tmp_path / "injected"), str(tmp_path / "elsewhere")])
+
+    actual = path_mod.PathsSearchData.find_site(path_package)
+    assert actual == path_package.parent
+
+
 def test_pydantic_helpers():
     value = path.Path("/tmp/a")
     assert path.Path.__serialize_pydantic__(value) == "/tmp/a"

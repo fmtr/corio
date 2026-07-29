@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
-import re
 import site
+import sys
 import typing
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -10,8 +10,8 @@ from functools import cached_property
 from itertools import chain
 from pathlib import Path
 from tempfile import gettempdir
+from typing import Any
 from typing import Self, Tuple, Callable
-from typing import Union, Any
 
 from corio.constants import Constants
 from corio.strings import join_natural
@@ -820,6 +820,10 @@ class PathsSearchData:
         """
         paths_site = site.getsitepackages() + [site.getusersitepackages()]
         paths_site = [Path(path_site) for path_site in paths_site]
+        paths_site.extend(Path(path_site) for path_site in sys.path if path_site and Path(path_site).is_absolute())
+        paths_site.extend(
+            parent for parent in path_package.parents if parent.name in {"site-packages", "dist-packages"})
+        paths_site = list(dict.fromkeys(paths_site))
 
         for path_site in paths_site:
             if path_package.is_relative_to(path_site):
