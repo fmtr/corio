@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import site
 import sys
 import typing
 from contextlib import contextmanager
@@ -13,6 +12,7 @@ from tempfile import gettempdir
 from typing import Any
 from typing import Self, Tuple, Callable
 
+import site
 from corio.constants import Constants
 from corio.strings import join_natural
 
@@ -211,6 +211,23 @@ class Path(type(Path())):
 
         """
         return self.mkdir(parents=True, exist_ok=True)
+
+    def chown(self, user: str, recurse: bool = False):
+        """
+
+        Change owner for this path, optionally recursing into children.
+
+        """
+
+        import pwd
+
+        owner = pwd.getpwnam(user)
+        paths = [self]
+        if recurse:
+            paths += list(self.glob("**/*"))
+
+        for path in paths:
+            os.chown(path, owner.pw_uid, owner.pw_gid)
 
     def with_suffix(self, suffix: str) -> 'Path':
         """

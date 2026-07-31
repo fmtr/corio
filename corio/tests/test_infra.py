@@ -1,10 +1,12 @@
-from types import SimpleNamespace
-
+import asyncio
 from packaging.requirements import Requirement
+from types import SimpleNamespace
 
 from corio import entrypoint
 from corio import version
+from corio.infra.api import PreVersion
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
+from corio.infra.project import Versions
 from corio.infra.releaser import Releaser, IncrementorVersion, Tester as ReleaserTester
 from corio.infra.repository import Repository
 from corio.path import Path
@@ -150,6 +152,39 @@ def test_pin_editables_allows_prerelease_when_current_is_prerelease(tmp_path):
     incrementor = _make_incrementor(path_main_repo, is_pre=True)
 
     assert incrementor._pin_editable("haco") == "haco~=1.2.3-rc.1"
+
+
+def test_versions_next_pre_uses_literal_alpha000():
+    parent = SimpleNamespace(
+        paths=SimpleNamespace(
+            metadata=SimpleNamespace(version_obj=version.parse("0.1.0")),
+        )
+    )
+
+    assert str(Versions(parent).next_pre) == "0.1.1-alpha000"
+
+
+def test_versions_next_pre_returns_none_for_prerelease():
+    parent = SimpleNamespace(
+        paths=SimpleNamespace(
+            metadata=SimpleNamespace(version_obj=version.parse("0.1.0-alpha.1")),
+        )
+    )
+
+    assert Versions(parent).next_pre is None
+
+
+def test_pre_version_endpoint_returns_next_pre_release(monkeypatch):
+    class DummyProject:
+        def __init__(self, name):
+            assert name == "demo"
+            self.versions = SimpleNamespace(next_pre=version.parse("0.1.1-alpha000"))
+
+    monkeypatch.setattr("corio.infra.api.Project", DummyProject)
+
+    endpoint = PreVersion(SimpleNamespace())
+
+    assert asyncio.run(endpoint.run("demo")) == "0.1.1-alpha000"
 
 
 def test_process_deps_pins_project_dependencies(tmp_path):

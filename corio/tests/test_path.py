@@ -1,7 +1,6 @@
 import pathlib
-from datetime import timezone
-
 import pytest
+from datetime import timezone
 
 from corio import path
 
@@ -87,6 +86,34 @@ def test_mkdirf_exist_children_and_timestamps(tmp_path):
     assert path_file.metadata_changed.tzinfo == timezone.utc
     if path_file.created is not None:
         assert path_file.created.tzinfo == timezone.utc
+
+
+def test_chown_can_recurse(tmp_path, monkeypatch):
+    import corio.path.path as path_mod
+
+    path_root = path.Path(tmp_path / "secret")
+    path_root.mkdir(parents=True)
+    path_child = path.Path(path_root / "child.txt")
+    path_child.write_text("x")
+
+    chown_calls = []
+
+    def _chown(path_obj, uid, gid):
+        chown_calls.append((path.Path(path_obj), uid, gid))
+
+    class _User:
+        pw_uid = 1001
+        pw_gid = 1002
+
+    monkeypatch.setattr(path_mod.pwd, "getpwnam", lambda _user: _User())
+    monkeypatch.setattr(path_mod.os, "chown", _chown)
+
+    path_root.chown("foo", recurse=True)
+
+    assert chown_calls == [
+        (path_root, 1001, 1002),
+        (path_child, 1001, 1002),
+    ]
 
 
 def test_find_up_and_chdir(tmp_path):

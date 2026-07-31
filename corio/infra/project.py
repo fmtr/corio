@@ -117,3 +117,10 @@ class Versions(Inherit[Project]):
     @property
     def is_pre(self):
         return bool(self.new.prerelease)
+
+    @property
+    def next_pre(self):
+        if self.is_pre:
+            return None
+
+        return self.new.bump_patch().replace(prerelease="alpha000")

@@ -20,7 +20,7 @@ class Api(api.Base):
         Infrastructure endpoint classes.
 
         """
-        return [Recreate, Release, Build]
+        return [Recreate, Release, PreVersion, Build]
 
 
 class Recreate(api.endpoint.API):
@@ -66,6 +66,28 @@ class Release(api.endpoint.API):
         """
         project = Project(name, pinned=pinned)
         project.releaser.run(build=build, release=release, cache=cache)
+
+
+class PreVersion(api.endpoint.API):
+    """
+
+    Get the next pre-release version for a project.
+
+    """
+
+    PATH = "/{name}/pre-version"
+
+    async def run(self, name: str):
+        """
+
+        Return the next pre-release version string, or None if already pre-release.
+
+        """
+        project = Project(name)
+        version = project.versions.next_pre
+        if version is None:
+            return None
+        return str(version)
 
 
 class Build(api.endpoint.API):

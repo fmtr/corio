@@ -300,6 +300,7 @@ class Decrypt(Command):
     Decrypt subcommand
 
     """
+    env: CliSubCommand["Env"]
 
     def run(self):
         """
@@ -367,6 +368,57 @@ class Decrypt(Command):
         logger.info(f'Writing new red: {path_red}')
         path_red.write_data(red)
         return path_red
+
+
+class Env(dm.Base):
+    """
+
+    Decrypt a black file into /run/secrets/{name}
+
+    """
+
+    SECRET_ROOT: ClassVar[Path] = Path("/run/secrets")
+
+    name: str
+    black: Path
+    user: str
+
+    @cached_property
+    def encryptor(self):
+        """
+
+        Decryption doesn't need definitions, so can use a generic values encryptor
+
+        """
+        from corio.encrypt import EncryptorValues
+
+        return EncryptorValues()
+
+    @property
+    def path_secret(self) -> Path:
+        """
+
+        Target directory for the decrypted secret
+
+        """
+        return self.SECRET_ROOT / self.name
+
+    def run(self):
+        """
+
+        Decrypt the supplied black file into the target secret directory
+
+        """
+        path_secret = self.path_secret
+        path_secret.mkdirf()
+
+        black = self.black.read_data()
+        red = self.encryptor.decrypt(black)
+
+        path_red = path_secret / Path(self.black.stem).stem
+        path_red.write_data(red)
+
+        path_secret.chown(self.user, recurse=True)
 
 
 class Cli(sets.Base):
