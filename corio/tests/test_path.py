@@ -89,6 +89,7 @@ def test_mkdirf_exist_children_and_timestamps(tmp_path):
 
 
 def test_chown_can_recurse(tmp_path, monkeypatch):
+    import pwd
     import corio.path.path as path_mod
 
     path_root = path.Path(tmp_path / "secret")
@@ -105,7 +106,7 @@ def test_chown_can_recurse(tmp_path, monkeypatch):
         pw_uid = 1001
         pw_gid = 1002
 
-    monkeypatch.setattr(path_mod.pwd, "getpwnam", lambda _user: _User())
+    monkeypatch.setattr(pwd, "getpwnam", lambda _user: _User())
     monkeypatch.setattr(path_mod.os, "chown", _chown)
 
     path_root.chown("foo", recurse=True)

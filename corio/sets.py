@@ -74,7 +74,11 @@ class Base(BaseSettings, CliRunMixin):
 
     @classmethod
     def get_yaml_source(cls, settings_cls):
-        return YamlScriptConfigSettingsSource(settings_cls, yaml_file=cls.find_yaml_file())
+        path = cls.find_yaml_file()
+        if not path:
+            return None
+        source = YamlScriptConfigSettingsSource(settings_cls, yaml_file=path)
+        return source
 
     @classmethod
     def find_yaml_file(cls) -> Path:

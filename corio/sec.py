@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import ClassVar
-from typing import Generator
-from typing import TYPE_CHECKING
-
 from pydantic import Field
 from pydantic_settings import CLI_SUPPRESS
 from pydantic_settings import CliSubCommand
+from typing import ClassVar
+from typing import Generator
+from typing import TYPE_CHECKING
 
 from corio import dm as dm
 from corio import sets as sets
@@ -294,6 +293,56 @@ class Encrypt(Command):
         return path_black
 
 
+class Env(dm.Base):
+    """
+
+    Decrypt a black file into /run/secrets/{name}
+
+    """
+
+    SECRET_ROOT: ClassVar[Path] = Path("/run/secrets")
+
+    name: str
+    black: Path
+    user: str
+
+    @cached_property
+    def encryptor(self):
+        """
+
+        Decryption doesn't need definitions, so can use a generic values encryptor
+
+        """
+        from corio.encrypt import EncryptorValues
+
+        return EncryptorValues()
+
+    @property
+    def path_secret(self) -> Path:
+        """
+
+        Target directory for the decrypted secret
+
+        """
+        return self.SECRET_ROOT / self.name
+
+    def run(self):
+        """
+
+        Decrypt the supplied black file into the target secret directory
+
+        """
+        path_secret = self.path_secret
+        path_secret.mkdirf()
+
+        black = self.black.read_data()
+        red = self.encryptor.decrypt(black)
+
+        path_red = path_secret / Path(self.black.stem).stem
+        path_red.write_data(red)
+
+        path_secret.chown(self.user, recurse=True)
+
 class Decrypt(Command):
     """
 
@@ -370,55 +419,7 @@ class Decrypt(Command):
         return path_red
 
 
-class Env(dm.Base):
-    """
 
-    Decrypt a black file into /run/secrets/{name}
-
-    """
-
-    SECRET_ROOT: ClassVar[Path] = Path("/run/secrets")
-
-    name: str
-    black: Path
-    user: str
-
-    @cached_property
-    def encryptor(self):
-        """
-
-        Decryption doesn't need definitions, so can use a generic values encryptor
-
-        """
-        from corio.encrypt import EncryptorValues
-
-        return EncryptorValues()
-
-    @property
-    def path_secret(self) -> Path:
-        """
-
-        Target directory for the decrypted secret
-
-        """
-        return self.SECRET_ROOT / self.name
-
-    def run(self):
-        """
-
-        Decrypt the supplied black file into the target secret directory
-
-        """
-        path_secret = self.path_secret
-        path_secret.mkdirf()
-
-        black = self.black.read_data()
-        red = self.encryptor.decrypt(black)
-
-        path_red = path_secret / Path(self.black.stem).stem
-        path_red.write_data(red)
-
-        path_secret.chown(self.user, recurse=True)
 
 
 class Cli(sets.Base):
@@ -455,14 +456,16 @@ class Cli(sets.Base):
 
 
     @classmethod
-    def find_yaml_file(cls) -> Path:
+    def find_yaml_file(cls) -> Path | None:
         """
     
         Walk up the directory tree looking for cls.FILENAME
     
         """
-
-        path = Path.cwd().find_up(cls.FILENAME)
+        try:
+            path = Path.cwd().find_up(cls.FILENAME)
+        except FileNotFoundError:
+            path = None
         return path
 
     @cached_property
