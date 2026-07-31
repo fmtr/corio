@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.6.3"
+version = "2.6.4-alpha000"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -86,7 +86,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.6.3"
+version = "2.6.4-alpha000"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -182,7 +182,7 @@ corio = ["pyproject.package.toml"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api", "caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "shell", "strings", "toml", "tools", "yml"]
+env_list = ["api", "caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "shell", "strings", "toml", "tools", "yml"]
 
 [tool.tox.env.api]
 description = "Run api tests."
@@ -268,6 +268,11 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_patterns.py"]]
 description = "Run rand tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_rand.py"]]
+
+[tool.tox.env.sec]
+description = "Run sec tests."
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_sec.py"]]
 
 [tool.tox.env.shell]
 description = "Run shell tests."
