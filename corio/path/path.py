@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import site
 import sys
 import typing
 from contextlib import contextmanager
@@ -12,7 +13,6 @@ from tempfile import gettempdir
 from typing import Any
 from typing import Self, Tuple, Callable
 
-import site
 from corio.constants import Constants
 from corio.strings import join_natural
 
@@ -477,7 +477,8 @@ class PackagePaths(FromCallerMixin):
 
     """
 
-    dev = Path('/') / 'opt' / 'dev'
+    dev = os.getenv(Constants.FMTR_HOME_KEY, Path.home())
+    dev = Path(dev)
     dev_repo = dev / 'repo'
     data_global = dev / Constants.DIR_NAME_DATA
 

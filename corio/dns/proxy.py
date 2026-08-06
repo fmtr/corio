@@ -52,7 +52,7 @@ class Proxy(server.Plain):
             return exchange
 
         with logger.span(f'Making upstream request...'):
-            self.client.resolve(exchange)
+            await self.client.resolve(exchange)
         if exchange.is_complete:
             return exchange
 

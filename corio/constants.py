@@ -40,11 +40,12 @@ class Constants:
     FMTR_AI_HOST_KEY = 'FMTR_URL_HOST'
     FMTR_AI_HOST_DEFAULT = 'ai.gex.fmtr.dev'
 
-    FMTR_DEV_HOST = 'ws.gex.fmtr.dev'
+    FMTR_DEV_HOST = 'dev.gex.fmtr.dev'
 
     FMTR_DEV_INTERFACE_URL = f'https://{FMTR_DEV_HOST}/'
     FMTR_DEV_INTERFACE_SUB_URL_MASK = f'https://{{sub}}.{FMTR_DEV_HOST}/'
 
+    FMTR_HOME_KEY = 'FMTR_HOME'
     FILENAME_CONFIG = 'settings.yaml'
     DIR_NAME_REPO = 'repo'
     DIR_NAME_DATA = 'data'
@@ -75,7 +76,7 @@ class Constants:
 
     GITHUB_TOKEN_KEY = 'GITHUB_TOKEN'
 
-    PACKAGE_INDEX_PRIVATE_URL = 'https://pi.gex.fmtr.dev'
+    PACKAGE_INDEX_PRIVATE_URL = 'http://127.0.0.1:8081'
 
     PACKAGE_INDEX_PRIVATE_TOKEN_KEY = 'PACKAGE_INDEX_PRIVATE_TOKEN'
     PACKAGE_INDEX_PUBLIC_TOKEN_KEY = 'PACKAGE_INDEX_PUBLIC_TOKEN'

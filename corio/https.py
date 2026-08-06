@@ -1,5 +1,6 @@
-import httpx
 from functools import cached_property
+
+import httpx
 from httpx_retries import RetryTransport, Retry
 
 from corio import logs
@@ -7,12 +8,8 @@ from corio import logs
 logs.logger.instrument_httpx()
 
 
-class Client(httpx.Client):
-    """
-
-    Instrumented client base
-
-    """
+class ClientBase:
+    """Shared defaults for synchronous and asynchronous HTTP clients."""
 
     TIMEOUT = 10
 
@@ -41,6 +38,14 @@ class Client(httpx.Client):
             allowed_methods=Retry.RETRYABLE_METHODS,
             backoff_factor=1.0
         )
+
+
+class Client(ClientBase, httpx.Client):
+    """Instrumented synchronous HTTP client."""
+
+
+class AsyncClient(ClientBase, httpx.AsyncClient):
+    """Instrumented asynchronous HTTP client."""
 
 
 client = Client()

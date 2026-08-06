@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from functools import cached_property
-from pydantic import Field
-from pydantic_settings import CLI_SUPPRESS
-from pydantic_settings import CliSubCommand
 from typing import ClassVar
 from typing import Generator
 from typing import TYPE_CHECKING
+
+from pydantic import Field
+from pydantic_settings import CLI_SUPPRESS
+from pydantic_settings import CliSubCommand
 
 from corio import dm as dm
 from corio import sets as sets
@@ -339,7 +340,9 @@ class Env(dm.Base):
         red = self.encryptor.decrypt(black)
 
         path_red = path_secret / Path(self.black.stem).stem
-        path_red.write_data(red)
+
+        with logger.span(f'Writing red file to "{path_red}"'):
+            path_red.write_data(red)
 
         path_secret.chown(self.user, recurse=True)
 

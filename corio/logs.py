@@ -62,6 +62,7 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
 
     console_opts = logfire.ConsoleOptions(
         colors='always',
+        include_timestamps=env.IS_DEV,
         min_log_level=lev_name_otel,
     )
 
