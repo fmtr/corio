@@ -16,15 +16,16 @@ class Authenticator:
     Handles authentication via local token files or interactive OAuth flow.
     """
 
-    PATH: Path | None = None
+
     SCOPES: list[str] = []
     SERVICE: str | None = None
     VERSION: str | None = None
 
-    def __init__(self):
+    def __init__(self, path: Path):
         """
         Initialize the authenticator and perform initial bootstrap.
         """
+        self.path = path
         self.boostrap()
 
     @cached_property
@@ -39,21 +40,21 @@ class Authenticator:
         """
         Path to the JSON file containing the saved authentication token.
         """
-        return self.PATH / f'{self.name}.json'
+        return self.path / f'{self.name}.json'
 
     @cached_property
     def path_code(self) -> Path:
         """
         Path to the file where the authorization code should be written during bootstrap.
         """
-        return self.PATH / f'{self.name}.code'
+        return self.path / f'{self.name}.code'
 
     @cached_property
     def path_creds(self) -> Path:
         """
         Path to the client credentials JSON file.
         """
-        return self.PATH / 'credentials.json'
+        return self.path / 'credentials.json'
 
     @property
     def credentials(self) -> Credentials | None:
