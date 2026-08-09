@@ -1,11 +1,12 @@
-import beanie
-from beanie.odm import actions
 from functools import cached_property
-from pymongo import AsyncMongoClient
 from typing import List
 
+import beanie
+import certifi
+from beanie.odm import actions
+from pymongo import AsyncMongoClient
+
 from corio import dm
-from corio.constants import Constants
 from corio.logs import logger
 
 ModifyEvents = [
@@ -43,13 +44,16 @@ class Client:
         self.documents = documents
         self.is_tls = is_tls
 
-        self.client_options = {
-            'tz_aware': True,
-            'tls': self.is_tls,
-        }
-
         self.client = AsyncMongoClient(self.uri, **self.client_options)
         self.db = self.client[self.name]
+
+    @cached_property
+    def client_options(self):
+        return dict(
+            tz_aware=True,
+            tls=self.is_tls,
+            tlsCAFile=certifi.where(),
+        )
 
     @cached_property
     def uri(self):
