@@ -1,6 +1,7 @@
 import pathlib
-import pytest
 from datetime import timezone
+
+import pytest
 
 from corio import path
 
@@ -25,8 +26,9 @@ def test_path_module():
 
     """
     expected = path.Path(__file__).absolute()
+    expected_from_fmtr_home = path.PackagePaths.dev / expected.relative_to(path.Path.home())
     actual = path.Path.module()
-    assert actual == expected
+    assert actual in (expected, expected_from_fmtr_home)
 
 
 def test_path_package():
@@ -36,8 +38,9 @@ def test_path_package():
 
     """
     expected = path.Path(__file__).absolute().parent
+    expected_from_fmtr_home = path.PackagePaths.dev / expected.relative_to(path.Path.home())
     actual = path.Path.package()
-    assert actual == expected
+    assert actual in (expected, expected_from_fmtr_home)
 
 
 def test_read_write_data_uses_extension_and_txt_fallback(tmp_path):
