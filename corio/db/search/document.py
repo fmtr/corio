@@ -14,12 +14,12 @@ from qdrant_client.http.models import PointStruct
 from typing import ClassVar, Generic, TYPE_CHECKING, TypeVar
 
 from corio import dm
-from .client import Client
-from .constants import TOKENS_WORDS_FACTOR
-from .embedder import Embedder, Vectors
-from .query import Query
-from ...hash import get_hash_int
-from ...strings import chunk_sliding
+from corio.db.search.client import Client
+from corio.db.search.constants import TOKENS_WORDS_FACTOR
+from corio.db.search.embedder import Embedder, Vectors
+from corio.db.search.query import Query
+from corio.hash import get_hash_int
+from corio.strings import chunk_sliding
 
 if TYPE_CHECKING:
     from .builder import Builder
@@ -89,7 +89,7 @@ class Document(PointStruct, Generic[PayloadT, EmbedderT, EvaluatorT]):
         """
 
         return self.payload_obj.text_vector
-        
+
     def chunk(self,text: str)->list[str]:
         """
 
