@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.7.2"
+version = "2.7.3-alpha000"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -87,7 +87,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.7.2"
+version = "2.7.3-alpha000"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -184,7 +184,7 @@ corio = ["pyproject.package.toml"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api", "caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "shell", "strings", "toml", "tools", "yml"]
+env_list = ["api", "caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "toml", "tools", "yml"]
 
 [tool.tox.env.api]
 description = "Run api tests."
@@ -275,6 +275,11 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_rand.py"]]
 description = "Run sec tests."
 deps = ["dotenv", "logfire", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_sec.py"]]
+
+[tool.tox.env.sets]
+description = "Run sets tests."
+deps = ["pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "yamlscript>=0.2.20"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_sets.py"]]
 
 [tool.tox.env.shell]
 description = "Run shell tests."
