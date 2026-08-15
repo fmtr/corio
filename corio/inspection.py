@@ -7,7 +7,8 @@ def get_call_path(offset=1):
     Get the path of the calling module
 
     """
-    from corio.path import Path
+    from corio.path.path import Path
+
     frames = stack()
     frame_called = frames[offset]
     path = Path(frame_called.filename).absolute()

@@ -84,3 +84,6 @@ class Constants:
     CONTAINER_INDEX_PUBLIC_TOKEN_KEY = 'CONTAINER_INDEX_PUBLIC_TOKEN'
 
     FMTR_AGE_KEY_KEY = 'FMTR_AGE_KEY'
+
+if __name__=='__main__':
+    ...

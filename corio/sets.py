@@ -1,7 +1,13 @@
 from typing import ClassVar, Any
 
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, \
-    CliSettingsSource
+from pydantic_settings import (
+    BaseSettings,
+    CliSettingsSource,
+    DotEnvSettingsSource,
+    EnvSettingsSource,
+    PydanticBaseSettingsSource,
+    YamlConfigSettingsSource,
+)
 
 from corio import Constants
 from corio.dm import CliRunMixin
@@ -39,6 +45,7 @@ class Base(BaseSettings, CliRunMixin):
     ENV_NESTED_DELIMITER: ClassVar = Constants.ENV_NESTED_DELIMITER
     paths: ClassVar = paths
     config: Path | None = None
+    env: Path | None = None
 
     @classmethod
     def settings_customise_sources(
@@ -66,11 +73,24 @@ class Base(BaseSettings, CliRunMixin):
                 cli_parse_args=cli_parse_args,
             ),
             EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix(), env_nested_delimiter=cls.ENV_NESTED_DELIMITER),
+            cls.get_env_source(settings_cls),
             cls.get_yaml_source(settings_cls)
         )
         sources = tuple(sources)
 
         return sources
+
+    @classmethod
+    def get_env_source(cls, settings_cls):
+        path = cls.find_env_file()
+        if not path:
+            return None
+        return DotEnvSettingsSource(
+            settings_cls,
+            env_file=path,
+            env_prefix=cls.get_env_prefix(),
+            env_nested_delimiter=cls.ENV_NESTED_DELIMITER,
+        )
 
     @classmethod
     def get_yaml_source(cls, settings_cls):
@@ -97,6 +117,10 @@ class Base(BaseSettings, CliRunMixin):
             paths = cls.paths
 
             @classmethod
+            def get_env_source(cls, settings_cls):
+                return None
+
+            @classmethod
             def get_yaml_source(cls, settings_cls):
                 return None
 
@@ -105,6 +129,31 @@ class Base(BaseSettings, CliRunMixin):
             return config_override.config
 
         return cls.paths.settings
+
+    @classmethod
+    def find_env_file(cls) -> Path:
+        """
+
+        Find the overridden dotenv file, or default to the repository root/current working directory.
+
+        """
+
+        class EnvPathOverride(Base, cli_parse_args=True, cli_ignore_unknown_args=True):
+            paths = cls.paths
+
+            @classmethod
+            def get_env_source(cls, settings_cls):
+                return None
+
+            @classmethod
+            def get_yaml_source(cls, settings_cls):
+                return None
+
+        env_override = EnvPathOverride()
+        if env_override.env:
+            return env_override.env
+
+        return cls.paths.env
 
     @classmethod
     def get_env_prefix(cls):

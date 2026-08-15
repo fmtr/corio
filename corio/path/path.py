@@ -10,8 +10,7 @@ from functools import cached_property
 from itertools import chain
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Any
-from typing import Self, Tuple, Callable
+from typing import Any, Callable, Self, Tuple
 
 from corio.constants import Constants
 from corio.strings import join_natural
@@ -28,29 +27,31 @@ class Path(type(Path())):
     """
 
     @classmethod
-    def package(cls) -> 'Path':
+    def package(cls) -> "Path":
         """
 
         Get path to originating module (e.g. directory containing .py file).
 
         """
         from corio.inspection import get_call_path
+
         path = get_call_path(offset=2).absolute().parent
         return path
 
     @classmethod
-    def module(cls) -> 'Path':
+    def module(cls) -> "Path":
         """
 
         Get path to originating module (i.e. .py file).
 
         """
         from corio.inspection import get_call_path
+
         path = get_call_path(offset=2).absolute()
         return path
 
     @classmethod
-    def temp(cls) -> 'Path':
+    def temp(cls) -> "Path":
         """
 
         Get path to temporary directory.
@@ -65,6 +66,7 @@ class Path(type(Path())):
 
         """
         from corio.jsn import to_json
+
         json_str = to_json(obj)
         return self.write_text(json_str, encoding=Constants.ENCODING)
 
@@ -75,6 +77,7 @@ class Path(type(Path())):
 
         """
         from corio.jsn import from_json
+
         json_str = self.read_text(encoding=Constants.ENCODING)
         obj = from_json(json_str)
         return obj
@@ -86,6 +89,7 @@ class Path(type(Path())):
 
         """
         from corio import yml
+
         yaml_str = yml.to_yaml(obj)
         return self.write_text(yaml_str, encoding=Constants.ENCODING)
 
@@ -96,6 +100,7 @@ class Path(type(Path())):
 
         """
         from corio import yml
+
         yaml_str = self.read_text(encoding=Constants.ENCODING)
         obj = yml.from_yaml(yaml_str)
         return obj
@@ -131,6 +136,7 @@ class Path(type(Path())):
         """
 
         from dotenv import dotenv_values  # todo move to env.io
+
         data = dotenv_values(self)
         data = dict(data)
         return data
@@ -142,10 +148,10 @@ class Path(type(Path())):
 
         """
         from dotenv import set_key  # todo move to env.io
+
         self.write_text("")
         for key, value in obj.items():
             set_key(self, str(key), str(value), quote_mode="auto")
-
 
     def read_data(self):
         """
@@ -172,18 +178,18 @@ class Path(type(Path())):
         Get write/read methods for the file extension.
 
         """
-        dotenv_name = '.env'
+        dotenv_name = ".env"
         if self.name == dotenv_name:
             suffix = dotenv_name
         else:
             suffix = self.suffix
 
-        ext = suffix.lstrip('.')
+        ext = suffix.lstrip(".")
 
         serializers = self.serializers.get(ext)
 
         if serializers is None:
-            return self.serializers['txt']
+            return self.serializers["txt"]
 
         return self.serializers[ext]
 
@@ -202,8 +208,7 @@ class Path(type(Path())):
             env=(self.read_env, self.write_env),
             txt=(self.read_text, self.write_text),
         )
-        
-        
+
     def mkdirf(self):
         """
 
@@ -229,17 +234,17 @@ class Path(type(Path())):
         for path in paths:
             os.chown(path, owner.pw_uid, owner.pw_gid)
 
-    def with_suffix(self, suffix: str) -> 'Path':
+    def with_suffix(self, suffix: str) -> "Path":
         """
 
         Pathlib doesn't add a dot prefix, but then errors if you don't provide one, which feels rather obnoxious.
 
         """
-        if not suffix.startswith('.'):
-            suffix = f'.{suffix}'
+        if not suffix.startswith("."):
+            suffix = f".{suffix}"
         return super().with_suffix(suffix)
 
-    def get_conversion_path(self, suffix: str) -> 'Path':
+    def get_conversion_path(self, suffix: str) -> "Path":
         """
 
         Fetch the equivalent path for a different format in the standard conversion directory structure.
@@ -249,10 +254,12 @@ class Path(type(Path())):
 
         old_dir = self.parent.name
 
-        if old_dir != self.suffix.removeprefix('.'):
-            raise ValueError(f"Expected parent directory '{old_dir}' to match file extension '{suffix}'")
+        if old_dir != self.suffix.removeprefix("."):
+            raise ValueError(
+                f"Expected parent directory '{old_dir}' to match file extension '{suffix}'"
+            )
 
-        new = self.parent.parent / suffix / f'{self.stem}.{suffix}'
+        new = self.parent.parent / suffix / f"{self.stem}.{suffix}"
         return new
 
     @property
@@ -272,6 +279,7 @@ class Path(type(Path())):
 
         """
         from corio import path
+
         return path.AppPaths()
 
     @property
@@ -284,6 +292,7 @@ class Path(type(Path())):
         if not self.exists():
             return None
         from corio import path
+
         kind = path.guess(str(self.absolute()))
         return kind
 
@@ -305,6 +314,7 @@ class Path(type(Path())):
 
         """
         from datetime import datetime, timezone
+
         return datetime.fromtimestamp(ts, tz=timezone.utc)
 
     @property
@@ -356,9 +366,12 @@ class Path(type(Path())):
 
         """
         from pydantic_core import core_schema
+
         return core_schema.no_info_plain_validator_function(
             cls.__deserialize_pydantic__,
-            serialization=core_schema.plain_serializer_function_ser_schema(cls.__serialize_pydantic__),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                cls.__serialize_pydantic__
+            ),
         )
 
     @classmethod
@@ -391,7 +404,6 @@ class Path(type(Path())):
         return chdir(self)
 
     def find_up(self, name) -> Self:
-
         """
 
         Walk up the directory tree looking for the file name
@@ -407,18 +419,19 @@ class Path(type(Path())):
 
             parent = current.parent
             if parent == current:
-                raise FileNotFoundError(f'Could not find {name} in "{self}" or any parent directory')
+                raise FileNotFoundError(
+                    f'Could not find {name} in "{self}" or any parent directory'
+                )
 
             current = parent
 
+
 class FromCallerMixin:
-    """
-
-
-    """
+    """ """
 
     def from_caller(self):
         from corio.inspection import get_call_path
+
         path = get_call_path(offset=3).parent
         return path
 
@@ -458,7 +471,9 @@ class Metadata:
         data = path.read_data()
         metadata = get_table(data, cls.TABLE_PATH)
         if metadata is None:
-            raise KeyError(f"Missing metadata table in {path}: {'.'.join(cls.TABLE_PATH)}")
+            raise KeyError(
+                f"Missing metadata table in {path}: {'.'.join(cls.TABLE_PATH)}"
+            )
 
         self = cls(**metadata)
         self.path = path
@@ -467,8 +482,10 @@ class Metadata:
     @property
     def version_obj(self):
         from corio.version import Version
+
         version = Version.parse(self.version)
         return version
+
 
 class PackagePaths(FromCallerMixin):
     """
@@ -479,7 +496,7 @@ class PackagePaths(FromCallerMixin):
 
     dev = os.getenv(Constants.FMTR_HOME_KEY, Path.home())
     dev = Path(dev)
-    dev_repo = dev / 'repo'
+    dev_repo = dev / "repo"
     data_global = dev / Constants.DIR_NAME_DATA
 
     def __init__(self, path: Path | None = None):
@@ -550,7 +567,7 @@ class PackagePaths(FromCallerMixin):
         """
 
         if self.is_namespace:
-            return f'{self.org}.{self.name}'
+            return f"{self.org}.{self.name}"
         else:
             return self.name
 
@@ -561,7 +578,9 @@ class PackagePaths(FromCallerMixin):
         Path of project-specific data directory.
 
         """
-        return self.dev / Constants.DIR_NAME_REPO / self.name_ns / Constants.DIR_NAME_DATA
+        return (
+            self.dev / Constants.DIR_NAME_REPO / self.name_ns / Constants.DIR_NAME_DATA
+        )
 
     @property
     def cache(self) -> Path:
@@ -603,6 +622,16 @@ class PackagePaths(FromCallerMixin):
         return self.data / Constants.FILENAME_CONFIG
 
     @property
+    def env(self) -> Path:
+        """
+
+        Path of dotenv file.
+
+        """
+        root = self.repo or Path.cwd()
+        return root / '.env'
+
+    @property
     def hf(self) -> Path:
         """
 
@@ -636,7 +665,7 @@ class PackagePaths(FromCallerMixin):
         Path of Home Assistant config file
 
         """
-        return self.repo / 'ha' / 'config.yaml'
+        return self.repo / "ha" / "config.yaml"
 
     @property
     def ha_addon(self) -> Path:
@@ -645,7 +674,7 @@ class PackagePaths(FromCallerMixin):
         Path of Home Assistant add-on
 
         """
-        return self.repo / 'ha' / 'addon'
+        return self.repo / "ha" / "addon"
 
     @property
     def ha_addon_changelog(self) -> Path:
@@ -654,7 +683,7 @@ class PackagePaths(FromCallerMixin):
         Path of Home Assistant add-on changelog
 
         """
-        return self.ha_addon / 'CHANGELOG.md'
+        return self.ha_addon / "CHANGELOG.md"
 
     @property
     def ha_addon_config(self) -> Path:
@@ -663,7 +692,7 @@ class PackagePaths(FromCallerMixin):
         Path of Home Assistant add-on config file
 
         """
-        return self.ha_addon / 'config.yaml'
+        return self.ha_addon / "config.yaml"
 
     @property
     def changelog(self) -> Path:
@@ -672,7 +701,7 @@ class PackagePaths(FromCallerMixin):
         Path of repo changelog
 
         """
-        return self.repo / 'CHANGELOG.md'
+        return self.repo / "CHANGELOG.md"
 
     @property
     def docs_changelog(self) -> Path:
@@ -681,7 +710,7 @@ class PackagePaths(FromCallerMixin):
         Path of docs latest changelog
 
         """
-        return self.docs / 'changelog' / 'changelog.md'
+        return self.docs / "changelog" / "changelog.md"
 
     @property
     def readme(self) -> Path:
@@ -690,7 +719,7 @@ class PackagePaths(FromCallerMixin):
         Path of the README file.
 
         """
-        return self.repo / 'README.md'
+        return self.repo / "README.md"
 
     @property
     def license(self) -> Path:
@@ -699,7 +728,7 @@ class PackagePaths(FromCallerMixin):
         Path of the LICENSE file.
 
         """
-        return self.repo / 'LICENSE'
+        return self.repo / "LICENSE"
 
     @property
     def entrypoint(self) -> Path:
@@ -746,6 +775,7 @@ class PackagePaths(FromCallerMixin):
         """
         return f'{self.__class__.__name__}("{self.path}")'
 
+
 @contextmanager
 def chdir(path: Path):
     """
@@ -761,7 +791,7 @@ def chdir(path: Path):
         os.chdir(prev)
 
 
-root = Path('/')
+root = Path("/")
 
 
 @dataclass
@@ -781,6 +811,7 @@ class PathsSearchData:
     From repo: package markers (e.g. package/pyproject.toml) might be at singleton or namespace depths, so depths between 1 and 2 are possible.
 
     """
+
     path: Path
     repo: Path | None
     name: str
@@ -797,7 +828,9 @@ class PathsSearchData:
             path_package = cls.find_package(path_caller)
             repo = path_caller
         else:
-            path_package_marker = path_caller.find_up(Constants.FILENAME_PYPROJECT_PACKAGE)
+            path_package_marker = path_caller.find_up(
+                Constants.FILENAME_PYPROJECT_PACKAGE
+            )
             path_package = path_package_marker.parent
             repo = cls.find_repo(path_package_marker)
 
@@ -807,7 +840,6 @@ class PathsSearchData:
         self = cls(path=path_package, repo=repo, name=name, org=org)
         return self
 
-
     @classmethod
     def find_package(cls, path_repo: Path) -> Path:
         """
@@ -816,14 +848,16 @@ class PathsSearchData:
 
         """
         masks = "*/{name}", "*/*/{name}"
-        patterns = [mask.format(name=Constants.FILENAME_PYPROJECT_PACKAGE) for mask in masks]
+        patterns = [
+            mask.format(name=Constants.FILENAME_PYPROJECT_PACKAGE) for mask in masks
+        ]
 
         targets = chain.from_iterable(path_repo.glob(pattern) for pattern in patterns)
         targets = list(targets)
         packages = sorted({target.parent for target in targets})
 
         if len(packages) != 1:
-            msg=f"Expected exactly 1 package marker {Constants.FILENAME_PYPROJECT_PACKAGE!r} at depth 1 or 2 under {path_repo}, found {len(packages)}: {join_natural(targets)}"
+            msg = f"Expected exactly 1 package marker {Constants.FILENAME_PYPROJECT_PACKAGE!r} at depth 1 or 2 under {path_repo}, found {len(packages)}: {join_natural(targets)}"
             raise FileNotFoundError(msg)
 
         path_package = next(iter(packages))
@@ -838,16 +872,25 @@ class PathsSearchData:
         """
         paths_site = site.getsitepackages() + [site.getusersitepackages()]
         paths_site = [Path(path_site) for path_site in paths_site]
-        paths_site.extend(Path(path_site) for path_site in sys.path if path_site and Path(path_site).is_absolute())
         paths_site.extend(
-            parent for parent in path_package.parents if parent.name in {"site-packages", "dist-packages"})
+            Path(path_site)
+            for path_site in sys.path
+            if path_site and Path(path_site).is_absolute()
+        )
+        paths_site.extend(
+            parent
+            for parent in path_package.parents
+            if parent.name in {"site-packages", "dist-packages"}
+        )
         paths_site = list(dict.fromkeys(paths_site))
 
         for path_site in paths_site:
             if path_package.is_relative_to(path_site):
                 return path_site
 
-        raise FileNotFoundError(f'Could not find a site-packages root for "{path_package}"')
+        raise FileNotFoundError(
+            f'Could not find a site-packages root for "{path_package}"'
+        )
 
     @classmethod
     def find_repo(cls, path: Path) -> Path | None:

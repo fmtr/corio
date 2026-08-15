@@ -1,10 +1,12 @@
-import aiomqtt
 import logging
-from dataclasses import dataclass, asdict
-from paho.mqtt.client import CleanStartOption, MQTT_CLEAN_START_FIRST_ONLY
-from typing import Literal, Self
+import ssl
+from dataclasses import dataclass, field, fields
+from typing import ClassVar, Literal, Self
 
-from corio.logs import logger, get_current_level, get_native_level_from_otel
+import aiomqtt
+from paho.mqtt.client import CleanStartOption, MQTT_CLEAN_START_FIRST_ONLY
+
+from corio.logs import get_current_level, get_native_level_from_otel, logger
 
 LOGGER = logging.getLogger("mqtt")
 LOGGER.handlers.clear()
@@ -19,8 +21,12 @@ class Args:
     The (serialisable subset of the) init args for Client (e.g. for init via Pydantic Settings)
 
     """
+
+    PORT: ClassVar[int] = 1883
+    PORT_TLS: ClassVar[int] = 8883
+
     hostname: str
-    port: int = 1883
+    port: int = PORT
     username: str | None = None
     password: str | None = None
     identifier: str | None = None
@@ -35,9 +41,30 @@ class Args:
     max_queued_outgoing_messages: int | None = None
     max_inflight_messages: int | None = None
     max_concurrent_outgoing_calls: int | None = None
+    tls_context: ssl.SSLContext | None = None
     tls_insecure: bool | None = None
+    is_tls: bool | None = field(default=None, metadata={"serialize": False})
 
+    def __post_init__(self):
+        if self.tls_context is not None:
+            return
 
+        is_default_tls_port = self.port == self.PORT_TLS
+        should_use_tls = is_default_tls_port
+        if self.is_tls is not None:
+            should_use_tls = self.is_tls
+
+        if not should_use_tls:
+            return
+
+        self.tls_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+
+    def asdict(self):
+        return {
+            item.name: getattr(self, item.name)
+            for item in fields(self)
+            if item.metadata.get("serialize", True)
+        }
 
 
 class Client(aiomqtt.Client):
@@ -71,6 +98,7 @@ class Client(aiomqtt.Client):
         level_no = get_native_level_from_otel(level)
         self.LOGGER.setLevel(level_no)
 
+
     @classmethod
     def from_args(cls, args_obj: Args, **kwargs) -> Self:
         """
@@ -78,7 +106,7 @@ class Client(aiomqtt.Client):
         Initialise from Args dataclass.
 
         """
-        args = asdict(args_obj) | kwargs
+        args = args_obj.asdict() | kwargs
         return cls(**args)
 
 class Will(aiomqtt.Will):
