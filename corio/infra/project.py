@@ -69,10 +69,8 @@ class Project:
 
     @cached_property
     def stacks(self):
-        from corio.infra.stack import Stack, Development, ProductionPrivate, ProductionPublic
-        classes = [Development, ProductionPrivate, ProductionPublic]
-        stacks = IndexList[Stack](cls(self) for cls in classes)
-        return stacks
+        from corio.infra.stack import Production, Stack
+        return IndexList[Stack]([Production(self)])
 
     @cached_property
     def releaser(self):

@@ -749,6 +749,11 @@ class PackagePaths(FromCallerMixin):
         return self.path / Constants.ENTRYPOINTS_DIR
 
     @property
+    def assets(self) -> Path:
+        """Path of package assets shipped with the distribution."""
+        return self.path / "assets"
+
+    @property
     def scripts(self) -> Path:
         """
 

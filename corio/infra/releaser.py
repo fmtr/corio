@@ -1,6 +1,7 @@
+import shutil
 import subprocess
 from functools import cached_property
-import shutil
+
 import build
 import pygit2 as vcs
 import twine.settings
@@ -40,9 +41,9 @@ class Releaser(Inherit[Project]):
     """
 
     @logger.instrument("Releasing {self.paths.name_ns}...")
-    def run(self, build: bool = False, release: bool = True, cache: bool = True):
+    def run(self, build: bool = False, release: bool = True):
 
-        from corio.infra.stack import ProductionPrivate, ProductionPublic
+        from corio.infra.stack import Production
 
         self.repo.fetch()
         self.increment()
@@ -58,19 +59,17 @@ class Releaser(Inherit[Project]):
         self.repo.push()
         self.repo.fetch()
 
-        stack_types = []
-        if build:
-            stack_types.append(ProductionPrivate)
-        if self.paths.metadata.is_dockerhub:
-            stack_types.append(ProductionPublic)
+        should_build_image = build or self.paths.metadata.is_dockerhub
+        if release or should_build_image:
+            self.package()
 
-        for stack_type in stack_types:
-            stack = self.stacks.cls[stack_type]
-            stack.build(cache=cache)
-            stack.push()
+        if should_build_image:
+            stack = self.stacks.cls[Production]
+            stack.build()
+            if self.paths.metadata.is_dockerhub:
+                stack.push()
 
         if release:
-            self.package()
             self.release()
 
     @property
@@ -360,9 +359,9 @@ class IncrementorChangelog(IncrementorChangelogSymlink):
 
 class Packager(Inherit[Releaser]):
     """
-    
+
     Base class for packaging operations.
-    
+
     """
     TYPE = None
 

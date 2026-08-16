@@ -1,0 +1,15 @@
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+
+ARG WHEEL
+ARG PACKAGE
+ARG ENTRYPOINT
+
+RUN --mount=type=bind,source=${WHEEL},target=/tmp/${WHEEL},ro \
+    uv run --no-project --with "${PACKAGE} @ file:///tmp/${WHEEL}" true
+
+COPY ${WHEEL} /opt/${WHEEL}
+
+ENV PACKAGE_SPEC="${PACKAGE} @ file:///opt/${WHEEL}" \
+    ENTRYPOINT_NAME="${ENTRYPOINT}"
+
+ENTRYPOINT ["sh", "-c", "exec uv run --no-project --offline --with \"$PACKAGE_SPEC\" \"$ENTRYPOINT_NAME\" \"$@\"", "--"]

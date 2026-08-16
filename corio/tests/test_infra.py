@@ -1,10 +1,12 @@
 import asyncio
-from packaging.requirements import Requirement
 from types import SimpleNamespace
+
+import pytest
+from packaging.requirements import Requirement
 
 from corio import entrypoint
 from corio import version
-from corio.infra.api import PreVersion
+from corio.infra.api import PreVersion, Release
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
 from corio.infra.project import Versions
 from corio.infra.releaser import Releaser, IncrementorVersion, Tester as ReleaserTester
@@ -172,6 +174,33 @@ def test_versions_next_pre_returns_none_for_prerelease():
     )
 
     assert Versions(parent).next_pre is None
+
+
+def test_release_endpoint_logs_and_propagates_release_failure(monkeypatch):
+    failure = RuntimeError("package build failed")
+    errors = []
+
+    class DummyProject:
+        def __init__(self, name, pinned=None):
+            assert name == "demo"
+            assert pinned == "1.2.3"
+            self.releaser = SimpleNamespace(run=self.run)
+
+        @staticmethod
+        def run(**kwargs):
+            assert kwargs == {"build": True, "release": True}
+            raise failure
+
+    monkeypatch.setattr("corio.infra.api.Project", DummyProject)
+    monkeypatch.setattr("corio.infra.api.logger.exception", errors.append)
+
+    endpoint = Release(SimpleNamespace())
+
+    with pytest.raises(RuntimeError, match="package build failed") as caught:
+        asyncio.run(endpoint.run("demo", pinned="1.2.3", build=True))
+
+    assert caught.value is failure
+    assert errors == ['Release failed for "demo".']
 
 
 def test_pre_version_endpoint_returns_next_pre_release(monkeypatch):

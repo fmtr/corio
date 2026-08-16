@@ -180,7 +180,7 @@ include = ["corio*"]
 namespaces = false
 
 [tool.setuptools.package-data]
-corio = ["pyproject.package.toml"]
+corio = ["pyproject.package.toml", "assets/**"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]

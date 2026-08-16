@@ -1,5 +1,6 @@
 from functools import cached_property
 from itertools import chain
+
 from packaging.requirements import Requirement, InvalidRequirement
 from packaging.utils import canonicalize_name
 
@@ -10,6 +11,7 @@ from corio.logs import logger
 from corio.path import Path, PackagePaths
 from corio.path.path import Metadata
 from corio.toml import ensure_table
+
 
 class IncrementorPyproject(Incrementor):
     AUTHOR_EMAIL = "innovative.fowler@mask.pro.fmtr.dev"
@@ -136,7 +138,12 @@ class IncrementorPyproject(Incrementor):
 
     @property
     def _package_data(self) -> dict[str, list[str]]:
-        return {self.paths.name_ns: [Constants.FILENAME_PYPROJECT_PACKAGE]}
+        return {
+            self.paths.name_ns: [
+                Constants.FILENAME_PYPROJECT_PACKAGE,
+                "assets/**",
+            ]
+        }
 
     @cached_property
     def _console_scripts(self) -> list[str]:
