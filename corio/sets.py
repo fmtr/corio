@@ -97,7 +97,20 @@ class BaseCLI(BaseSettings, CliRunMixin):
     ) -> PydanticBaseSettingsSource | None:
         """
 
-        Get the process environment settings source.
+        Read settings from process environment variables.
+
+        """
+        return EnvSettingsSource(
+            settings_cls,
+            env_prefix=cls.get_env_prefix(),
+            env_nested_delimiter=cls.ENV_NESTED_DELIMITER,
+        )
+
+    @classmethod
+    def get_env_prefix(cls):
+        """
+
+        Get environment variable prefix, which depends on whether the package is a namespace/singleton.
 
         """
         return None
@@ -159,22 +172,6 @@ class Base(BaseCLI):
 
         """
         return init_settings
-
-    @classmethod
-    def get_env_source(
-            cls,
-            settings_cls: type[BaseSettings],
-    ) -> PydanticBaseSettingsSource | None:
-        """
-
-        Read settings from process environment variables.
-
-        """
-        return EnvSettingsSource(
-            settings_cls,
-            env_prefix=cls.get_env_prefix(),
-            env_nested_delimiter=cls.ENV_NESTED_DELIMITER,
-        )
 
     @classmethod
     def get_dotenv_source(
