@@ -33,19 +33,10 @@ class YamlScriptConfigSettingsSource(YamlConfigSettingsSource):
         return data
 
 
-class Base(BaseSettings, CliRunMixin):
-    """
-
-    Base class for settings configuration using Pydantic BaseSettings.
-    Provides functionality for setting up and customizing sources for retrieving configuration values.
-    Defines sources for configuration through environment variables, CLI arguments, YAML files.
-
-    """
+class BaseCLI(BaseSettings, CliRunMixin):
+    """Base settings class that reads configuration only from the CLI."""
 
     ENV_NESTED_DELIMITER: ClassVar = Constants.ENV_NESTED_DELIMITER
-    paths: ClassVar = paths
-    config: Path | None = None
-    env: Path | None = None
 
     @classmethod
     def settings_customise_sources(
@@ -62,26 +53,139 @@ class Base(BaseSettings, CliRunMixin):
 
         """
 
+        return tuple(strip_none(
+            cls.get_init_source(settings_cls, init_settings),
+            cls.get_cli_source(settings_cls),
+            cls.get_env_source(settings_cls),
+            cls.get_dotenv_source(settings_cls),
+            cls.get_file_secret_source(settings_cls, file_secret_settings),
+            cls.get_yaml_source(settings_cls),
+        ))
+
+    @classmethod
+    def get_init_source(
+            cls,
+            settings_cls: type[BaseSettings],
+            init_settings: PydanticBaseSettingsSource,
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Get the settings source for values passed during initialization.
+
+        """
+        return None
+
+    @classmethod
+    def get_cli_source(
+            cls,
+            settings_cls: type[BaseSettings],
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Get the command-line settings source.
+
+        """
         cli_parse_args = cls.model_config.get('cli_parse_args')
         if cli_parse_args is None:
             cli_parse_args = False
-
-        sources = strip_none(
-            init_settings,
-            CliSettingsSource(
-                settings_cls,
-                cli_parse_args=cli_parse_args,
-            ),
-            EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix(), env_nested_delimiter=cls.ENV_NESTED_DELIMITER),
-            cls.get_env_source(settings_cls),
-            cls.get_yaml_source(settings_cls)
-        )
-        sources = tuple(sources)
-
-        return sources
+        return CliSettingsSource(settings_cls, cli_parse_args=cli_parse_args)
 
     @classmethod
-    def get_env_source(cls, settings_cls):
+    def get_env_source(
+            cls,
+            settings_cls: type[BaseSettings],
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Get the process environment settings source.
+
+        """
+        return None
+
+    @classmethod
+    def get_dotenv_source(
+            cls,
+            settings_cls: type[BaseSettings],
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Get the dotenv settings source.
+
+        """
+        return None
+
+    @classmethod
+    def get_file_secret_source(
+            cls,
+            settings_cls: type[BaseSettings],
+            file_secret_settings: PydanticBaseSettingsSource,
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Get the file secret settings source.
+
+        """
+        return None
+
+    @classmethod
+    def get_yaml_source(
+            cls,
+            settings_cls: type[BaseSettings],
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Get the YAML settings source.
+
+        """
+        return None
+
+
+class Base(BaseCLI):
+    """Settings base supporting init, CLI, environment, dotenv, and YAML sources."""
+
+    paths: ClassVar = paths
+    config: Path | None = None
+    env: Path | None = None
+
+    @classmethod
+    def get_init_source(
+            cls,
+            settings_cls: type[BaseSettings],
+            init_settings: PydanticBaseSettingsSource,
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Enable values passed during initialization.
+
+        """
+        return init_settings
+
+    @classmethod
+    def get_env_source(
+            cls,
+            settings_cls: type[BaseSettings],
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Read settings from process environment variables.
+
+        """
+        return EnvSettingsSource(
+            settings_cls,
+            env_prefix=cls.get_env_prefix(),
+            env_nested_delimiter=cls.ENV_NESTED_DELIMITER,
+        )
+
+    @classmethod
+    def get_dotenv_source(
+            cls,
+            settings_cls: type[BaseSettings],
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Read settings from the configured dotenv file.
+
+        """
         path = cls.find_env_file()
         if not path:
             return None
@@ -93,12 +197,19 @@ class Base(BaseSettings, CliRunMixin):
         )
 
     @classmethod
-    def get_yaml_source(cls, settings_cls):
+    def get_yaml_source(
+            cls,
+            settings_cls: type[BaseSettings],
+    ) -> PydanticBaseSettingsSource | None:
+        """
+
+        Read settings from the configured YAML script file.
+
+        """
         path = cls.find_yaml_file()
         if not path:
             return None
-        source = YamlScriptConfigSettingsSource(settings_cls, yaml_file=path)
-        return source
+        return YamlScriptConfigSettingsSource(settings_cls, yaml_file=path)
 
     @classmethod
     def find_yaml_file(cls) -> Path:
@@ -108,21 +219,13 @@ class Base(BaseSettings, CliRunMixin):
 
         """
 
-        class ConfigPathOverride(Base, cli_parse_args=True, cli_ignore_unknown_args=True):
+        class ConfigPathOverride(BaseCLI, cli_parse_args=True, cli_ignore_unknown_args=True):
             """
 
             Check if the YAML file location has been overridden. If so, we'll provide that location as the source.
 
             """
-            paths = cls.paths
-
-            @classmethod
-            def get_env_source(cls, settings_cls):
-                return None
-
-            @classmethod
-            def get_yaml_source(cls, settings_cls):
-                return None
+            config: Path | None = None
 
         config_override = ConfigPathOverride()
         if config_override.config:
@@ -138,16 +241,8 @@ class Base(BaseSettings, CliRunMixin):
 
         """
 
-        class EnvPathOverride(Base, cli_parse_args=True, cli_ignore_unknown_args=True):
-            paths = cls.paths
-
-            @classmethod
-            def get_env_source(cls, settings_cls):
-                return None
-
-            @classmethod
-            def get_yaml_source(cls, settings_cls):
-                return None
+        class EnvPathOverride(BaseCLI, cli_parse_args=True, cli_ignore_unknown_args=True):
+            env: Path | None = None
 
         env_override = EnvPathOverride()
         if env_override.env:

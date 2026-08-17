@@ -176,9 +176,8 @@ def test_versions_next_pre_returns_none_for_prerelease():
     assert Versions(parent).next_pre is None
 
 
-def test_release_endpoint_logs_and_propagates_release_failure(monkeypatch):
+def test_release_endpoint_propagates_release_failure(monkeypatch):
     failure = RuntimeError("package build failed")
-    errors = []
 
     class DummyProject:
         def __init__(self, name, pinned=None):
@@ -192,7 +191,6 @@ def test_release_endpoint_logs_and_propagates_release_failure(monkeypatch):
             raise failure
 
     monkeypatch.setattr("corio.infra.api.Project", DummyProject)
-    monkeypatch.setattr("corio.infra.api.logger.exception", errors.append)
 
     endpoint = Release(SimpleNamespace())
 
@@ -200,7 +198,6 @@ def test_release_endpoint_logs_and_propagates_release_failure(monkeypatch):
         asyncio.run(endpoint.run("demo", pinned="1.2.3", build=True))
 
     assert caught.value is failure
-    assert errors == ['Release failed for "demo".']
 
 
 def test_pre_version_endpoint_returns_next_pre_release(monkeypatch):

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import shlex
 import subprocess
+from dataclasses import dataclass, field
 
 
 def _normalize(name: str) -> str:
@@ -141,7 +141,7 @@ class Subcommand:
         return child
 
     def __call__(self, *parts: object) -> Subcommand:
-        self.active.children.extend(_to_subcommand_part(part) for part in parts)
+        self.active.children.extend(_to_subcommand_part(part) for part in parts if part is not None)
         return self
 
     def tokens(self) -> list[str]:
@@ -207,8 +207,11 @@ class Expression:
 class Shell:
     context: str = ""
 
-    def __getattr__(self, name: str) -> Expression:
-        return Expression(name=_normalize(name), shell=self)
+    def __getattr__(self, name: str | None) -> Expression:
+        return self(_normalize(name))
+
+    def __call__(self, name: str) -> Expression:
+        return Expression(name=name, shell=self)
 
     def popen(self, expression: Expression) -> subprocess.Popen[str]:
         return subprocess.Popen(
@@ -228,3 +231,8 @@ class Shell:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self.context}')"
+
+
+arg = Argument()
+val = Value()
+shell = Shell()

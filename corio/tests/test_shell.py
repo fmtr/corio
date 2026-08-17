@@ -27,6 +27,8 @@ def test_shell_command_chaining_examples():
     assert type(shell.corio.secrets.encrypt.active) is Subcommand
 
     assert str(shell.ls(-arg.h, "/")) == "ls -h /"
+    assert str(shell("qemu-system-x86_64")(-arg.enable_kvm)) == "qemu-system-x86_64 -enable-kvm"
+    assert str(shell["qemu-system-x86_64"](-arg.enable_kvm)) == "qemu-system-x86_64 -enable-kvm"
     assert str(shell.docker.run(-arg.it, "python:debian", arg.bash)) == "docker run -it python:debian bash"
     assert str(shell.corio.secrets.encrypt(--arg.contexts == val.web)) == "corio secrets encrypt --contexts=web"
 
