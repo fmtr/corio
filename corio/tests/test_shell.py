@@ -1,6 +1,15 @@
+import subprocess
 from types import SimpleNamespace
 
 from corio.shell import Argument, Expression, Shell, Subcommand, Value
+from corio.shell.dsl import _normalize
+
+
+def test_normalize_distinguishes_hyphens_and_underscores():
+    assert _normalize("some_name") == "some-name"
+    assert _normalize("some__name") == "some_name"
+    assert _normalize("_if") == "if"
+    assert _normalize("name_") == "name"
 
 
 def test_argument_prefixes_and_rendering_examples():
@@ -22,20 +31,20 @@ def test_shell_command_chaining_examples():
     shell = Shell()
 
     assert type(shell.docker) is Expression
-    assert type(shell.docker.run) is Expression
+    assert type(shell.docker.run_) is Expression
     assert type(shell.corio.secrets.encrypt) is Expression
     assert type(shell.corio.secrets.encrypt.active) is Subcommand
 
     assert str(shell.ls(-arg.h, "/")) == "ls -h /"
     assert str(shell("qemu-system-x86_64")(-arg.enable_kvm)) == "qemu-system-x86_64 -enable-kvm"
 
-    assert str(shell.docker.run(-arg.it, "python:debian", arg.bash)) == "docker run -it python:debian bash"
+    assert str(shell.docker.run_(-arg.it, "python:debian", arg.bash)) == "docker run -it python:debian bash"
     assert str(shell.corio.secrets.encrypt(--arg.contexts == val.web)) == "corio secrets encrypt --contexts=web"
 
 
 def test_shell_context_is_propagated_to_commands():
     shell = Shell("ssh://remote.lan")
-    cmd = shell.docker.run("-it")
+    cmd = shell.docker.run_("-it")
 
     assert shell.context == "ssh://remote.lan"
     assert cmd.shell is shell
@@ -73,7 +82,7 @@ def test_shell_generates_uvx_tox_command_string():
         -arg.c + str(paths.pyproject_repo),
         --arg.root + str(paths.repo),
         --arg.workdir + str(f"{paths.repo}/.tox"),
-    ).run()
+    ).run_
 
     assert str(command) == (
         "uvx --with tox-uv tox 'two words' -c /repo/pyproject.toml "
@@ -84,7 +93,7 @@ def test_shell_generates_uvx_tox_command_string():
         "--with",
         "tox-uv",
         "tox",
-        "'two words'",
+        "two words",
         "-c",
         "/repo/pyproject.toml",
         "--root",
@@ -104,7 +113,7 @@ def test_expression_tree_shape_examples():
     assert docker.name == "docker"
     assert docker.children == []
 
-    docker_run = shell.docker.run
+    docker_run = shell.docker.run_
     assert docker_run.active is not None
     assert docker_run.active.name == "run"
     assert docker_run.active.children == []
@@ -135,7 +144,7 @@ def test_structure_examples_are_exact():
     assert docker.children == []
     assert docker.active is docker
 
-    docker_run = shell.docker.run
+    docker_run = shell.docker.run_
     assert isinstance(docker_run, Expression)
     assert docker_run.name == "docker"
     assert len(docker_run.children) == 1
@@ -204,16 +213,47 @@ def test_expression_does_not_accept_nested_expressions_as_children():
     assert command.tokens() == ["corio", "secrets", "encrypt", "--context=web", "--verbose"]
 
 
-def test_plus_command_runs_with_popen_and_streams_lines(monkeypatch):
+def test_run_and_plus_forward_to_subprocess_with_streaming_defaults(monkeypatch):
     shell = Shell()
     cmd = shell.echo("a", "b")
+    calls = []
+    completed = object()
+
+    def _run(*args, **kwargs):
+        calls.append((args, kwargs))
+        return completed
+
+    monkeypatch.setattr("corio.shell.dsl.subprocess.run", _run)
+
+    assert cmd.run(check=False, cwd="/tmp") is completed
+    assert +cmd is completed
+    assert calls == [
+        ((["echo", "a", "b"],), {"check": False, "shell": False, "cwd": "/tmp"}),
+        ((["echo", "a", "b"],), {"check": True, "shell": False}),
+    ]
+
+
+def test_run_renders_a_command_string_for_shell_mode(monkeypatch):
+    calls = []
+
+    def _run(*args, **kwargs):
+        calls.append((args, kwargs))
+
+    monkeypatch.setattr("corio.shell.dsl.subprocess.run", _run)
+
+    Shell().echo("two words").run(shell=True)
+
+    assert calls == [
+        (("echo 'two words'",), {"check": True, "shell": True}),
+    ]
+
+
+def test_iter_expression_yields_stdout_lines(monkeypatch):
+    cmd = Shell().echo("a", "b")
     calls = {}
 
     class _Process:
-        args = ["echo", "a", "b"]
-
-        def __init__(self):
-            self.stdout = iter(["line1\n", "line2\n"])
+        stdout = iter(["line1\n", "line2\n"])
 
         @staticmethod
         def wait():
@@ -225,20 +265,35 @@ def test_plus_command_runs_with_popen_and_streams_lines(monkeypatch):
         return _Process()
 
     monkeypatch.setattr("corio.shell.dsl.subprocess.Popen", _popen)
-    lines = list(+cmd)
-    iter_lines = list(cmd)
 
-    assert lines == ["line1", "line2"]
-    assert iter_lines == ["line1", "line2"]
+    assert list(cmd) == ["line1", "line2"]
     assert calls["args"] == (["echo", "a", "b"],)
-    assert calls["kwargs"]["stdout"] is not None
-    assert calls["kwargs"]["stderr"] is not None
-    assert calls["kwargs"]["text"] is True
-    assert calls["kwargs"]["bufsize"] == 1
+    assert calls["kwargs"] == {"stdout": subprocess.PIPE, "text": True, "bufsize": 1}
+
+
+def test_expression_iteration_delegates_to_shell(monkeypatch):
+    shell = Shell()
+    command = shell.echo("hello")
+    lines = iter(["one", "two"])
+
+    monkeypatch.setattr(Shell, "__iter__", lambda self, expression: lines)
+
+    assert command.__iter__() is lines
+
+
+def test_exec_supports_a_custom_exec_method():
+    calls = []
+
+    def method(name, tokens):
+        calls.append((name, tokens))
+
+    Shell().echo("two words").exec(method=method)
+
+    assert calls == [("echo", ["echo", "two words"])]
 
 
 def test_subcommand_has_name_not_command_field():
-    subcommand = Shell().docker.run.children[0]
+    subcommand = Shell().docker.run_.children[0]
     assert subcommand.name == "run"
     assert not hasattr(subcommand, "command")
 
@@ -252,7 +307,7 @@ def test_expression_children_never_hold_values():
 
 def test_subcommand_children_never_hold_values():
     shell = Shell()
-    expr = shell.docker.run("hello", Value().world)
+    expr = shell.docker.run_("hello", Value().world)
     children = expr.active.children
     assert [type(node) for node in children] == [Argument, Argument]
     assert [node.name for node in children] == ["hello", "world"]

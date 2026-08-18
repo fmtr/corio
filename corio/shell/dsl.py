@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import os
 import shlex
 import subprocess
 from dataclasses import dataclass, field
+from typing import Callable, NoReturn
 
 
 def _normalize(name: str) -> str:
-    return name.strip("_").replace("_", "-")
+    underscore = "\0"
+    return name.replace("__", underscore).strip("_").replace("_", "-").replace(underscore, "_")
 
 
 def _to_value(item: object) -> Value:
@@ -56,10 +59,10 @@ class Value:
         return Value(name=_normalize(name))
 
     def tokens(self) -> list[str]:
-        return [shlex.quote(self.name)]
+        return [self.name]
 
     def __str__(self) -> str:
-        return " ".join(self.tokens())
+        return shlex.join(self.tokens())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self}')"
@@ -108,7 +111,7 @@ class Argument:
 
     @property
     def token(self) -> str:
-        return f"{self.prefixes}{shlex.quote(self.name)}"
+        return f"{self.prefixes}{self.name}"
 
     def tokens(self) -> list[str]:
         if not self.children:
@@ -119,7 +122,7 @@ class Argument:
         return [self.token, *_flatten_parts(self.children)]
 
     def __str__(self) -> str:
-        return " ".join(self.tokens())
+        return shlex.join(self.tokens())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self}')"
@@ -148,7 +151,7 @@ class Subcommand:
         return [self.name, *_flatten_parts(self.children)]
 
     def __str__(self) -> str:
-        return " ".join(self.tokens())
+        return shlex.join(self.tokens())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self}')"
@@ -184,20 +187,29 @@ class Expression:
     def tokens(self) -> list[str]:
         return [self.name, *_flatten_parts(self.children)]
 
-    def popen(self) -> subprocess.Popen[str]:
-        return self.shell.popen(self)
+    def run(
+            self,
+            *args: object,
+            check: bool = True,
+            shell: bool = False,
+            **kwargs: object,
+    ) -> subprocess.CompletedProcess[str]:
+        return self.shell.run(self, *args, check=check, shell=shell, **kwargs)
 
-    def iterate_lines(self):
-        return self.shell.iterate_lines(self)
+    def exec(
+            self,
+            method: Callable[[str, list[str]], NoReturn] = os.execvp,
+    ) -> NoReturn:
+        return self.shell.exec(self, method=method)
 
     def __iter__(self):
-        return self.iterate_lines()
+        return self.shell.__iter__(self)
 
     def __pos__(self):
-        return self.iterate_lines()
+        return self.run()
 
     def __str__(self) -> str:
-        return " ".join(self.tokens())
+        return shlex.join(self.tokens())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self}')"
@@ -213,21 +225,35 @@ class Shell:
     def __call__(self, name: str) -> Expression:
         return Expression(name=name, shell=self)
 
-    def popen(self, expression: Expression) -> subprocess.Popen[str]:
-        return subprocess.Popen(
+    def __iter__(self, expression: Expression):
+        process = subprocess.Popen(
             expression.tokens(),
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
         )
-
-    def iterate_lines(self, expression: Expression):
-        process = self.popen(expression)
         if process.stdout is not None:
             for line in process.stdout:
                 yield line.rstrip("\n")
         process.wait()
+
+    def run(
+            self,
+            expression: Expression,
+            *args: object,
+            check: bool = True,
+            shell: bool = False,
+            **kwargs: object,
+    ) -> subprocess.CompletedProcess[str]:
+        command = str(expression) if shell else expression.tokens()
+        return subprocess.run(command, *args, check=check, shell=shell, **kwargs)  # type: ignore[arg-type]
+
+    def exec(
+            self,
+            expression: Expression,
+            method: Callable[[str, list[str]], NoReturn] = os.execvp,
+    ) -> NoReturn:
+        return method(expression.name, expression.tokens())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self.context}')"
