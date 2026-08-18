@@ -1,17 +1,19 @@
 import asyncio
 from types import SimpleNamespace
+from typing import get_args, get_type_hints
 
 import pytest
 from packaging.requirements import Requirement
 
 from corio import entrypoint
 from corio import version
-from corio.infra.api import DocumentationRelease, PreVersion, Release
+from corio.infra.api import DocumentationRelease, PreVersion, ProjectName, Release
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
 from corio.infra.project import Versions
 from corio.infra.releaser import Releaser, IncrementorVersion, Tester as ReleaserTester
 from corio.infra.repository import Repository
 from corio.path import Path
+from corio.paths import paths
 
 
 def _write_editable_repo(path_repo: Path, name: str, version: str) -> None:
@@ -198,6 +200,14 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
         asyncio.run(endpoint.run("demo", pinned="1.2.3", build=True))
 
     assert caught.value is failure
+
+
+def test_infra_endpoint_project_names_are_repo_directory_literals():
+    expected = tuple(sorted(path.name for path in paths.dev_repo.iterdir() if path.is_dir()))
+
+    assert get_args(ProjectName) == expected
+    for endpoint in (Release, DocumentationRelease, PreVersion):
+        assert get_type_hints(endpoint.run)["name"] is ProjectName
 
 
 def test_documentation_release_endpoint_only_releases_documentation(monkeypatch):

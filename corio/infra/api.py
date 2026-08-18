@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from corio import api as api
 from corio.infra.project import Project
 from corio.infra.releaser import ReleaseDocumentation
 from corio.paths import paths
+
+ProjectName = Literal[*sorted(path.name for path in paths.dev_repo.iterdir() if path.is_dir())]
 
 
 class Api(api.Base):
@@ -32,7 +36,7 @@ class Release(api.endpoint.API):
 
     async def run(
             self,
-            name: str,
+            name: ProjectName,
             pinned: str = None,
             build: bool = False,
             release: bool = True,
@@ -55,7 +59,7 @@ class DocumentationRelease(api.endpoint.API):
 
     PATH = "/{name}/release-documentation"
 
-    async def run(self, name: str):
+    async def run(self, name: ProjectName):
         """
 
         Release only a project's documentation.
@@ -74,7 +78,7 @@ class PreVersion(api.endpoint.API):
 
     PATH = "/{name}/pre-version"
 
-    async def run(self, name: str):
+    async def run(self, name: ProjectName):
         """
 
         Return the next pre-release version string, or None if already pre-release.
