@@ -292,6 +292,18 @@ def test_exec_supports_a_custom_exec_method():
     assert calls == [("echo", ["echo", "two words"])]
 
 
+def test_run_and_exec_log_the_rendered_command(monkeypatch):
+    messages = []
+    monkeypatch.setattr("corio.shell.dsl.logger.info", messages.append)
+    monkeypatch.setattr("corio.shell.dsl.subprocess.run", lambda *args, **kwargs: None)
+
+    command = Shell().echo("two words")
+    command.run()
+    command.exec(method=lambda name, tokens: None)
+
+    assert messages == ["echo 'two words'", "echo 'two words'"]
+
+
 def test_subcommand_has_name_not_command_field():
     subcommand = Shell().docker.run_.children[0]
     assert subcommand.name == "run"

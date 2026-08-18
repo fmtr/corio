@@ -6,6 +6,8 @@ import subprocess
 from dataclasses import dataclass, field
 from typing import Callable, NoReturn
 
+from corio import logger
+
 
 def _normalize(name: str) -> str:
     underscore = "\0"
@@ -226,6 +228,7 @@ class Shell:
         return Expression(name=name, shell=self)
 
     def __iter__(self, expression: Expression):
+        logger.info(str(expression))
         process = subprocess.Popen(
             expression.tokens(),
             stdout=subprocess.PIPE,
@@ -245,14 +248,17 @@ class Shell:
             shell: bool = False,
             **kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
+        logger.info(str(expression))
         command = str(expression) if shell else expression.tokens()
-        return subprocess.run(command, *args, check=check, shell=shell, **kwargs)  # type: ignore[arg-type]
+        result = subprocess.run(command, *args, check=check, shell=shell, **kwargs)  # type: ignore[arg-type]
+        return result
 
     def exec(
             self,
             expression: Expression,
             method: Callable[[str, list[str]], NoReturn] = os.execvp,
     ) -> NoReturn:
+        logger.info(str(expression))
         return method(expression.name, expression.tokens())
 
     def __repr__(self) -> str:
