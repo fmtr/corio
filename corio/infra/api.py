@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from corio import api as api
 from corio.infra.project import Project
+from corio.infra.releaser import ReleaseDocumentation
 from corio.paths import paths
 
 
@@ -17,7 +18,7 @@ class Api(api.Base):
         Infrastructure endpoint classes.
 
         """
-        return [Release, PreVersion]
+        return [Release, DocumentationRelease, PreVersion]
 
 
 class Release(api.endpoint.API):
@@ -43,6 +44,25 @@ class Release(api.endpoint.API):
         """
         project = Project(name, pinned=pinned)
         project.releaser.run(build=build, release=release)
+
+
+class DocumentationRelease(api.endpoint.API):
+    """
+
+    Rebuild and release the project documentation.
+
+    """
+
+    PATH = "/{name}/release-documentation"
+
+    async def run(self, name: str):
+        """
+
+        Release only a project's documentation.
+
+        """
+        project = Project(name)
+        ReleaseDocumentation(project.releaser).release()
 
 
 class PreVersion(api.endpoint.API):

@@ -6,7 +6,7 @@ from packaging.requirements import Requirement
 
 from corio import entrypoint
 from corio import version
-from corio.infra.api import PreVersion, Release
+from corio.infra.api import DocumentationRelease, PreVersion, Release
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
 from corio.infra.project import Versions
 from corio.infra.releaser import Releaser, IncrementorVersion, Tester as ReleaserTester
@@ -198,6 +198,32 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
         asyncio.run(endpoint.run("demo", pinned="1.2.3", build=True))
 
     assert caught.value is failure
+
+
+def test_documentation_release_endpoint_only_releases_documentation(monkeypatch):
+    releaser = SimpleNamespace()
+    events = []
+
+    class DummyProject:
+        def __init__(self, name):
+            assert name == "demo"
+            self.releaser = releaser
+
+    class DummyDocumentationRelease:
+        def __init__(self, parent):
+            assert parent is releaser
+
+        def release(self):
+            events.append("documentation")
+
+    monkeypatch.setattr("corio.infra.api.Project", DummyProject)
+    monkeypatch.setattr("corio.infra.api.ReleaseDocumentation", DummyDocumentationRelease)
+
+    endpoint = DocumentationRelease(SimpleNamespace())
+    asyncio.run(endpoint.run("demo"))
+
+    assert endpoint.path == "/{name}/release-documentation"
+    assert events == ["documentation"]
 
 
 def test_pre_version_endpoint_returns_next_pre_release(monkeypatch):
