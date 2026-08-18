@@ -1,4 +1,6 @@
+import inspect
 import subprocess
+from abc import ABC
 from types import SimpleNamespace
 
 from corio.shell import Argument, Expression, Shell, Subcommand, Value
@@ -23,6 +25,21 @@ def test_argument_prefixes_and_rendering_examples():
     assert str(--arg.verbose == "eq_val") == "--verbose=eq_val"
     assert str(--arg.verbose == arg.other_val) == "--verbose=other-val"
     assert str(arg.up(--arg.detach, --arg.recreate)) == "up --detach --recreate"
+
+
+def test_dsl_objects_can_be_class_attributes_without_making_class_abstract():
+    objects = (
+        Argument().restore_file,
+        Value().restore_file,
+        Shell().decode_config,
+        Shell().decode_config.restore,
+    )
+
+    for obj in objects:
+        class Command(ABC):
+            dsl_object = obj
+
+        assert not inspect.isabstract(Command)
 
 
 def test_shell_command_chaining_examples():

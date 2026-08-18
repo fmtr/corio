@@ -4,7 +4,7 @@ import os
 import shlex
 import subprocess
 from dataclasses import dataclass, field
-from typing import Callable, NoReturn
+from typing import Callable, ClassVar, NoReturn
 
 from corio import logger
 
@@ -54,6 +54,8 @@ def _flatten_parts(parts: list[object]) -> list[str]:
 
 @dataclass
 class Value:
+    __isabstractmethod__: ClassVar[bool] = False
+
     name: str = ""
     children: list[object] = field(default_factory=list)
 
@@ -72,6 +74,8 @@ class Value:
 
 @dataclass
 class Argument:
+    __isabstractmethod__: ClassVar[bool] = False
+
     name: str = ""
     prefixes: str = ""
     children: list[Argument | Value] = field(default_factory=list)
@@ -161,6 +165,8 @@ class Subcommand:
 
 @dataclass
 class Expression:
+    __isabstractmethod__: ClassVar[bool] = False
+
     name: str
     shell: Shell
     children: list[Subcommand | Argument] = field(default_factory=list)
@@ -219,6 +225,8 @@ class Expression:
 
 @dataclass
 class Shell:
+    __isabstractmethod__: ClassVar[bool] = False
+
     context: str = ""
 
     def __getattr__(self, name: str | None) -> Expression:
