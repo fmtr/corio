@@ -9,7 +9,7 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
-from corio import Constants
+from corio import Constants, strings
 from corio.dm import CliRunMixin
 from corio.iterator import strip_none
 from corio.path import Path
@@ -100,20 +100,23 @@ class BaseCLI(BaseSettings, CliRunMixin):
         Read settings from process environment variables.
 
         """
-        return EnvSettingsSource(
+        source = EnvSettingsSource(
             settings_cls,
             env_prefix=cls.get_env_prefix(),
             env_nested_delimiter=cls.ENV_NESTED_DELIMITER,
         )
+        return source
 
     @classmethod
-    def get_env_prefix(cls):
+    def get_env_prefix(cls) -> str:
         """
 
         Get environment variable prefix, which depends on whether the package is a namespace/singleton.
 
         """
-        return None
+        stem = strings.camel_to_snake(cls.__name__)
+        prefix = f'{stem}{cls.ENV_NESTED_DELIMITER}'.upper()
+        return prefix
 
     @classmethod
     def get_dotenv_source(
