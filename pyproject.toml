@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.8.8"
+version = "2.8.9"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
@@ -88,7 +88,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.8.8"
+version = "2.8.9"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -203,15 +203,15 @@ description = "Run datatype tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_datatype.py"]]
 
+[tool.tox.env.dhcp]
+description = "Run dhcp tests."
+deps = ["httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dhcp.py"]]
+
 [tool.tox.env.dns]
 description = "Run dns tests."
 deps = ["cachetools", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dns.py"]]
-
-[tool.tox.env.dhcp]
-description = "Run DHCP tests."
-deps = ["httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dhcp.py"]]
 
 [tool.tox.env.dt]
 description = "Run dt tests."
