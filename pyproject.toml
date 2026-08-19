@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.8.9"
+version = "2.8.10"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
@@ -88,7 +88,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.8.9"
+version = "2.8.10"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -186,7 +186,7 @@ corio = ["pyproject.package.toml", "assets/**"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api", "caching", "datatype", "dhcp", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "toml", "tools", "yml"]
+env_list = ["api", "caching", "datatype", "dhcp", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "tasmota", "toml", "tools", "yml"]
 
 [tool.tox.env.api]
 description = "Run api tests."
@@ -297,6 +297,11 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_shell.py"]]
 description = "Run strings tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_strings.py"]]
+
+[tool.tox.env.tasmota]
+description = "Run tasmota tests."
+deps = ["decode-config", "esptool", "pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_tasmota.py"]]
 
 [tool.tox.env.toml]
 description = "Run toml tests."
