@@ -49,6 +49,7 @@ sets = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "y
 "path.app" = ["appdirs"]
 "path.type" = ["filetype"]
 dns = ["dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "diskcache", "cachetools"]
+dhcp = ["httpx", "httpx_retries", "logfire", "logfire[httpx]"]
 patterns = ["regex"]
 http = ["httpx", "httpx_retries", "logfire", "logfire[httpx]"]
 setup = ["setuptools"]
@@ -145,6 +146,7 @@ sets = ["pydantic-settings", "dm", "yaml"]
 "path.app" = ["appdirs"]
 "path.type" = ["filetype"]
 dns = ["dnspython[doh]", "http", "caching"]
+dhcp = ["http"]
 patterns = ["regex"]
 http = ["httpx", "httpx_retries", "logging", "logfire[httpx]"]
 setup = ["setuptools"]
@@ -184,7 +186,7 @@ corio = ["pyproject.package.toml", "assets/**"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api", "caching", "datatype", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "toml", "tools", "yml"]
+env_list = ["api", "caching", "datatype", "dhcp", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "toml", "tools", "yml"]
 
 [tool.tox.env.api]
 description = "Run api tests."
@@ -205,6 +207,11 @@ commands = [["python", "-m", "pytest", "-q", "corio/tests/test_datatype.py"]]
 description = "Run dns tests."
 deps = ["cachetools", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dns.py"]]
+
+[tool.tox.env.dhcp]
+description = "Run DHCP tests."
+deps = ["httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "corio/tests/test_dhcp.py"]]
 
 [tool.tox.env.dt]
 description = "Run dt tests."
