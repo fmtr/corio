@@ -116,13 +116,13 @@ class Manager:
         """
         return self._call(self._read)
 
-    def write(self, config: Mapping[str, Any]) -> None:
+    def write(self, config: Mapping[str, Any]) -> bool:
         """
 
-        Encode and upload a configuration dictionary to the host.
+        Encode and upload a configuration dictionary to the host, returning whether it was uploaded.
 
         """
-        self._call(self._write, config)
+        return self._call(self._write, config)
 
     def _call(self, operation, *args):
         """
@@ -208,7 +208,7 @@ class Manager:
     def _read(self) -> dict[str, Any]:
         return self._read_device()["groupmapping"]
 
-    def _write(self, mapping: Mapping[str, Any]) -> None:
+    def _write(self, mapping: Mapping[str, Any]) -> bool:
         current = self._read_device()
         decoded = decode_config.mapping2bin(current, dict(mapping), "<mapping>")
         if decoded is None:
@@ -225,7 +225,9 @@ class Manager:
 
         # Avoid rebooting/uploading when the supplied mapping makes no change.
         if encoded == current["encode"]:
-            return
+            logger.warning("Configuration unchanged; write skipped.")
+            return False
         error_code, _ = decode_config.push_http(encoded)
         if error_code:
             raise DecodeConfigError(error_code)
+        return True

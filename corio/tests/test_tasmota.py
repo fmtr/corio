@@ -144,3 +144,25 @@ def test_original_error_is_reraised_instead_of_system_exit(monkeypatch):
 
     assert raised.value is original_error
     assert records == [("error", "ERROR 22: could not connect")]
+
+
+def test_unchanged_write_warns_and_returns_false(monkeypatch):
+    upstream = type("Upstream", (), {})()
+    upstream.mapping2bin = lambda current, mapping, source: b"decoded"
+    upstream.decrypt_encrypt = lambda decoded, has_header: b"unchanged"
+    monkeypatch.setattr(config, "decode_config", upstream)
+    monkeypatch.setattr(
+        config.Manager,
+        "_read_device",
+        lambda self: {
+            "encode": b"unchanged",
+            "info": {"template_size": len(b"unchanged")},
+        },
+    )
+    warnings = []
+    monkeypatch.setattr(config.logger, "warning", warnings.append)
+
+    written = config.Manager("tasmota.local")._write({})
+
+    assert written is False
+    assert warnings == ["Configuration unchanged; write skipped."]
