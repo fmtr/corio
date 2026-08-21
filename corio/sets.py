@@ -1,5 +1,3 @@
-from typing import ClassVar, Any
-
 from pydantic_settings import (
     BaseSettings,
     CliSettingsSource,
@@ -8,6 +6,7 @@ from pydantic_settings import (
     PydanticBaseSettingsSource,
     YamlConfigSettingsSource,
 )
+from typing import ClassVar, Any
 
 from corio import Constants, strings
 from corio.dm import CliRunMixin
@@ -192,6 +191,7 @@ class Base(BaseCLI):
         return DotEnvSettingsSource(
             settings_cls,
             env_file=path,
+            dotenv_filtering="only_existing",
             env_prefix=cls.get_env_prefix(),
             env_nested_delimiter=cls.ENV_NESTED_DELIMITER,
         )

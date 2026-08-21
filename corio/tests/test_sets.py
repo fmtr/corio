@@ -40,7 +40,7 @@ def test_find_env_file_defaults_to_cwd_outside_repo(tmp_path):
 
 def test_dotenv_source_uses_default_repo_path(tmp_path):
     repo = Path(tmp_path)
-    (repo / '.env').write_text('TEST__VALUE=from-dotenv\n')
+    (repo / '.env').write_text('TEST__VALUE=from-dotenv\nUNRELATED=value\n')
     paths = make_package_paths(repo)
     settings = make_settings(paths)
 
