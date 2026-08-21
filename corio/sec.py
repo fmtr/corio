@@ -11,15 +11,12 @@ from pydantic_settings import CliSubCommand
 
 from corio import dm as dm
 from corio import sets as sets
-from corio.iterator import flatten_tree, strip_none, IndexList
+from corio.iterator import flatten_tree
 from corio.logs import logger
 from corio.path import Path
-from corio.strings import join_natural, MASK_QUOTE
 
 if TYPE_CHECKING:
     from corio.encrypt import EncryptorValues, EncryptorValuesSelect
-
-ALL = '+'
 
 token_hex=None # FastAPI tries to import this?
 
@@ -60,28 +57,6 @@ class Definition(dm.Base):
 
         return True
 
-    def filter(self, path: Path) -> Path | None:
-        """
-
-        Filter out directories and files not covered by any specified contexts
-
-        """
-
-        if path.is_dir():
-            return
-
-        if path.name.endswith('.black.yml'):
-            return
-
-        for context in self.config.encrypt.context:
-            for pattern in self.config.contexts.name[context].files:
-                pattern = f'{self.config.path_repo}/{pattern}'
-                if path.full_match(pattern):
-                    return path
-
-        return
-
-
     def encrypt(self, base: Path) -> Generator[Path, None, None]:
         """
 
@@ -93,7 +68,7 @@ class Definition(dm.Base):
         for path_red in self.files:
             paths_red += list(base.glob(path_red))
 
-        paths_red = strip_none(*[self.filter(path) for path in paths_red])
+        paths_red = [path for path in paths_red if path.is_file() and not path.name.endswith('.black.yml')]
 
         for path_red in paths_red:
             path = self.encrypt_file(path_red)
@@ -129,16 +104,6 @@ class Definition(dm.Base):
         return path_black
 
 
-class Context(dm.Base):
-    """
-
-    Context definition
-
-    """
-    name: str
-    files: list[str]
-
-
 class Command(dm.Base):
     """
 
@@ -146,8 +111,6 @@ class Command(dm.Base):
 
     """
     config: Cli | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
-    context: list[str]
-
     def is_black(self, path: Path) -> bool:
         """
 
@@ -156,66 +119,12 @@ class Command(dm.Base):
         """
         return path.name.endswith('.black.yml')
 
-    @cached_property
-    def patterns(self) -> list[str]:
-        """
-
-        Fetch all the path patterns covered by any run-time-specified contexts
-
-        """
-        patterns = []
-
-        if ALL in self.context:
-            return ['**']
-
-        for context in self.context:
-            for pattern in self.config.contexts.name[context].files:
-                pattern = f'{self.config.path_repo}/{pattern}'
-                patterns.append(pattern)
-
-        return patterns
-
-    def is_included_self_suffix(self, path: Path) -> bool:
-        raise NotImplementedError
-
-    def filter(self, path: Path) -> Path | None:
-        """
-
-        Filter based on directories, black files and files covered by any specified contexts
-
-        """
-
-        if path.is_dir():
-            return
-
-        if not self.is_included_self_suffix(path):
-            return
-
-        for pattern in self.patterns:
-            if path.full_match(pattern):
-                return path
-
-        return
-
-    @property
-    def span(self):
-        """
-
-        Contextual logging span
-
-        """
-        contexts = join_natural(self.context, mask=MASK_QUOTE)
-        return logger.span(f'{self.__class__.__name__}ing secrets with contexts {contexts} in repo "{self.config.path_repo}"...')
-
-
 class Encrypt(Command):
     """
 
     Encrypt subcommand
 
     """
-
-    context: list[str] = Field(default_factory=lambda: [ALL])
 
     def run(self):
         """
@@ -225,18 +134,10 @@ class Encrypt(Command):
         """
         super().run()
 
-        with self.span:
+        with logger.span(f'Encrypting secrets in repo "{self.config.path_repo}"...'):
             for definition in self.config.definitions:
                 for path in self.process_definition(definition):
                     path  # todo add to repo.
-
-    def is_included_self_suffix(self, path: Path) -> bool:
-        """
-
-        Exclude any black files, so we don't double-encrypt them.
-
-        """
-        return not self.is_black(path)
 
     def get_paths(self, definition: Definition) -> list[Path]:
         """
@@ -258,7 +159,7 @@ class Encrypt(Command):
         """
 
         paths_red = self.get_paths(definition)
-        paths_red = strip_none(*[self.filter(path) for path in paths_red])
+        paths_red = [path for path in paths_red if path.is_file() and not self.is_black(path)]
 
         for path_red in paths_red:
             path = self.process_file(path_red, definition)
@@ -294,83 +195,26 @@ class Encrypt(Command):
         return path_black
 
 
-class Env(dm.Base):
-    """
-
-    Decrypt a black file into /run/secrets/{name}
-
-    """
-
-    SECRET_ROOT: ClassVar[Path] = Path("/run/secrets")
-
-    name: str
-    black: Path
-    user: str
-
-    @cached_property
-    def encryptor(self):
-        """
-
-        Decryption doesn't need definitions, so can use a generic values encryptor
-
-        """
-        from corio.encrypt import EncryptorValues
-
-        return EncryptorValues()
-
-    @property
-    def path_secret(self) -> Path:
-        """
-
-        Target directory for the decrypted secret
-
-        """
-        return self.SECRET_ROOT / self.name
-
-    def run(self):
-        """
-
-        Decrypt the supplied black file into the target secret directory
-
-        """
-        path_secret = self.path_secret
-        path_secret.mkdirf()
-
-        black = self.black.read_data()
-        red = self.encryptor.decrypt(black)
-
-        path_red = path_secret / Path(self.black.stem).stem
-
-        with logger.span(f'Writing red file to "{path_red}"'):
-            path_red.write_data(red)
-
-        path_secret.chown(self.user, recurse=True)
-
 class Decrypt(Command):
     """
 
     Decrypt subcommand
 
     """
-    env: CliSubCommand["Env"]
+    source: Path = Field(default_factory=Path.cwd)
+    target: Path = Field(default_factory=Path.cwd)
 
     def run(self):
         """
 
-        Decrypt all the files in the specified contexts
+        Decrypt every black file under source into the mirrored target tree.
 
         """
         super().run()
 
-        with self.span:
-
-            paths = self.get_paths()
-            paths = strip_none(*[self.filter(path) for path in paths])
-
-            for path in paths:
-                path = self.process_file(path)
-                if path:
-                    path
+        with logger.span(f'Decrypting secrets from "{self.source}" to "{self.target}"...'):
+            for path in self.get_paths():
+                self.process_file(path)
 
     @cached_property
     def encryptor(self) -> EncryptorValues:
@@ -383,27 +227,17 @@ class Decrypt(Command):
 
         return EncryptorValues()
 
-    def is_included_self_suffix(self, path: Path) -> bool:
-        """
-
-        Include only files that _are_ black
-
-        """
-        return self.is_black(path)
-
     def get_paths(self):
-
-        paths_black = []
-        for path_black in self.config.path_repo.glob('**/*.black.yml'):
-            paths_black.append(path_black)
-
-        return paths_black
+        return [path for path in self.source.glob('**/*.black.yml') if path.is_file()]
 
     def process_file(self, path_black: Path) -> Path | None:
         black = path_black.read_data()
         red = self.encryptor.decrypt(black)
 
-        path_red = path_black.parent / Path(path_black.stem).stem
+        relative_black = path_black.relative_to(self.source)
+        relative_red = relative_black.parent / Path(relative_black.stem).stem
+        path_red = self.target / relative_red
+        path_red.parent.mkdirf()
 
         if path_red.exists():
 
@@ -434,8 +268,6 @@ class Cli(sets.Base):
 
     FILENAME: ClassVar[str] = '.secrets.yml'
     definitions: list[Definition] = Field(default_factory=list)
-    contexts: list[Context] = Field(default_factory=list)
-
     encrypt: CliSubCommand[Encrypt]
     decrypt: CliSubCommand[Decrypt]
 
@@ -446,8 +278,6 @@ class Cli(sets.Base):
 
         """
         super().__init__(**kwargs)
-
-        self.contexts = IndexList(self.contexts)
 
         for definition in self.definitions:
             definition.config = self

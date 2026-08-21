@@ -1,37 +1,44 @@
 from corio import sec
 
 
-def test_env_decrypt_writes_into_run_secrets_and_chowns_recursively(tmp_path, monkeypatch):
-    path_black = sec.Path(tmp_path / ".env.black.yml")
+def test_decrypt_mirrors_source_tree_into_target(tmp_path, monkeypatch):
+    source = sec.Path(tmp_path / "source")
+    target = sec.Path(tmp_path / "target")
+    path_black = source / "a" / "b" / ".env.black.yml"
+    path_black.parent.mkdirf()
     path_black.write_yaml({"API_KEY": "ciphertext"})
-
-    env = sec.Env(
-        name="dns",
-        black=path_black,
-        user="foo",
-    )
-
-    monkeypatch.setattr(sec.Env, "SECRET_ROOT", sec.Path(tmp_path / "run" / "secrets"))
 
     class _Encryptor:
         @staticmethod
         def decrypt(data):
             return {"API_KEY": "plaintext"}
 
-    monkeypatch.setattr(sec.Env, "encryptor", _Encryptor())
+    decrypt = sec.Decrypt(source=source, target=target)
+    monkeypatch.setattr(sec.Decrypt, "encryptor", _Encryptor())
 
-    chown_calls = []
+    decrypt.run()
 
-    def _chown(self, user, recurse=False):
-        chown_calls.append((self, user, recurse))
+    assert (target / "a" / "b" / ".env").read_data() == {"API_KEY": "plaintext"}
 
-    monkeypatch.setattr(sec.Path, "chown", _chown)
 
-    env.run()
+def test_decrypt_defaults_source_and_target_to_cwd(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
 
-    path_secret = sec.Path(tmp_path / "run" / "secrets" / "dns")
-    path_red = path_secret / ".env"
+    decrypt = sec.Decrypt()
 
-    assert path_secret.is_dir()
-    assert path_red.read_data() == {"API_KEY": "plaintext"}
-    assert chown_calls == [(path_secret, "foo", True)]
+    assert decrypt.source == sec.Path(tmp_path)
+    assert decrypt.target == sec.Path(tmp_path)
+
+
+def test_decrypt_cli_does_not_require_secrets_file(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    cli = sec.Cli(_cli_parse_args=[
+        "decrypt",
+        "--source", str(tmp_path / "source"),
+        "--target", str(tmp_path / "target"),
+    ])
+
+    assert cli.definitions == []
+    assert cli.decrypt.source == sec.Path(tmp_path / "source")
+    assert cli.decrypt.target == sec.Path(tmp_path / "target")
