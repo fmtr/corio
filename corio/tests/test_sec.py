@@ -56,6 +56,50 @@ def test_encrypt_maps_red_name_to_black_name(tmp_path, monkeypatch):
     actual = sec.Encrypt().process_file(path_red, definition)
 
     assert actual == sec.Path(tmp_path) / "credentials.json.black.yml"
+    assert not path_red.exists()
+
+
+def test_encrypt_can_keep_red_file(tmp_path, monkeypatch):
+    path_red = sec.Path(tmp_path) / "credentials.json.red.yml"
+    path_red.write_yaml({"token": "plaintext"})
+    definition = sec.Definition(files=[], nodes=["*"])
+
+    class _Encryptor:
+        @staticmethod
+        def encrypt(data):
+            return {"token": "ciphertext"}
+
+        @staticmethod
+        def decrypt(data):
+            return {"token": "plaintext"}
+
+    monkeypatch.setattr(sec.Definition, "encryptor", _Encryptor())
+
+    sec.Encrypt(delete=False).process_file(path_red, definition)
+
+    assert path_red.exists()
+
+
+def test_decrypt_restore_writes_original_name_and_format(tmp_path, monkeypatch):
+    source = sec.Path(tmp_path / "source")
+    target = sec.Path(tmp_path / "target")
+    path_black = source / "credentials.json.black.yml"
+    path_black.parent.mkdirf()
+    path_black.write_yaml({"token": "ciphertext"})
+
+    class _Encryptor:
+        @staticmethod
+        def decrypt(data):
+            return {"token": "plaintext"}
+
+    decrypt = sec.Decrypt(source=source, target=target, restore=True)
+    monkeypatch.setattr(sec.Decrypt, "encryptor", _Encryptor())
+
+    decrypt.run()
+
+    path_restored = target / "credentials.json"
+    assert path_restored.read_json() == {"token": "plaintext"}
+    assert not (target / "credentials.json.red.yml").exists()
 
 
 def test_decrypt_defaults_source_and_target_to_cwd(tmp_path, monkeypatch):
@@ -65,6 +109,7 @@ def test_decrypt_defaults_source_and_target_to_cwd(tmp_path, monkeypatch):
 
     assert decrypt.source == sec.Path(tmp_path)
     assert decrypt.target == sec.Path(tmp_path)
+    assert decrypt.restore is False
 
 
 def test_decrypt_cli_does_not_require_secrets_file(tmp_path, monkeypatch):

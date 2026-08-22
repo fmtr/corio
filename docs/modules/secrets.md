@@ -24,6 +24,10 @@ pip install "corio[secrets]" --upgrade
 Any `*.red.yml` file not covered by a definition is still encrypted. All of its fields are encrypted and a warning is
 logged.
 
+Encryption deletes each red file by default after its black counterpart has been written or verified. Pass
+`--delete false` to retain red files. Decryption writes red files by default; pass `--restore true` to write each value
+to its original filename and format instead.
+
 ## Minimal `.secrets.yml` shape
 
 ```yaml

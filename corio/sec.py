@@ -136,6 +136,12 @@ class Encrypt(Command):
     Encrypt subcommand
 
     """
+    delete: bool = True
+
+    def delete_red(self, path_red: Path):
+        """Delete a red file after its black counterpart has been verified."""
+        if self.delete:
+            path_red.unlink()
 
     def run(self):
         """
@@ -211,10 +217,12 @@ class Encrypt(Command):
             is_aligned = definition.is_keys_values_aligned(black_robin)
             if red_robin == red and is_aligned:
                 logger.info(f'No change: {path_black}')
+                self.delete_red(path_red)
                 return None
 
         logger.info(f'Writing new black: {path_black}')
         path_black.write_yaml(black)
+        self.delete_red(path_red)
         return path_black
 
 
@@ -226,6 +234,7 @@ class Decrypt(Command):
     """
     source: Path = Field(default_factory=Path.cwd)
     target: Path = Field(default_factory=Path.cwd)
+    restore: bool = False
 
     def run(self):
         """
@@ -259,7 +268,8 @@ class Decrypt(Command):
 
         relative_black = path_black.relative_to(self.source)
         name_raw = relative_black.name.removesuffix(BLACK_SUFFIX)
-        relative_red = relative_black.parent / f'{name_raw}{RED_SUFFIX}'
+        name_target = name_raw if self.restore else f'{name_raw}{RED_SUFFIX}'
+        relative_red = relative_black.parent / name_target
         path_red = self.target / relative_red
         path_red.parent.mkdirf()
 
