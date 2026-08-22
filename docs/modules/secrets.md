@@ -6,8 +6,8 @@
 Main model:
 
 - `Config`: reads `.secrets.yml`, definitions, and contexts
-- `Encrypt` command: writes encrypted `*.black.yml` files from source files
-- `Decrypt` command: writes source files back from `*.black.yml` when allowed
+- `Encrypt` command: writes encrypted `<raw>.black.yml` files from `<raw>.red.yml` files
+- `Decrypt` command: writes `<raw>.red.yml` files back from `<raw>.black.yml` when allowed
 
 Install:
 
@@ -17,9 +17,12 @@ pip install "corio[secrets]" --upgrade
 
 ## High-level behavior
 
-1. Define file globs and encrypted nodes in `.secrets.yml`.
+1. Define raw file globs and encrypted nodes in `.secrets.yml`; the `.red.yml` suffix is implicit.
 2. Run encrypt mode to produce `*.black.yml`.
 3. Run decrypt mode for selected contexts when needed.
+
+Any `*.red.yml` file not covered by a definition is still encrypted. All of its fields are encrypted and a warning is
+logged.
 
 ## Minimal `.secrets.yml` shape
 
@@ -46,4 +49,6 @@ corio secrets encrypt --context=web
 corio secrets decrypt --context=web
 ```
 
-`encrypt` writes `*.black.yml`, and `decrypt` restores cleartext files when the encrypted side is newer/changed.
+For example, the definition path `services/web/config.yaml` matches
+`services/web/config.yaml.red.yml`. Encryption writes
+`services/web/config.yaml.black.yml`, and decryption restores the red file when the encrypted side is newer or changed.

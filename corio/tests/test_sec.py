@@ -18,7 +18,44 @@ def test_decrypt_mirrors_source_tree_into_target(tmp_path, monkeypatch):
 
     decrypt.run()
 
-    assert (target / "a" / "b" / ".env").read_data() == {"API_KEY": "plaintext"}
+    assert (target / "a" / "b" / ".env.red.yml").read_data() == {"API_KEY": "plaintext"}
+
+
+def test_definition_paths_implicitly_end_in_red_yml(tmp_path):
+    path_repo = sec.Path(tmp_path)
+    path_red = path_repo / "proxy" / "one" / ".secrets" / "traefik.yaml.red.yml"
+    path_red.parent.mkdirf()
+    path_red.write_yaml({"email": "secret"})
+
+    definition = sec.Definition(
+        files=["proxy/*/.secrets/traefik.yaml"],
+        nodes=["**/email"],
+    )
+    encrypt = sec.Encrypt()
+    encrypt.config = type("Config", (), {"path_repo": path_repo})()
+
+    assert encrypt.get_paths(definition) == [path_red]
+
+
+def test_encrypt_maps_red_name_to_black_name(tmp_path, monkeypatch):
+    path_red = sec.Path(tmp_path) / "credentials.json.red.yml"
+    path_red.write_yaml({"token": "plaintext"})
+    definition = sec.Definition(files=[], nodes=["*"])
+
+    class _Encryptor:
+        @staticmethod
+        def encrypt(data):
+            return {"token": "ciphertext"}
+
+        @staticmethod
+        def decrypt(data):
+            return {"token": "plaintext"}
+
+    monkeypatch.setattr(sec.Definition, "encryptor", _Encryptor())
+
+    actual = sec.Encrypt().process_file(path_red, definition)
+
+    assert actual == sec.Path(tmp_path) / "credentials.json.black.yml"
 
 
 def test_decrypt_defaults_source_and_target_to_cwd(tmp_path, monkeypatch):

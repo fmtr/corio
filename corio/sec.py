@@ -6,8 +6,7 @@ from typing import Generator
 from typing import TYPE_CHECKING
 
 from pydantic import Field
-from pydantic_settings import CLI_SUPPRESS
-from pydantic_settings import CliSubCommand
+from pydantic_settings import CLI_SUPPRESS, CliSubCommand
 
 from corio import dm as dm
 from corio import sets as sets
@@ -20,13 +19,20 @@ if TYPE_CHECKING:
 
 token_hex=None # FastAPI tries to import this?
 
+RED_SUFFIX = '.red.yml'
+BLACK_SUFFIX = '.black.yml'
+ALL_NODES = ['*', '**/*']
+
 class Definition(dm.Base):
     """
 
     Pair of lists of files - and the nodes to encrypt within those files
 
     """
-    config: Cli | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
+    if TYPE_CHECKING:
+        config: Cli | None
+    else:
+        config: object | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
     files: list[str]
     nodes: list[str] = Field(default_factory=list)
 
@@ -66,7 +72,7 @@ class Definition(dm.Base):
 
         paths_red = []
         for path_red in self.files:
-            paths_red += list(base.glob(path_red))
+            paths_red += list(base.glob(f'{path_red}{RED_SUFFIX}'))
 
         paths_red = [path for path in paths_red if path.is_file() and not path.name.endswith('.black.yml')]
 
@@ -89,7 +95,8 @@ class Definition(dm.Base):
         if red != red_robin:
             raise ValueError(f'Round-robin mismatch: {path_red}')
 
-        path_black = path_red.parent / f'{path_red.name}.black.yml'
+        name_raw = path_red.name.removesuffix(RED_SUFFIX)
+        path_black = path_red.parent / f'{name_raw}{BLACK_SUFFIX}'
 
         if path_black.exists():
             black_robin = path_black.read_data()
@@ -110,14 +117,18 @@ class Command(dm.Base):
     CLI subcommand base
 
     """
-    config: Cli | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
+    if TYPE_CHECKING:
+        config: Cli | None
+    else:
+        config: object | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
+
     def is_black(self, path: Path) -> bool:
         """
 
         Is the current file a black file?
 
         """
-        return path.name.endswith('.black.yml')
+        return path.name.endswith(BLACK_SUFFIX)
 
 class Encrypt(Command):
     """
@@ -135,9 +146,20 @@ class Encrypt(Command):
         super().run()
 
         with logger.span(f'Encrypting secrets in repo "{self.config.path_repo}"...'):
+            definitions_by_path = {}
             for definition in self.config.definitions:
-                for path in self.process_definition(definition):
-                    path  # todo add to repo.
+                for path_red in self.get_paths(definition):
+                    if path_red.is_file():
+                        # Later definitions explicitly override earlier ones.
+                        definitions_by_path[path_red] = definition
+
+            for path_red in self.config.path_repo.glob(f'**/*{RED_SUFFIX}'):
+                if path_red.is_file() and path_red not in definitions_by_path:
+                    logger.warning(f'File not covered, all fields encrypted: {path_red}')
+                    definitions_by_path[path_red] = Definition(files=[], nodes=ALL_NODES)
+
+            for path_red, definition in definitions_by_path.items():
+                self.process_file(path_red, definition)
 
     def get_paths(self, definition: Definition) -> list[Path]:
         """
@@ -147,7 +169,7 @@ class Encrypt(Command):
         """
         paths = []
         for pattern in definition.files:
-            paths += list(self.config.path_repo.glob(pattern))
+            paths += list(self.config.path_repo.glob(f'{pattern}{RED_SUFFIX}'))
 
         return paths
 
@@ -180,7 +202,8 @@ class Encrypt(Command):
         if red != red_robin:
             raise ValueError(f'Round-robin mismatch: {path_red}')
 
-        path_black = path_red.parent / f'{path_red.name}.black.yml'
+        name_raw = path_red.name.removesuffix(RED_SUFFIX)
+        path_black = path_red.parent / f'{name_raw}{BLACK_SUFFIX}'
 
         if path_black.exists():
             black_robin = path_black.read_data()
@@ -228,14 +251,15 @@ class Decrypt(Command):
         return EncryptorValues()
 
     def get_paths(self):
-        return [path for path in self.source.glob('**/*.black.yml') if path.is_file()]
+        return [path for path in self.source.glob(f'**/*{BLACK_SUFFIX}') if path.is_file()]
 
     def process_file(self, path_black: Path) -> Path | None:
         black = path_black.read_data()
         red = self.encryptor.decrypt(black)
 
         relative_black = path_black.relative_to(self.source)
-        relative_red = relative_black.parent / Path(relative_black.stem).stem
+        name_raw = relative_black.name.removesuffix(BLACK_SUFFIX)
+        relative_red = relative_black.parent / f'{name_raw}{RED_SUFFIX}'
         path_red = self.target / relative_red
         path_red.parent.mkdirf()
 
