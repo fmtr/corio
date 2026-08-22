@@ -235,6 +235,7 @@ class Decrypt(Command):
     source: Path = Field(default_factory=Path.cwd)
     target: Path = Field(default_factory=Path.cwd)
     restore: bool = False
+    force: bool = False
 
     def run(self):
         """
@@ -273,7 +274,7 @@ class Decrypt(Command):
         path_red = self.target / relative_red
         path_red.parent.mkdirf()
 
-        if path_red.exists():
+        if path_red.exists() and not self.force:
 
             is_older = path_black.modified < path_red.modified
             if is_older:

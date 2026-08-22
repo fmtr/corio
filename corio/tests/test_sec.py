@@ -102,6 +102,27 @@ def test_decrypt_restore_writes_original_name_and_format(tmp_path, monkeypatch):
     assert not (target / "credentials.json.red.yml").exists()
 
 
+def test_decrypt_force_overwrites_identical_target(tmp_path, monkeypatch):
+    source = sec.Path(tmp_path / "source")
+    target = sec.Path(tmp_path / "target")
+    path_black = source / "credentials.json.black.yml"
+    path_red = target / "credentials.json.red.yml"
+    path_black.parent.mkdirf()
+    path_red.parent.mkdirf()
+    path_black.write_yaml({"token": "ciphertext"})
+    path_red.write_yaml({"token": "plaintext"})
+
+    class _Encryptor:
+        @staticmethod
+        def decrypt(data):
+            return {"token": "plaintext"}
+
+    decrypt = sec.Decrypt(source=source, target=target, force=True)
+    monkeypatch.setattr(sec.Decrypt, "encryptor", _Encryptor())
+
+    assert decrypt.process_file(path_black) == path_red
+
+
 def test_decrypt_defaults_source_and_target_to_cwd(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
@@ -110,6 +131,7 @@ def test_decrypt_defaults_source_and_target_to_cwd(tmp_path, monkeypatch):
     assert decrypt.source == sec.Path(tmp_path)
     assert decrypt.target == sec.Path(tmp_path)
     assert decrypt.restore is False
+    assert decrypt.force is False
 
 
 def test_decrypt_cli_does_not_require_secrets_file(tmp_path, monkeypatch):

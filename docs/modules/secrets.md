@@ -26,7 +26,8 @@ logged.
 
 Encryption deletes each red file by default after its black counterpart has been written or verified. Pass
 `--delete false` to retain red files. Decryption writes red files by default; pass `--restore true` to write each value
-to its original filename and format instead.
+to its original filename and format instead. Pass `--force true` to overwrite every target regardless of its age or
+current contents.
 
 ## Minimal `.secrets.yml` shape
 
