@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import stat
 from functools import cached_property
 from typing import ClassVar
 from typing import Generator
@@ -137,6 +139,16 @@ class Encrypt(Command):
 
     """
     delete: bool = True
+    preserve: bool = False
+
+    def preserve_red(self, path_red: Path, path_black: Path):
+        """Copy the black file's permissions and ownership to the red file."""
+        if not self.preserve:
+            return
+
+        metadata = path_black.stat()
+        path_red.chmod(stat.S_IMODE(metadata.st_mode))
+        os.chown(path_red, metadata.st_uid, metadata.st_gid)
 
     def delete_red(self, path_red: Path):
         """Delete a red file after its black counterpart has been verified."""
@@ -217,11 +229,13 @@ class Encrypt(Command):
             is_aligned = definition.is_keys_values_aligned(black_robin)
             if red_robin == red and is_aligned:
                 logger.info(f'No change: {path_black}')
+                self.preserve_red(path_red, path_black)
                 self.delete_red(path_red)
                 return None
 
         logger.info(f'Writing new black: {path_black}')
         path_black.write_yaml(black)
+        self.preserve_red(path_red, path_black)
         self.delete_red(path_red)
         return path_black
 

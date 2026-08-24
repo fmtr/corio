@@ -80,6 +80,23 @@ def test_encrypt_can_keep_red_file(tmp_path, monkeypatch):
     assert path_red.exists()
 
 
+def test_encrypt_can_preserve_black_metadata_on_red_file(tmp_path, monkeypatch):
+    path_red = sec.Path(tmp_path) / "credentials.json.red.yml"
+    path_black = sec.Path(tmp_path) / "credentials.json.black.yml"
+    path_red.write_yaml({"token": "plaintext"})
+    path_black.write_yaml({"token": "ciphertext"})
+    path_red.chmod(0o600)
+    path_black.chmod(0o640)
+    chown_calls = []
+    monkeypatch.setattr(sec.os, "chown", lambda *args: chown_calls.append(args))
+
+    sec.Encrypt(delete=False, preserve=True).preserve_red(path_red, path_black)
+
+    metadata = path_black.stat()
+    assert sec.stat.S_IMODE(path_red.stat().st_mode) == 0o640
+    assert chown_calls == [(path_red, metadata.st_uid, metadata.st_gid)]
+
+
 def test_decrypt_restore_writes_original_name_and_format(tmp_path, monkeypatch):
     source = sec.Path(tmp_path / "source")
     target = sec.Path(tmp_path / "target")
