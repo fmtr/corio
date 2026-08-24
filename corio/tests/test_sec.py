@@ -80,7 +80,7 @@ def test_encrypt_can_keep_red_file(tmp_path, monkeypatch):
     assert path_red.exists()
 
 
-def test_encrypt_can_preserve_black_metadata_on_red_file(tmp_path, monkeypatch):
+def test_decrypt_can_preserve_black_metadata_on_target(tmp_path, monkeypatch):
     path_red = sec.Path(tmp_path) / "credentials.json.red.yml"
     path_black = sec.Path(tmp_path) / "credentials.json.black.yml"
     path_red.write_yaml({"token": "plaintext"})
@@ -90,7 +90,7 @@ def test_encrypt_can_preserve_black_metadata_on_red_file(tmp_path, monkeypatch):
     chown_calls = []
     monkeypatch.setattr(sec.os, "chown", lambda *args: chown_calls.append(args))
 
-    sec.Encrypt(delete=False, preserve=True).preserve_red(path_red, path_black)
+    sec.Decrypt(preserve=True).preserve_red(path_red, path_black)
 
     metadata = path_black.stat()
     assert sec.stat.S_IMODE(path_red.stat().st_mode) == 0o640
@@ -149,6 +149,7 @@ def test_decrypt_defaults_source_and_target_to_cwd(tmp_path, monkeypatch):
     assert decrypt.target == sec.Path(tmp_path)
     assert decrypt.restore is False
     assert decrypt.force is False
+    assert decrypt.preserve is False
 
 
 def test_decrypt_cli_does_not_require_secrets_file(tmp_path, monkeypatch):

@@ -25,10 +25,9 @@ Any `*.red.yml` file not covered by a definition is still encrypted. All of its 
 logged.
 
 Encryption deletes each red file by default after its black counterpart has been written or verified. Pass
-`--delete false` to retain red files. Pass `--preserve true` to copy the black file's permissions and ownership to the
-red file before that optional deletion. Decryption writes red files by default; pass `--restore true` to write each
-value to its original filename and format instead. Pass `--force true` to overwrite every target regardless of its age
-or current contents.
+`--delete false` to retain red files. Decryption writes red files by default; pass `--restore true` to write each value
+to its original filename and format instead. Pass `--force true` to overwrite every target regardless of its age or
+current contents, and `--preserve true` to copy the black file's permissions and ownership to the decrypted target.
 
 ## Minimal `.secrets.yml` shape
 
