@@ -14,6 +14,24 @@ def test_yaml():
     assert actual == expected
 
 
+def test_to_yaml_uses_block_literal_for_multiline_strings():
+    value = "first line\nsecond line"
+
+    yaml_str = yml.to_yaml({"text": value})
+
+    assert yaml_str == "text: |-\n  first line\n  second line\n"
+    assert yml.from_yaml(yaml_str) == {"text": value}
+
+
+def test_to_yaml_uses_block_literal_for_root_multiline_string():
+    value = "first line\nsecond line"
+
+    yaml_str = yml.to_yaml(value)
+
+    assert yaml_str == "|-\n  first line\n  second line\n"
+    assert yml.from_yaml(yaml_str) == value
+
+
 def test_yaml_path_round_trip(tmp_path):
     expected = SERIALIZATION_DATA | {
         "text": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium \n" * 10

@@ -1,9 +1,29 @@
 from functools import lru_cache
 from typing import Any
+
+import yamlscript
 from yaml import CDumper as Dumper
 from yaml import dump
 
-import yamlscript
+
+class MultilineDumper(Dumper):
+    """
+
+    Represent multiline strings as literal blocks.
+
+    """
+    pass
+
+
+def _represent_string(dumper: Dumper, value: str):
+    style = None
+    is_multi = "\n" in value
+    if is_multi:
+        style = '|'
+    return dumper.represent_scalar("tag:yaml.org,2002:str", value, style=style)
+
+
+MultilineDumper.add_representer(str, _represent_string)
 
 
 @lru_cache
@@ -24,7 +44,7 @@ def to_yaml(obj: Any, **kwargs) -> str:
 
     """
 
-    kwargs = dict(allow_unicode=True, Dumper=Dumper, sort_keys=False) | kwargs
+    kwargs = dict(allow_unicode=True, Dumper=MultilineDumper, sort_keys=False) | kwargs
     yaml_str = dump(obj, **kwargs)
     return yaml_str
 
