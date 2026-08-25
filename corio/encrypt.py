@@ -209,19 +209,20 @@ class EncryptorValuesSelect(EncryptorValues):
 
     """
 
-    def __init__(self, key: str | None = None, nodes: list[str] = None):
+    def __init__(self, key: str | None = None, nodes: list[str] | None = None):
         self.nodes = nodes
         super().__init__(key=key)
 
     def include_node(self, node: Path) -> bool:
         """
 
-        Include node if it matches any of the nodes specified. If node is root (e.g. the input tree is actually just a string), then always encrypt.
+        Include node if it matches any of the nodes specified. For a root scalar, ``None`` explicitly disables encryption while an empty list preserves the default of encrypting it.
 
         """
 
         if node == Path():
-            return True
+            is_encrypt_root = self.nodes is not None
+            return is_encrypt_root
 
-        include = any(node.match(field) for field in self.nodes)
+        include = any(node.match(field) for field in self.nodes or [])
         return include

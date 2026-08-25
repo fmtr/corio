@@ -1,6 +1,11 @@
 from corio import sec
 
 
+def test_definition_nodes_defaults_to_empty_but_accepts_null():
+    assert sec.Definition(files=[]).nodes == []
+    assert sec.Definition(files=[], nodes=None).nodes is None
+
+
 def test_decrypt_mirrors_source_tree_into_target(tmp_path, monkeypatch):
     source = sec.Path(tmp_path / "source")
     target = sec.Path(tmp_path / "target")

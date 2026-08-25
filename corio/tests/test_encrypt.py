@@ -1,6 +1,7 @@
 from pyrage import x25519
 
-from corio.encrypt import Encryptor, EncryptorValues
+from corio.encrypt import Encryptor, EncryptorValues, EncryptorValuesSelect
+from corio.path import Path
 
 
 def test_encryptor_round_trip():
@@ -41,3 +42,13 @@ def test_encryptor_values_round_trip():
 
     actual = encryptor.decrypt(encrypted)
     assert actual == expected
+
+
+def test_encryptor_values_select_root_encryption_can_be_disabled_with_none():
+    encryptor = EncryptorValuesSelect.__new__(EncryptorValuesSelect)
+
+    encryptor.nodes = []
+    assert encryptor.include_node(Path())
+
+    encryptor.nodes = None
+    assert not encryptor.include_node(Path())

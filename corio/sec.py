@@ -3,11 +3,12 @@ from __future__ import annotations
 import os
 import stat
 from functools import cached_property
-from pydantic import Field
-from pydantic_settings import CLI_SUPPRESS, CliSubCommand
 from typing import ClassVar
 from typing import Generator
 from typing import TYPE_CHECKING
+
+from pydantic import Field
+from pydantic_settings import CLI_SUPPRESS, CliSubCommand
 
 from corio import dm as dm
 from corio import sets as sets
@@ -35,7 +36,7 @@ class Definition(dm.Base):
     else:
         config: object | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
     files: list[str]
-    nodes: list[str] = Field(default_factory=list)
+    nodes: list[str] | None = Field(default_factory=list)
 
     @cached_property
     def encryptor(self) -> EncryptorValuesSelect:
