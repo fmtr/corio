@@ -12,7 +12,7 @@ from pydantic_settings import CLI_SUPPRESS, CliSubCommand
 
 from corio import dm as dm
 from corio import sets as sets
-from corio.iterator import flatten_tree
+from corio.iterator import dedupe, flatten_tree
 from corio.logs import logger
 from corio.path import Path
 
@@ -172,13 +172,25 @@ class Encrypt(Command):
     def get_paths(self, definition: Definition) -> list[Path]:
         """
 
-        Get initial set of paths matched by all definitions.
+        Get the source paths matched by a definition. Prefer an existing
+        ``.red.yml`` source, but fall back to the matching raw file for its
+        first encryption. Do not treat red or black files as raw sources, and
+        deduplicate files matched by overlapping patterns.
 
         """
         paths = []
         for pattern in definition.files:
-            paths += list(self.config.path_repo.glob(f'{pattern}{RED_SUFFIX}'))
+            paths_red = list(self.config.path_repo.glob(f'{pattern}{RED_SUFFIX}'))
+            paths_raw = self.config.path_repo.glob(pattern)
+            paths_raw = [
+                path
+                for path in paths_raw
+                if not path.name.endswith((RED_SUFFIX, BLACK_SUFFIX))
+                   and not (path.parent / f'{path.name}{RED_SUFFIX}').is_file()
+            ]
+            paths += paths_red + paths_raw
 
+        paths = dedupe(paths)
         return paths
 
     def process_definition(self, definition: Definition) -> Generator[Path, None, None]:

@@ -42,6 +42,57 @@ def test_definition_paths_implicitly_end_in_red_yml(tmp_path):
     assert encrypt.get_paths(definition) == [path_red]
 
 
+def test_definition_paths_use_raw_file_when_red_file_does_not_exist(tmp_path):
+    path_repo = sec.Path(tmp_path)
+    path_raw = path_repo / "proxy" / "traefik.yaml"
+    path_raw.parent.mkdirf()
+    path_raw.write_yaml({"email": "secret"})
+
+    definition = sec.Definition(files=["proxy/traefik.yaml"])
+    encrypt = sec.Encrypt()
+    encrypt.config = type("Config", (), {"path_repo": path_repo})()
+
+    assert encrypt.get_paths(definition) == [path_raw]
+
+
+def test_definition_paths_prefer_red_file_when_raw_and_red_files_exist(tmp_path):
+    path_repo = sec.Path(tmp_path)
+    path_raw = path_repo / "proxy" / "traefik.yaml"
+    path_red = path_repo / "proxy" / "traefik.yaml.red.yml"
+    path_raw.parent.mkdirf()
+    path_raw.write_yaml({"email": "raw"})
+    path_red.write_yaml({"email": "red"})
+
+    definition = sec.Definition(files=["proxy/traefik.yaml"])
+    encrypt = sec.Encrypt()
+    encrypt.config = type("Config", (), {"path_repo": path_repo})()
+
+    assert encrypt.get_paths(definition) == [path_red]
+
+
+def test_encrypt_uses_and_deletes_raw_file_when_red_file_does_not_exist(tmp_path, monkeypatch):
+    path_repo = sec.Path(tmp_path)
+    path_raw = path_repo / "credentials.json"
+    path_raw.write_json({"token": "plaintext"})
+    definition = sec.Definition(files=["credentials.json"], nodes=["*"])
+
+    class _Encryptor:
+        @staticmethod
+        def encrypt(data):
+            return {"token": "ciphertext"}
+
+        @staticmethod
+        def decrypt(data):
+            return {"token": "plaintext"}
+
+    monkeypatch.setattr(sec.Definition, "encryptor", _Encryptor())
+    encrypt = sec.Encrypt()
+    encrypt.config = type("Config", (), {"path_repo": path_repo})()
+
+    assert list(encrypt.process_definition(definition)) == [path_repo / "credentials.json.black.yml"]
+    assert not path_raw.exists()
+
+
 def test_encrypt_maps_red_name_to_black_name(tmp_path, monkeypatch):
     path_red = sec.Path(tmp_path) / "credentials.json.red.yml"
     path_red.write_yaml({"token": "plaintext"})
