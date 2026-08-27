@@ -74,7 +74,10 @@ class Authenticator:
             with logger.span(f'Credentials expired for {self.name}. Will refresh...'):
                 logger.warning(f'{self.name}. {self.path_creds.exists()=} {self.path_token.exists()=} {credentials.valid=} {credentials.expired=} {credentials.expiry=}')
                 credentials.refresh(Request())
-                self.path_token.write_text(credentials.to_json())
+                try:
+                    self.path_token.write_text(credentials.to_json())
+                except OSError as exception:
+                    pass
         return credentials
 
     def boostrap(self) -> None:
