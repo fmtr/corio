@@ -106,6 +106,7 @@ test_envs = true
 [tool.corio.metadata.setup]
 
 [tool.corio.dependencies]
+"path.search" = ["ripgrep-rs"]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
 dev = ["logging", "version.dev", "debug", "sets", "yaml", "db.document", "infra", "db.search"]
 install = []

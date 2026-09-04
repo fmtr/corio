@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from pydantic_ai import RunContext
 from pydantic_ai.toolsets import FunctionToolset
 
 from corio import strings
+from corio.ai.agentic import tool
 from corio.iterator import IndexList
 from corio.strings import get_docstring, join_natural
-
-from corio.ai.agentic import tool
 
 
 class Base(FunctionToolset):
@@ -63,13 +62,13 @@ class Base(FunctionToolset):
 
         """
         names = self.tool_instances.name.keys()
-        names = join_natural(names)
+        names = join_natural(names, mask='`{}`')
         return [
             strings.trim(
                 f"""
                 ## {self.description}
 
-                You have access to {self.description} like {names}. Read each tool's description for detailed usage guidance.
+                You have access to {self.description} like {names}.
                 """
             )
         ]

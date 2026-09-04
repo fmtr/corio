@@ -10,13 +10,35 @@ from functools import cached_property
 from itertools import chain
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Any, Callable, Self, Tuple
+from typing import Any, Callable, Iterator, Self, Tuple
 
 from corio.constants import Constants
 from corio.strings import join_natural
 
 if typing.TYPE_CHECKING:
     from datetime import datetime, timezone
+    from ripgrep_rs import SearchMatch
+
+
+@dataclass(frozen=True)
+class SearchResult:
+    """Matches found in one file."""
+
+    path: Path
+    matches: tuple[SearchMatch, ...]
+
+
+@dataclass(frozen=True)
+class SearchResults:
+    """The files and matches returned by a path search."""
+
+    results: tuple[SearchResult, ...]
+
+    def __iter__(self) -> Iterator[SearchResult]:
+        return iter(self.results)
+
+    def __len__(self) -> int:
+        return len(self.results)
 
 
 class Path(type(Path())):
@@ -58,6 +80,22 @@ class Path(type(Path())):
 
         """
         return cls(gettempdir())
+
+    def search(self, patterns: list[str], **kwargs) -> SearchResults:
+        """Search this path and group structured matches by Corio path."""
+        from collections import defaultdict
+        from ripgrep_rs import search_structured
+
+        options = dict(patterns=patterns, paths=[str(self)]) | kwargs
+        matches = search_structured(**options)
+        grouped = defaultdict(list)
+        for match in matches:
+            grouped[type(self)(match.path)].append(match)
+        results = tuple(
+            SearchResult(path, tuple(path_matches))
+            for path, path_matches in grouped.items()
+        )
+        return SearchResults(results)
 
     def write_json(self, obj) -> int:
         """

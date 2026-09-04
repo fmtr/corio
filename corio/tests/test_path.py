@@ -209,3 +209,15 @@ def test_path_submodule_type_guess(monkeypatch):
     monkeypatch.setattr(path_type, "guess", lambda _value: sentinel)
 
     assert path_type.guess("anything") is sentinel
+
+
+def test_search_groups_structured_matches_by_path(tmp_path):
+    source = path.Path(tmp_path / "source.txt")
+    source.write_text("hello\nworld hello\n")
+
+    results = source.search(["hello"])
+
+    assert list(results.matches) == [source]
+    assert [match.line_number for match in results[source]] == [1, 2]
+    assert all(isinstance(result_path, path.Path) for result_path in results.matches)
+    assert len(results) == 2
