@@ -217,7 +217,8 @@ def test_search_groups_structured_matches_by_path(tmp_path):
 
     results = source.search(["hello"])
 
-    assert list(results.matches) == [source]
-    assert [match.line_number for match in results[source]] == [1, 2]
-    assert all(isinstance(result_path, path.Path) for result_path in results.matches)
-    assert len(results) == 2
+    assert len(results) == 1
+    result = results.results[0]
+    assert result.path == source
+    assert [match.line_number for match in result.matches] == [1, 2]
+    assert isinstance(result.path, path.Path)
