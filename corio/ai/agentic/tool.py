@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
 from corio.strings import camel_to_snake, get_docstring
 
 if TYPE_CHECKING:
+    from pydantic_ai import RunContext
+
     from corio.ai.agentic.toolset import Base as ToolsetBase
 
 
-class Base(ABC):
+AgentDepsT = TypeVar("AgentDepsT", contravariant=True)
+
+
+class Base(ABC, Generic[AgentDepsT]):
     """
 
     Base class for class-based ACP tools.
@@ -21,7 +26,7 @@ class Base(ABC):
     TAKES_CTX: bool = True
     approve: ClassVar[bool] = False
 
-    def __init__(self, toolset: ToolsetBase):
+    def __init__(self, toolset: ToolsetBase[AgentDepsT]):
         self.toolset = toolset
 
     @property
@@ -72,7 +77,7 @@ class Base(ABC):
         raise NotImplementedError
 
 
-class Tool(Base):
+class Tool(Base[AgentDepsT]):
     """
 
     Context-aware ACP tool.
@@ -80,6 +85,15 @@ class Tool(Base):
     """
 
     TAKES_CTX = True
+
+    @abstractmethod
+    def run(self, ctx: RunContext[AgentDepsT], *args, **kwargs):
+        """
+
+        Execute the tool with typed run dependencies.
+
+        """
+        raise NotImplementedError
 
     def register(self):
         """
@@ -93,7 +107,7 @@ class Tool(Base):
         )(self.run)
 
 
-class ToolPlain(Base):
+class ToolPlain(Base[AgentDepsT]):
     """
 
     Plain ACP tool without a RunContext-style first argument.

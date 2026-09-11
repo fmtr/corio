@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import Self
+from typing import Generic, Self, TypeVar
 from pydantic_ai import ApprovalRequiredToolset, ApprovalRequired, WrapperToolset
 
 from corio import dm
@@ -45,7 +45,13 @@ class ApprovalMetadata(dm.Base):
         return cls(msgs=["Approval required"])
 
 
-class ApprovalRequiredToolsetMetadata(ApprovalRequiredToolset):
+AgentDepsT = TypeVar("AgentDepsT", contravariant=True)
+
+
+class ApprovalRequiredToolsetMetadata(
+    ApprovalRequiredToolset[AgentDepsT],
+    Generic[AgentDepsT],
+):
     """
 
     Preserve structured approval diagnostics before serializing them for pydantic-ai.

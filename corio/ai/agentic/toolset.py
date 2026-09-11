@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from functools import cached_property
-from pydantic import ConfigDict, validate_call
+from functools import cached_property, partial
+from pydantic import validate_call
 from pydantic_ai import RunContext
 from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.toolsets import FunctionToolset
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from corio import strings
 from corio.ai.agentic import tool
@@ -14,7 +14,10 @@ from corio.iterator import ilist
 from corio.strings import get_docstring, join_natural
 
 
-class Base(FunctionToolset):
+AgentDepsT = TypeVar("AgentDepsT", contravariant=True)
+
+
+class Base(FunctionToolset[AgentDepsT], Generic[AgentDepsT]):
     """
 
     Class-based ACP toolset scaffold.
@@ -59,7 +62,7 @@ class Base(FunctionToolset):
         return get_docstring(self.__class__)
 
     @cached_property
-    def TOOLS(self) -> list[type[tool.Base]]:
+    def TOOLS(self) -> list[type[tool.Base[AgentDepsT]]]:
         """
 
         Tool classes registered on this toolset.
@@ -68,15 +71,15 @@ class Base(FunctionToolset):
         return []
 
     @cached_property
-    def tool_instances(self) -> ilist[tool.Base]:
+    def tool_instances(self) -> ilist[tool.Base[AgentDepsT]]:
         """
 
         Instantiated tool objects for this toolset.
 
         """
-        return ilist[tool.Base](tool_cls(self) for tool_cls in self.TOOLS)
+        return ilist[tool.Base[AgentDepsT]](tool_cls(self) for tool_cls in self.TOOLS)
 
-    async def get_instructions(self, ctx: RunContext[Any]) -> list[str]:
+    async def get_instructions(self, ctx: RunContext[AgentDepsT]) -> list[str]:
         """
 
         Tool instructions derived from the registered toolset.
@@ -102,7 +105,7 @@ class Base(FunctionToolset):
 
     def approve(
             self,
-            ctx: RunContext[Any],
+            ctx: RunContext[AgentDepsT],
             tool_def: ToolDefinition,
             tool_args: dict[str, Any],
     ) -> ApprovalMetadata | bool:
@@ -118,22 +121,19 @@ class Base(FunctionToolset):
         tool = self.tool_instances.name[tool_def.name]
         if isinstance(tool.approve, bool):
             return tool.approve
-        tool_approve = validate_call(
-            tool.approve,
-            config=ConfigDict(arbitrary_types_allowed=True),
-        )
-        msgs = tool_approve(ctx, **tool_args)
+        tool_approve = validate_call(partial(tool.approve, ctx))
+        msgs = tool_approve(**tool_args)
         return ApprovalMetadata(msgs=msgs)
 
 
     @cached_property
-    def wrapper(self) -> ApprovalRequiredToolsetMetadata:
+    def wrapper(self) -> ApprovalRequiredToolsetMetadata[AgentDepsT]:
         """
 
         Return the approval-enforcing view of this toolset.
 
         """
-        return ApprovalRequiredToolsetMetadata(self, self.approve)
+        return ApprovalRequiredToolsetMetadata[AgentDepsT](self, self.approve)
 
     @cached_property
     def option(self) -> options.Policy:
