@@ -94,10 +94,17 @@ def test_ilist_cls_requires_a_singleton():
 
 def test_fdict_groups_items_and_is_immutable():
     values = iterator.fdict((("key", 1), ("key", 2), ("other", 3)))
+    missing = object()
 
     assert values["key", ...] == [1, 2]
     assert values["other"] == 3
+    assert values.get("other") == 3
+    assert values.get("missing") is None
+    assert values.get("missing", missing) is missing
     assert isinstance(dict.__getitem__(values, "key"), iterator.ilist)
+
+    with pytest.raises(KeyError, match="ambiguous.*2 items"):
+        values.get("key")
 
     with pytest.raises(TypeError):
         values["key"] = 4

@@ -212,6 +212,16 @@ class fdict(dict[fdictK, ilist[ilistT]], Generic[fdictK, ilistT]):
         value = next(iter(values))
         return value
 
+    def get(self, key: fdictK, default=None):
+        """
+
+        Return the singleton value for a key, or the default when absent.
+
+        """
+        if key not in self:
+            return default
+        return self[key]
+
     def raise_immutable(self):
         """
 
