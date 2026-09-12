@@ -115,7 +115,9 @@ class Base(FunctionToolset[AgentDepsT], Generic[AgentDepsT]):
 
         """
 
-        if not self.option.approval:
+        from corio.ai.agentic.acp.options import Policy
+
+        if not self.options.cls[Policy].approval:
             return False
 
         tool = self.tool_instances.name[tool_def.name]
@@ -136,15 +138,17 @@ class Base(FunctionToolset[AgentDepsT], Generic[AgentDepsT]):
         return ApprovalRequiredToolsetMetadata[AgentDepsT](self, self.approve)
 
     @cached_property
-    def option(self) -> options.Policy:
+    def options(self) -> ilist[options.Select]:
         """
 
         Return the default full-access policy for this toolset.
 
         """
         from corio.ai.agentic.acp import options
-        return options.Policy.from_value(
-            name=self.name,
-            value=options.FULL,
-            description=self.description,
-        )
+        return ilist([
+            options.Policy.from_value(
+                name=self.name,
+                value=options.FULL,
+                description=self.description,
+            )
+        ])

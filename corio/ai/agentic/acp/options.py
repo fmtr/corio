@@ -1,4 +1,4 @@
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
 
@@ -26,6 +26,15 @@ class Select(SessionConfigOptionSelect):
         return self.current_value
 
     @property
+    def enabled(self) -> bool:
+        """
+
+        Return whether the option enables its associated behavior.
+
+        """
+        return self.value != DISABLED
+
+    @property
     def approval(self) -> bool:
         """
 
@@ -35,19 +44,29 @@ class Select(SessionConfigOptionSelect):
         return self.current_value != FULL
 
     @classmethod
+    def get_name(cls, name: str | None = None) -> str:
+        """Return the select name, optionally scoped by a parent name."""
+        if name is None:
+            return cls.__name__
+        return f"{name}/{cls.__name__}"
+
+    @classmethod
     def from_values(
         cls,
-        name: str,
+        name: str | None = None,
+        *,
         values: list[str],
         value: str,
         description: str | None,
         category: str,
+        **fields: Any,
     ):
         """
 
         Build an ACP select option from its available values.
 
         """
+        name = cls.get_name(name)
         return cls(
             id=name,
             name=name,
@@ -59,6 +78,7 @@ class Select(SessionConfigOptionSelect):
                 SessionConfigSelectOption(value=item, name=item)
                 for item in values
             ],
+            **fields,
         )
 
 
