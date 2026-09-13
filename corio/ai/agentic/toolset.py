@@ -5,7 +5,7 @@ from pydantic import validate_call
 from pydantic_ai import RunContext
 from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.toolsets import FunctionToolset
-from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from corio import strings
 from corio.ai.agentic import tool
@@ -26,7 +26,7 @@ class Base(FunctionToolset[AgentDepsT], Generic[AgentDepsT]):
 
     DESCRIPTION: str | None = None
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__()
         for tool in self.tool_instances:
             tool.register()
@@ -100,17 +100,7 @@ class Base(FunctionToolset[AgentDepsT], Generic[AgentDepsT]):
     # ACP-related:
 
     if TYPE_CHECKING:
-        from pydantic_acp import AcpSessionContext
         from corio.ai.agentic.acp import options
-
-    @classmethod
-    def from_session(cls, session: AcpSessionContext, **kwargs: Any) -> Self:
-        """
-
-        Construct a toolset for an ACP session.
-
-        """
-        return cls()
 
     def approve(
             self,
