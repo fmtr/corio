@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
-from corio.strings import camel_to_snake, get_docstring
+from corio.strings import get_docstring
 
 if TYPE_CHECKING:
     from pydantic_ai import RunContext
@@ -33,10 +33,16 @@ class Base(ABC, Generic[AgentDepsT]):
     def name(self) -> str:
         """
 
-        Public tool name, defaulting to the class name in snake case.
+        Public tool name, prefixed by its toolset identifier.
 
         """
-        return self.NAME or camel_to_snake(self.__class__.__name__)
+        name = self.NAME or self.__class__.__name__
+        return f"{self.toolset.name}/{name}"
+
+    @property
+    def id(self) -> str:
+        """Return the public tool identifier."""
+        return self.name
 
     @property
     def description(self) -> str | None:
