@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
@@ -91,6 +93,7 @@ class Tool(Base[AgentDepsT]):
     """
 
     TAKES_CTX = True
+    projections: ClassVar[str | list[str] | None] = None
 
     @abstractmethod
     def run(self, ctx: RunContext[AgentDepsT], *args, **kwargs):
