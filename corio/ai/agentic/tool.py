@@ -37,7 +37,7 @@ class Base(ABC, Generic[AgentDepsT]):
 
         """
         name = self.NAME or self.__class__.__name__
-        return f"{self.toolset.name}/{name}"
+        return f"{self.toolset.name}-{name}"
 
     @property
     def id(self) -> str:
