@@ -439,7 +439,7 @@ class Iterator(Generic[IteratorT]):
         Log successful completion summary for iteration.
 
         """
-        logger.info(f"Completed {self.count} {self.item_desc}(s) in {self.elapsed} {self.avg_rate_text}")
+        logger.info(f"Completed {suffix_plural(count=self.count, name=self.item_desc)} in {self.elapsed} {self.avg_rate_text}")
 
     def log_over_total_warning(self) -> None:
         """
@@ -532,7 +532,7 @@ class Iterator(Generic[IteratorT]):
         if rate is None:
             return None
 
-        return f"{rate:.2f} {suffix_plural(count=rate,name=self.item_desc)}/s"
+        return f"{suffix_plural(count=rate, name=self.item_desc, mask_count='{:.2f}')}/s"
 
     @property
     def eta_text(self) -> str | None:
@@ -564,4 +564,4 @@ class Iterator(Generic[IteratorT]):
         """
         if self.rate is None:
             return None
-        return f"avg={self.rate:.2f} {self.item_desc}(s)/s"
+        return f"avg={suffix_plural(count=self.rate, name=self.item_desc, mask_count='{:.2f}')}/s"

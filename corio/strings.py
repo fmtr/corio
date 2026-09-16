@@ -1,7 +1,6 @@
 import re
 from collections import namedtuple
 from dataclasses import dataclass
-from numbers import Number
 from string import Formatter
 from textwrap import dedent
 from typing import Any, List
@@ -282,15 +281,25 @@ def camel_to_snake(name: str) -> str:
     return name.lower()
 
 
-def suffix_plural(count: Number, name: str, singular: str = '', plural: str = 's') -> str:
+def suffix_plural(
+    count: int | float,
+    name: str,
+    singular: str = '',
+    plural: str = 's',
+    full: bool = True,
+    mask_count: str = MASK_IDENTITY,
+) -> str:
     """
 
-    Get natural language singlar/plural form from a count/name
+    Get natural language singular/plural form from a count/name.
 
     """
     suffix = singular if count == 1 else plural
     text = f'{name}{suffix}'
-    return text
+    if not full:
+        return text
+
+    return f'{mask_count.format(count)} {text}'
 
 
 def chunk_sliding(text: str, window: int, stride: int) -> list[str]:

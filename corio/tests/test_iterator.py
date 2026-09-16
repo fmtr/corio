@@ -156,7 +156,7 @@ def test_iterator_logs_spans_and_completion():
     assert "elapsed=" in span_events[1]
     assert span_events[2].startswith("Processing Doc 2/2: 100.0%")
     assert "elapsed=" in span_events[2]
-    assert any(message.startswith("Completed 2 Doc(s)") for message in info_events)
+    assert any(message.startswith("Completed 2 Docs") for message in info_events)
 
 
 def test_iterator_warns_when_count_exceeds_total():
@@ -301,7 +301,7 @@ def test_iterator_supports_context_manager():
 
     assert len(span_events) == 1
     assert span_events[0].startswith("Iterating")
-    assert any(message.startswith("Completed 1 item(s)") for message in info_events)
+    assert any(message.startswith("Completed 1 item") for message in info_events)
 
 
 def test_iterator_span_context_manager():
@@ -330,4 +330,4 @@ def test_iterator_span_context_manager():
 
     assert len(span_events) == 1
     assert span_events[0].startswith("Iterating")
-    assert any(message.startswith("Completed 1 item(s)") for message in info_events)
+    assert any(message.startswith("Completed 1 item") for message in info_events)
