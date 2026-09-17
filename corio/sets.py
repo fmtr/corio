@@ -257,10 +257,7 @@ class Base(BaseCLI):
         Get environment variable prefix, which depends on whether the package is a namespace/singleton.
 
         """
-        if cls.paths.is_namespace:
-            stem = f'{cls.paths.org}_{cls.paths.name}'
-        else:
-            stem = f'{cls.paths.name}'
+        stem = cls.paths.name
 
         prefix = f'{stem}{cls.ENV_NESTED_DELIMITER}'.upper()
         return prefix

@@ -48,16 +48,12 @@ class Project:
 
 
     @cached_property
-    def org(self):
-        return self.paths.org
-
-    @cached_property
     def package(self):
         return self.paths.name
 
     @cached_property
     def repo_name(self):
-        return f"{self.paths.metadata.org_github}/{self.paths.name_ns}"
+        return f"{self.paths.metadata.org_github}/{self.paths.name}"
 
     @cached_property
     def repo_url(self):

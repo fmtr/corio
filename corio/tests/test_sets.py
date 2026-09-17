@@ -6,7 +6,6 @@ def make_package_paths(repo):
     paths = object.__new__(PackagePaths)
     paths.repo = repo
     paths.name = 'test'
-    paths.org = None
     return paths
 
 

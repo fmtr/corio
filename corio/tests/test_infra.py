@@ -34,7 +34,7 @@ def _make_incrementor(path_repo: Path, is_pre: bool = False, test_envs: bool = T
         paths=SimpleNamespace(
             repo=path_repo,
             pyproject_repo=path_repo / "pyproject.toml",
-            name_ns="corio",
+            name="corio",
             path=path_package,
             tests=path_tests,
             metadata=SimpleNamespace(test_envs=test_envs),
@@ -300,7 +300,7 @@ def test_pyproject_cli_endpoint_returns_success_exit_code(monkeypatch):
 
     monkeypatch.setattr("corio.infra.project.Project", _Project)
     monkeypatch.setattr("corio.infra.incrementor_pyproject.IncrementorPyproject", _IncrementorPyproject)
-    monkeypatch.setattr("corio.paths.paths", SimpleNamespace(name_ns="corio"))
+    monkeypatch.setattr("corio.paths.paths", SimpleNamespace(name="corio"))
 
     assert entrypoint.Pyproject().run() == 0
     assert project.versions.pinned == "1.2.3"
@@ -343,7 +343,7 @@ def _make_tester(path_repo: Path, *, env_list: list[str] | None = None) -> Relea
             repo=path_repo,
             tests=path_tests,
             pyproject_repo=path_pyproject,
-            name_ns="corio",
+            name="corio",
         ),
     )
     return ReleaserTester(parent)
@@ -496,7 +496,7 @@ def test_repository_get_most_recent_release_tag_filters_and_orders():
 def _make_version_incrementor(*, old: str, pinned: str | None, tags: set[str]):
     metadata = SimpleNamespace(version=old, version_obj=version.parse(old))
     parent = SimpleNamespace(
-        paths=SimpleNamespace(name_ns="corio", metadata=metadata),
+        paths=SimpleNamespace(name="corio", metadata=metadata),
         versions=SimpleNamespace(pinned=version.parse(pinned) if pinned else None),
         repo=SimpleNamespace(tags=SimpleNamespace(all=tags)),
     )
@@ -558,7 +558,7 @@ def test_releaser_run_commits_only_after_tests_pass(monkeypatch):
 
     releaser = Releaser(SimpleNamespace(
         name="corio",
-        paths=SimpleNamespace(name_ns="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
+        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
     ))
     releaser.repo = _Repo()
     releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or True)
@@ -585,7 +585,7 @@ def test_releaser_run_continues_when_pre_tests_fail(monkeypatch):
         name="corio",
         version=version.parse("1.2.3-rc.1"),
         versions=SimpleNamespace(is_pre=True),
-        paths=SimpleNamespace(name_ns="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
+        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
     ))
     releaser.repo = _Repo()
     releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or False)

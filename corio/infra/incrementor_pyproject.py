@@ -25,10 +25,6 @@ class IncrementorPyproject(Incrementor):
         return self.paths.pyproject_repo
 
     @cached_property
-    def name_command(self) -> str:
-        return self.paths.name_ns.replace(".", self.ENTRYPOINT_COMMAND_SEP)
-
-    @cached_property
     def editables(self) -> dict[str, Metadata]:
         data = self.path.read_toml()
         sources = data.get("tool", {}).get("uv", {}).get("sources", {})
@@ -57,12 +53,12 @@ class IncrementorPyproject(Incrementor):
             metadata = paths.metadata
             if metadata.version_obj.prerelease and not self.versions.is_pre:
                 raise ValueError(
-                    f'Editable dependency "{paths.name_ns}" is pre-release '
-                    f'({metadata.version_obj.prerelease}) while "{self.paths.name_ns}" is release. Refusing to pin.'
+                    f'Editable dependency "{paths.name}" is pre-release '
+                    f'({metadata.version_obj.prerelease}) while "{self.paths.name}" is release. Refusing to pin.'
                 )
 
-            editables[paths.name_ns] = metadata
-            editables[canonicalize_name(paths.name_ns)] = metadata
+            editables[paths.name] = metadata
+            editables[canonicalize_name(paths.name)] = metadata
 
         return editables
 
@@ -131,15 +127,9 @@ class IncrementorPyproject(Incrementor):
         return Constants.ORG_NAME_FRIENDLY
 
     @property
-    def _package_dir(self):
-        if self.paths.is_namespace:
-            return {"": "."}
-        return None
-
-    @property
     def _package_data(self) -> dict[str, list[str]]:
         return {
-            self.paths.name_ns: [
+            self.paths.name: [
                 Constants.FILENAME_PYPROJECT_PACKAGE,
                 "assets/**",
             ]
@@ -156,15 +146,15 @@ class IncrementorPyproject(Incrementor):
         command_suffixes = [
             name_mod.replace(self.ENTRYPOINT_FUNCTION_SEP, self.ENTRYPOINT_COMMAND_SEP) for name_mod in names_mods
         ]
-        commands = [f"{self.name_command}-{command_suffix}" for command_suffix in command_suffixes]
+        commands = [f"{self.paths.name}-{command_suffix}" for command_suffix in command_suffixes]
         entrypoint_paths = [
-            f"{self.paths.name_ns}.{Constants.ENTRYPOINTS_DIR}.{name_mod}:{self.ENTRYPOINT_FUNC_NAME}"
+            f"{self.paths.name}.{Constants.ENTRYPOINTS_DIR}.{name_mod}:{self.ENTRYPOINT_FUNC_NAME}"
             for name_mod in names_mods
         ]
 
         if self.paths.entrypoint.exists():
-            commands.append(self.name_command)
-            path = f"{self.paths.name_ns}.{self.paths.entrypoint.stem}:{self.ENTRYPOINT_FUNC_NAME}"
+            commands.append(self.paths.name)
+            path = f"{self.paths.name}.{self.paths.entrypoint.stem}:{self.ENTRYPOINT_FUNC_NAME}"
             entrypoint_paths.append(path)
 
         return [f"{command} = {entrypoint}" for command, entrypoint in zip(commands, entrypoint_paths)]
@@ -205,7 +195,7 @@ class IncrementorPyproject(Incrementor):
         metadata["version"] = version
 
         project = ensure_table(data, ("project",))
-        project["name"] = self.paths.name_ns
+        project["name"] = self.paths.name
         project["version"] = version
         project["description"] = self.paths.metadata.description
         project["keywords"] = self.paths.metadata.keywords
@@ -253,16 +243,14 @@ class IncrementorPyproject(Incrementor):
         setuptools = ensure_table(data, ("tool", "setuptools"))
         package_find = ensure_table(data, ("tool", "setuptools", "packages", "find"))
         package_find["where"] = ["."]
-        package_find["include"] = [f"{self.paths.name_ns}*"]
-        package_find["namespaces"] = bool(self.paths.is_namespace)
+        package_find["include"] = [f"{self.paths.name}*"]
+        package_find["namespaces"] = False
 
-        if self._package_dir:
-            setuptools["package-dir"] = self._package_dir
-        elif "package-dir" in setuptools:
+        if "package-dir" in setuptools:
             del setuptools["package-dir"]
 
         package_data = ensure_table(setuptools, ("package-data",))
-        package_data[self.paths.name_ns] = self._package_data[self.paths.name_ns]
+        package_data[self.paths.name] = self._package_data[self.paths.name]
 
         if self._scripts:
             setuptools["script-files"] = self._scripts
@@ -342,7 +330,7 @@ class GeneratorTestEnvs:
 
     @cached_property
     def env(self):
-        name = self.paths.name_ns
+        name = self.paths.name
         path_tests = self.paths.tests
         return self.get_env(name, self.deps_test, path_tests)
 

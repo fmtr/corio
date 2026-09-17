@@ -13,7 +13,7 @@ class DocServe(dm.Base):
         from corio.path import PackagePaths, Path
 
         paths = PackagePaths(Path.cwd())
-        project = Project(paths.name_ns)
+        project = Project(paths.name)
         release = ReleaseDocumentation(project.releaser)
 
         with paths.repo.chdir:
@@ -33,7 +33,7 @@ class Pyproject(dm.Base):
         from corio.infra.project import Project
         from corio.paths import paths
 
-        project = Project(paths.name_ns)
+        project = Project(paths.name)
         project.versions.pinned = project.versions.new
         IncrementorPyproject(project.releaser).apply()
         return 0

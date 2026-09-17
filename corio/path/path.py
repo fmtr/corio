@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import sys
-from itertools import chain
 from pathlib import Path
 
 import os
-import site
 import typing
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
 from tempfile import gettempdir
-from typing import Any, Callable, Self, Tuple
+from typing import Any, Callable, Self
 
 from corio.constants import Constants
 from corio.strings import join_natural
@@ -509,7 +506,7 @@ class PackagePaths(FromCallerMixin):
 
     dev = os.getenv(Constants.FMTR_HOME_KEY, Path.home())
     dev = Path(dev)
-    dev_repo = dev / "repo"
+    dev_repo = dev / Constants.DIR_NAME_REPO
     data_global = dev / Constants.DIR_NAME_DATA
 
     def __init__(self, path: Path | None = None):
@@ -524,7 +521,6 @@ class PackagePaths(FromCallerMixin):
         self.path = data.path
         self.repo = data.repo
         self.name = data.name
-        self.org = data.org
 
     @cached_property
     def metadata(self) -> Metadata:
@@ -563,37 +559,13 @@ class PackagePaths(FromCallerMixin):
         return self.repo is not None
 
     @property
-    def is_namespace(self) -> bool:
-        """
-
-        If organization is not present, then the package is a namespace.
-
-        """
-        return bool(self.org)
-
-    @property
-    def name_ns(self) -> str:
-        """
-
-        Name of namespace package.
-
-        """
-
-        if self.is_namespace:
-            return f"{self.org}.{self.name}"
-        else:
-            return self.name
-
-    @property
     def data(self) -> Path:
         """
 
         Path of project-specific data directory.
 
         """
-        return (
-            self.dev / Constants.DIR_NAME_REPO / self.name_ns / Constants.DIR_NAME_DATA
-        )
+        return self.dev_repo / self.name / Constants.DIR_NAME_DATA
 
     @property
     def cache(self) -> Path:
@@ -816,25 +788,16 @@ root = Path("/")
 class PathsSearchData:
     """
 
-    Finds the one/two part parts between the root (repo/site) and the package. Once we have those two fixed points, we can work out the org/name.
+    Finds the package directory relative to a repository or site-packages root.
 
-    So when we start in the package, all we need to do is find the repo/site. And when we start in the repo, we need to find the package.
-
-    Package: The caller path is the package, like fmtr/tools or acme.
-      Site Packages: The caller path is in site-packages, and root of the package. Here we find the site-packages dir we're in, and call it the root.
-      Dev: The caller path is a repo, like /opt/dev/repo/fmtr.dns/fmtr/dns. Here we also know we're in the package already, so can just find the root.
-    From package: We never need to look inside the package, as we already know where it is.
-
-    Repo: The caller path is the repo root (e.g. pyproject.toml). This is the only case we're not in the package already, so need to infer it by searching for package markers.
-    From repo: package markers (e.g. package/pyproject.toml) might be at singleton or namespace depths, so depths between 1 and 2 are possible.
+    Package markers are supported only directly beneath the root, matching the
+    flat package layout used by Corio projects.
 
     """
 
     path: Path
     repo: Path | None
     name: str
-    org: str | None
-
     @classmethod
     def from_caller(cls, path_caller: Path) -> Self:
         """
@@ -852,63 +815,25 @@ class PathsSearchData:
             path_package = path_package_marker.parent
             repo = cls.find_repo(path_package_marker)
 
-        path_root = repo or cls.find_site(path_package)
-        parts = path_package.relative_to(path_root).parts
-        org, name = cls.get_org_name(parts)
-        self = cls(path=path_package, repo=repo, name=name, org=org)
+        self = cls(path=path_package, repo=repo, name=path_package.name)
         return self
 
     @classmethod
     def find_package(cls, path_repo: Path) -> Path:
         """
 
-        Find the package directory, given a site/repo root. Do this by looking for package markers at singleton and namespace depths.
+        Find the flat package directory, given a site/repo root.
 
         """
-        masks = "*/{name}", "*/*/{name}"
-        patterns = [
-            mask.format(name=Constants.FILENAME_PYPROJECT_PACKAGE) for mask in masks
-        ]
-
-        targets = chain.from_iterable(path_repo.glob(pattern) for pattern in patterns)
-        targets = list(targets)
+        targets = list(path_repo.glob(f"*/{Constants.FILENAME_PYPROJECT_PACKAGE}"))
         packages = sorted({target.parent for target in targets})
 
         if len(packages) != 1:
-            msg = f"Expected exactly 1 package marker {Constants.FILENAME_PYPROJECT_PACKAGE!r} at depth 1 or 2 under {path_repo}, found {len(packages)}: {join_natural(targets)}"
+            msg = f"Expected exactly 1 package marker {Constants.FILENAME_PYPROJECT_PACKAGE!r} under {path_repo}, found {len(packages)}: {join_natural(targets)}"
             raise FileNotFoundError(msg)
 
         path_package = next(iter(packages))
         return path_package
-
-    @classmethod
-    def find_site(cls, path_package: Path) -> Path:
-        """
-
-        Find the containing site-packages root for a package path.
-
-        """
-        paths_site = site.getsitepackages() + [site.getusersitepackages()]
-        paths_site = [Path(path_site) for path_site in paths_site]
-        paths_site.extend(
-            Path(path_site)
-            for path_site in sys.path
-            if path_site and Path(path_site).is_absolute()
-        )
-        paths_site.extend(
-            parent
-            for parent in path_package.parents
-            if parent.name in {"site-packages", "dist-packages"}
-        )
-        paths_site = list(dict.fromkeys(paths_site))
-
-        for path_site in paths_site:
-            if path_package.is_relative_to(path_site):
-                return path_site
-
-        raise FileNotFoundError(
-            f'Could not find a site-packages root for "{path_package}"'
-        )
 
     @classmethod
     def find_repo(cls, path: Path) -> Path | None:
@@ -927,16 +852,3 @@ class PathsSearchData:
 
         return path.resolve().parent
 
-    @classmethod
-    def get_org_name(cls, parts) -> Tuple[str | None, str]:
-        """
-
-        Get the org and name from the package path parts, in both singleton and namespace cases.
-
-        """
-        if len(parts) == 2:
-            org, name = parts
-        else:
-            org = None
-            name = next(iter(parts))
-        return org, name

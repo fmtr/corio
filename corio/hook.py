@@ -1,4 +1,5 @@
 import builtins
+
 from types import ModuleType
 from typing import Any
 
@@ -12,7 +13,7 @@ class MissingExtraError(ImportError):
 
     def __init__(self, extra: str):
         from corio.paths import paths
-        message = self.MASK.format(library=paths.name_ns, extra=extra)
+        message = self.MASK.format(library=paths.name, extra=extra)
         super().__init__(message)
 
 

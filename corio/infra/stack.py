@@ -63,7 +63,7 @@ class Production(Stack):
     def build(self):
         build_args = {
             "WHEEL": self.path_wheel.name,
-            "PACKAGE": self.paths.name_ns,
+            "PACKAGE": self.paths.name,
             "ENTRYPOINT": self.entrypoint,
         }
         for line in self.client.build(

@@ -39,7 +39,7 @@ class Releaser(Inherit[Project]):
 
     """
 
-    @logger.instrument("Releasing {self.paths.name_ns}...")
+    @logger.instrument("Releasing {self.paths.name}...")
     def run(self, build: bool = False, release: bool = True):
 
         from corio.infra.stack import Production
@@ -271,7 +271,7 @@ class IncrementorVersion(Incrementor):
         else:
             return self.old.bump_patch()
 
-    @logger.instrument('Incrementing release version in-memory for "{self.paths.name_ns}"...')
+    @logger.instrument('Incrementing release version in-memory for "{self.paths.name}"...')
     def apply(self) -> Path | list[Path] | None:
         if self.old != self.new:
             logger.info(f'Incrementing runtime version {self.old} {Constants.ARROW_RIGHT} {self.new}...')
@@ -534,7 +534,7 @@ class ReleasePackageIndexPublic(ReleasePackageIndex):
     NAME = "pypi"
 
     def warn(self):
-        logger.error(f'Project "{self.paths.name_ns}" is being pushed to a PUBLIC Package Index!')
+        logger.error(f'Project "{self.paths.name}" is being pushed to a PUBLIC Package Index!')
 
 
 class ReleaseDocumentation(Release):
@@ -550,7 +550,7 @@ class ReleaseDocumentation(Release):
             site_dir='site',
             docs_dir=str(self.paths.docs),
 
-            site_name=self.paths.name_ns,
+            site_name=self.paths.name,
             site_description=self.paths.metadata.description,
             repo_url=self.repo_url,
             repo_name=self.repo_name,
@@ -683,7 +683,7 @@ class Tester(Inherit[Releaser]):
         code = process.wait()
         return code
 
-    @logger.instrument('Running test suite for "{self.paths.name_ns}"...')
+    @logger.instrument('Running test suite for "{self.paths.name}"...')
     def run(self) -> bool:
         if not self.modules:
             logger.warning(f'No tests found under "{self.paths.tests}". Skipping.')
