@@ -1,9 +1,8 @@
 import asyncio
-from types import SimpleNamespace
-from typing import get_args, get_type_hints
-
 import pytest
 from packaging.requirements import Requirement
+from types import SimpleNamespace
+from typing import get_args, get_type_hints
 
 from corio import entrypoint
 from corio import version
@@ -400,6 +399,13 @@ def test_generator_test_envs_use_file_module_name_with_test_envs(tmp_path):
 
     assert set(envs) == {"path", "strings"}
     assert envs["path"]["deps"] == ["appdirs", "filetype", "pytest", "pytest-cov"]
+    assert envs["path"]["commands"] == [[
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "{posargs:corio/tests/test_path.py}",
+    ]]
     assert envs["strings"]["deps"] == ["pytest", "pytest-cov"]
 
 

@@ -1,6 +1,6 @@
-from functools import cached_property
 from itertools import chain
 
+from functools import cached_property
 from packaging.requirements import Requirement, InvalidRequirement
 from packaging.utils import canonicalize_name
 
@@ -336,7 +336,7 @@ class GeneratorTestEnvs:
             name: dict(
                 description=f"Run {name} tests.",
                 deps=deps,
-                commands=[["python", "-m", "pytest", "-q", str(path)]],
+                commands=[["python", "-m", "pytest", "-q", f"{{posargs:{path}}}"]],
             )
         }
 
