@@ -164,13 +164,13 @@ def test_package_paths_production_data_uses_hidden_home_directory(tmp_path, monk
     home = path.Path(tmp_path / "home")
     monkeypatch.setattr(path_mod.Path, "home", classmethod(lambda _cls: home))
 
-    package = path.Path(tmp_path / "site-packages" / "neurobonce")
+    package = path.Path(tmp_path / "site-packages" / "sampleapp")
     package.mkdir(parents=True)
     (package / "pyproject.package.toml").write_text("[project]\n")
 
     paths = path.PackagePaths(package)
 
-    expected = home / ".neurobonce"
+    expected = home / ".sampleapp"
     assert paths.is_dev is False
     assert paths.data == expected
     assert expected.is_dir()
