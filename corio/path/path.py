@@ -565,7 +565,12 @@ class PackagePaths(FromCallerMixin):
         Path of project-specific data directory.
 
         """
-        return self.dev_repo / self.name / Constants.DIR_NAME_DATA
+        if self.is_dev:
+            return self.dev_repo / self.name / Constants.DIR_NAME_DATA
+
+        data = Path.home() / f".{self.name}"
+        data.mkdirf()
+        return data
 
     @property
     def cache(self) -> Path:
