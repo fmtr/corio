@@ -557,10 +557,10 @@ class PackagePaths(FromCallerMixin):
     def is_dev(self) -> bool:
         """
 
-        Is the package in the dev directory - as opposed to `site-packages` etc?
+        Is the package from a development or editable installation?
 
         """
-        return self.path.is_relative_to(self.dev)
+        return self.repo is not None
 
     @property
     def is_namespace(self) -> bool:

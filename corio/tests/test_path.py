@@ -139,6 +139,25 @@ def test_find_up_and_chdir(tmp_path):
     assert path.Path.cwd() == cwd_before
 
 
+def test_package_paths_is_dev_uses_repository_discovery(tmp_path):
+    repo = path.Path(tmp_path / "repo")
+    package = repo / "corio"
+    package.mkdir(parents=True)
+    path_pyproject = repo / "pyproject.toml"
+    path_pyproject.write_text("[project]\nname = 'corio'\n")
+    (package / "pyproject.package.toml").symlink_to(path_pyproject)
+
+    dev_paths = path.PackagePaths(package)
+    assert dev_paths.is_dev is True
+
+    installed_package = path.Path(tmp_path / "site-packages" / "corio")
+    installed_package.mkdir(parents=True)
+    (installed_package / "pyproject.package.toml").write_text("[project]\n")
+
+    installed_paths = path.PackagePaths(installed_package)
+    assert installed_paths.is_dev is False
+
+
 def test_find_site_accepts_uv_archive_layout(tmp_path, monkeypatch):
     import corio.path.path as path_mod
 
