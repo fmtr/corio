@@ -90,6 +90,16 @@ def test_mkdirf_exist_children_and_timestamps(tmp_path):
         assert path_file.created.tzinfo == timezone.utc
 
 
+def test_rmtree(tmp_path):
+    path_dir = path.Path(tmp_path / "tree")
+    path_dir.mkdirf()
+    path.Path(path_dir / "child.txt").write_text("x")
+
+    path_dir.rmtree()
+
+    assert not path_dir.exists()
+
+
 def test_chown_can_recurse(tmp_path, monkeypatch):
     import pwd
     import corio.path.path as path_mod

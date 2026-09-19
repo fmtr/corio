@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import os
+import shutil
 import typing
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -226,6 +227,14 @@ class Path(type(Path())):
 
         """
         return self.mkdir(parents=True, exist_ok=True)
+
+    def rmtree(self):
+        """
+
+        Remove this directory tree.
+
+        """
+        return shutil.rmtree(self)
 
     def chown(self, user: str, recurse: bool = False):
         """
