@@ -1,6 +1,8 @@
 import pathlib
-import pytest
 from datetime import timezone
+
+import pytest
+from pydantic import TypeAdapter
 
 from corio import path
 
@@ -206,6 +208,7 @@ def test_pydantic_helpers():
     assert path.Path.__serialize_pydantic__(value) == "/tmp/a"
     assert path.Path.__deserialize_pydantic__("/tmp/b") == path.Path("/tmp/b")
     assert path.Path.__deserialize_pydantic__(value) is value
+    assert TypeAdapter(path.Path).json_schema() == {"type": "string"}
 
 
 def test_path_submodule_app(monkeypatch):

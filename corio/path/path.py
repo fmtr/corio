@@ -388,6 +388,7 @@ class Path(type(Path())):
 
         return core_schema.no_info_plain_validator_function(
             cls.__deserialize_pydantic__,
+            json_schema_input_schema=core_schema.str_schema(),
             serialization=core_schema.plain_serializer_function_ser_schema(
                 cls.__serialize_pydantic__
             ),
@@ -865,4 +866,3 @@ class PathsSearchData:
             return None
 
         return path.resolve().parent
-
