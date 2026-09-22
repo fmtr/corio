@@ -1,4 +1,5 @@
 import inspect
+from cached_classproperty import cached_classproperty
 from functools import cached_property
 from pydantic import BaseModel
 from pydantic import RootModel, ConfigDict
@@ -218,6 +219,8 @@ class Base(BaseModel, MixinFromJson, CliRunMixin):
     Base model allowing model definition via a list of custom Field objects.
 
     """
+    model_config = ConfigDict(ignored_types=(cached_classproperty,))
+
     FIELDS: ClassVar[List[Field] | Dict[str, Field]] = []
 
     def __init_subclass__(cls, **kwargs):
