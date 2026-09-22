@@ -4,7 +4,7 @@ version = "2.10.0"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
-dependencies = []
+dependencies = ["cached_classproperty"]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 keywords = []
@@ -108,10 +108,11 @@ test_envs = true
 [tool.corio.metadata.setup]
 
 [tool.corio.dependencies]
+install = ["cached-classproperty"]
+
 "path.search" = ["ripgrep-rs"]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
 dev = ["logging", "version.dev", "debug", "sets", "yaml", "db.document", "infra", "db.search", "path.search"]
-install = []
 test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript>=0.2.20", "pyyaml"]
 yaml = ["yml"]
