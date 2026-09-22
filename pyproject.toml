@@ -35,8 +35,6 @@ api = ["fastapi", "uvicorn[standard]", "logfire", "pydantic", "pydantic-extra-ty
 dm = ["pydantic", "pydantic-extra-types", "pycountry"]
 ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "pydantic", "pydantic-extra-types", "pycountry"]
 "openai.api" = ["openai"]
-"ai.client" = ["logfire", "pydantic", "pydantic-extra-types", "pycountry", "openai", "pydantic-ai-slim[logfire,openai]", "ollama"]
-"agentic.acp" = ["agent-client-protocol"]
 json-fix = ["json_repair"]
 semantic = ["sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 metrics = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
@@ -77,7 +75,7 @@ encrypt = ["pyrage"]
 secrets = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 sec = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "logfire"]
-all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "flagembedding", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "pydantic-ai-slim[logfire,openai]", "ollama", "agent-client-protocol", "json_repair", "sentence_transformers", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "flagembedding", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "json_repair", "sentence_transformers", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -135,8 +133,6 @@ api = ["fastapi", "uvicorn[standard]", "logging", "dm", "logfire[fastapi]", "htt
 dm = ["pydantic", "pydantic-extra-types", "pycountry"]
 ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "dm"]
 "openai.api" = ["openai"]
-"ai.client" = ["logging", "dm", "openai.api", "pydantic-ai-slim[logfire,openai]", "ollama"]
-"agentic.acp" = ["agent-client-protocol"]
 json-fix = ["json_repair"]
 semantic = ["sentence_transformers", "metrics"]
 metrics = ["tabular", "ranx"]
@@ -270,7 +266,7 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_name.py}
 
 [tool.tox.env.path]
 description = "Run path tests."
-deps = ["appdirs", "filetype", "pytest", "pytest-asyncio", "pytest-cov", "ripgrep-rs"]
+deps = ["appdirs", "filetype", "pydantic", "pytest", "pytest-asyncio", "pytest-cov", "ripgrep-rs"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_path.py}"]]
 
 [tool.tox.env.patterns]

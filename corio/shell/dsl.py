@@ -192,8 +192,8 @@ class Expression:
         self.active(*parts)
         return self
 
-    def tokens(self, args_only: bool) -> list[str]:
-        tokens=_flatten_parts(self.children)
+    def tokens(self, args_only: bool = False) -> list[str]:
+        tokens = _flatten_parts(self.children)
         if args_only:
             return tokens
 
