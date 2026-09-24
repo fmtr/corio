@@ -1,3 +1,4 @@
+import cached_classproperty
 import functools
 import inspect
 from typing import Tuple, Callable, Self
@@ -107,3 +108,8 @@ class MethodDecorator:
 
     def stop(self, instance, *args, **kwargs):
         pass
+
+
+ccp = cached_classproperty.cached_classproperty
+csp = cached_classproperty.cached_staticproperty
+cp = functools.cached_property

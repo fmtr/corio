@@ -9,6 +9,7 @@ from typing import ClassVar, List, Any, Dict
 from typing_extensions import TypeForm
 
 from corio.datatype import is_optional, none_else
+from corio.function import ccp
 from corio.iterator import get_class_lookup
 from corio.strings import camel_to_snake
 from corio.tools import Auto, Required, Empty
@@ -58,7 +59,7 @@ class Field(FieldInfo):
 
         super().__init__(annotation=self.annotation, default=default, title=title, description=description, **kwargs)
 
-    @cached_classproperty
+    @ccp
     def name(cls) -> str:
         """
 
