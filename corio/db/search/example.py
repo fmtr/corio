@@ -6,32 +6,22 @@ Example db.search implementation
 
 from __future__ import annotations
 
-
-
-
-
-
-from corio.db.search.document import Payload, Document
-
-from functools import lru_cache
 from itertools import chain, islice
-from typing import ClassVar
 
 import ir_datasets
-from ranx import Qrels
+from functools import cached_property
 from ir_datasets.datasets.msmarco_document import MsMarcoDocument
+from ranx import Qrels
 
 from corio.db.search.builder import Builder
+from corio.db.search.client import models
+from corio.db.search.document import Payload
 from corio.db.search.evaluator import Evaluator
 from corio.db.search.query import Query, QueryBasic
-
+from corio.function import ccp
 from corio.hash import get_hash_int
 from corio.iterator import Iterator
 from corio.logs import logger
-from corio.db.search.client import models
-from corio.db.search.embedder import Embedder
-
-from functools import cached_property
 
 
 class PayloadMsMarco(Payload):
@@ -40,22 +30,21 @@ class PayloadMsMarco(Payload):
 
     @cached_property
     def text_vector(self) -> str:
-
         if self.is_doc:
-            text = f'{self.title} {self.text}'
-        else:
-            text = self.text
-        return text
+            return f'{self.title} {self.text}'
+        return self.text
 
-
-class DocumentMsMarco(Document[PayloadMsMarco, Embedder, Evaluator]):
-    Payload: ClassVar[type[PayloadMsMarco]] = PayloadMsMarco
-    IS_MULTI = False
-
-    @classmethod
-    @lru_cache
-    def get_builder(self) -> type[BuilderMsMarco]:
+    @ccp
+    def Builder(cls) -> type[BuilderMsMarco]:
         return BuilderMsMarco
+
+    @ccp
+    def Evaluator(cls) -> type[EvaluatorMsMarco]:
+        return EvaluatorMsMarco
+
+    @ccp
+    def IS_MULTI(cls) -> bool:
+        return False
 
 
 class DatasetMsMarco:
@@ -65,20 +54,20 @@ class DatasetMsMarco:
     def ir_dataset(self):
         return ir_datasets.load(self.DATASET_NAME)
 
-class BuilderMsMarco(Builder[PayloadMsMarco, Embedder], DatasetMsMarco):
-    Document = DocumentMsMarco
+
+class BuilderMsMarco(DatasetMsMarco, Builder):
 
 
     TOTAL_DOCS = 50_000
 
-    def get_document(self, data: MsMarcoDocument) -> DocumentMsMarco:
+    def get_document(self, data: MsMarcoDocument):
 
-        doc = self.Document(
+        doc = self.Payload.Document(
             id=get_hash_int(data.doc_id),
             vector=[]
         )
 
-        payload = self.Document.Payload(
+        payload = self.Payload(
             id=data.doc_id,
             title=data.title,
             url=data.url,
@@ -118,7 +107,8 @@ class BuilderMsMarco(Builder[PayloadMsMarco, Embedder], DatasetMsMarco):
         return ids
 
     @property
-    def docs(self) -> Iterator[DocumentMsMarco]:
+    def docs(self) -> Iterator:
+
         dataset = self.ir_dataset
         inserted_ids = self.inserted_ids
         remaining_total = self.TOTAL_DOCS - len(inserted_ids)
@@ -171,15 +161,15 @@ class EvaluatorMsMarco(DatasetMsMarco, Evaluator):
         return qrels
 
 def build():
-    return DocumentMsMarco.build()
+    return PayloadMsMarco.build()
 
 def eval():
-    scores = DocumentMsMarco.evaluate(query_classes=[Query, QueryBasic])
+    scores = PayloadMsMarco.evaluate(query_classes=[Query, QueryBasic])
     return scores
 
 def query():
     texts=['sql queries in access', 'rivers in south america']
-    results=list(DocumentMsMarco.query(texts=texts))
+    results = list(PayloadMsMarco.query(texts=texts))
     return results
 
 if __name__ == "__main__":

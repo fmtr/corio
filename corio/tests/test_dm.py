@@ -15,6 +15,17 @@ def test_base_ignores_cached_class_properties():
     assert Model.label == "Model"
 
 
+def test_base_does_not_shadow_behavior_from_later_mixins():
+    class Runner:
+        def run(self):
+            return "ran"
+
+    class Model(dm.Base, Runner):
+        pass
+
+    assert Model().run() == "ran"
+
+
 def test_field_name_is_inferred_from_class_name():
     class UserName(dm.Field):
         ANNOTATION = str

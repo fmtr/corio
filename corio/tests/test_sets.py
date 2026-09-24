@@ -38,7 +38,7 @@ def test_settings_base_inherits_dm_base_and_ignores_cached_classproperty(tmp_pat
     assert "label" not in Settings.model_fields
     assert Settings.FIELDS == {}
     assert Settings.label == "Settings"
-    assert Settings.run is dm.Base.run
+    assert Settings.run is Base.run
 
 
 def test_settings_run_returns_when_no_subcommand(tmp_path, monkeypatch):

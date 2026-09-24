@@ -160,27 +160,6 @@ class Base(BaseModel):
     """
     model_config = ConfigDict(ignored_types=(cached_classproperty,))
 
-    def run(self):
-        """
-
-        Behaviour when run as a CLI command, i.e. via Pydantic Settings. Run any subcommands then exit.
-
-        """
-
-        from pydantic_settings import get_subcommand
-
-        command = get_subcommand(self, is_required=False, cli_exit_on_error=False)
-
-        if not command:
-            return
-
-        result = command.run()
-        if inspect.isawaitable(result):
-            import asyncio
-            result = asyncio.run(result)
-
-        raise SystemExit(result)
-
     FIELDS: ClassVar[List[Field] | Dict[str, Field]] = []
 
     def __init_subclass__(cls, **kwargs):
