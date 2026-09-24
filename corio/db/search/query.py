@@ -13,11 +13,11 @@ from typing import Generic, TypeVar
 from corio.inherit import Inherit
 from .constants import SIMPLE, DENSE, MULTI, SPARSE
 
-PayloadT = TypeVar("PayloadT")
+DocumentT = TypeVar("DocumentT")
 EmbedderT = TypeVar("EmbedderT")
 
 
-class Query(Generic[PayloadT, EmbedderT]):
+class Query(Generic[DocumentT, EmbedderT]):
     """
 
     Base qdrant query shape for the search stack.
@@ -89,7 +89,7 @@ class Query(Generic[PayloadT, EmbedderT]):
         return f"{self.__class__.__name__}({repr(self.text)})"
 
 
-class QueryBasic(Query[PayloadT, EmbedderT]):
+class QueryBasic(Query[DocumentT, EmbedderT]):
     """
 
     Query shape that skips multi-vector reranking.
@@ -103,7 +103,7 @@ class QueryBasic(Query[PayloadT, EmbedderT]):
         return self.simple
 
 
-class QueryIndex(Inherit[Query[PayloadT, EmbedderT]], Generic[PayloadT, EmbedderT]):
+class QueryIndex(Inherit[Query[DocumentT, EmbedderT]], Generic[DocumentT, EmbedderT]):
     """
 
     Shared base for cached query variants.
@@ -111,7 +111,7 @@ class QueryIndex(Inherit[Query[PayloadT, EmbedderT]], Generic[PayloadT, Embedder
     """
 
 
-class Sparse(QueryIndex[PayloadT, EmbedderT]):
+class Sparse(QueryIndex[DocumentT, EmbedderT]):
     """
 
     Sparse vector query payload.
@@ -127,7 +127,7 @@ class Sparse(QueryIndex[PayloadT, EmbedderT]):
         )
 
 
-class Dense(QueryIndex[PayloadT, EmbedderT]):
+class Dense(QueryIndex[DocumentT, EmbedderT]):
     """
 
     Dense vector query payload.
@@ -143,7 +143,7 @@ class Dense(QueryIndex[PayloadT, EmbedderT]):
         )
 
 
-class Simple(QueryIndex[PayloadT, EmbedderT]):
+class Simple(QueryIndex[DocumentT, EmbedderT]):
     """
 
     BM25 query payload.
@@ -159,7 +159,7 @@ class Simple(QueryIndex[PayloadT, EmbedderT]):
         )
 
 
-class Fusion(QueryIndex[PayloadT, EmbedderT]):
+class Fusion(QueryIndex[DocumentT, EmbedderT]):
     """
 
     Multi-source fusion query payload.
@@ -180,7 +180,7 @@ class Fusion(QueryIndex[PayloadT, EmbedderT]):
         )
 
 
-class Multi(QueryIndex[PayloadT, EmbedderT]):
+class Multi(QueryIndex[DocumentT, EmbedderT]):
     """
 
     ColBERT multi-vector query payload.

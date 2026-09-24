@@ -15,7 +15,7 @@ from ranx import Qrels
 
 from corio.db.search.builder import Builder
 from corio.db.search.client import models
-from corio.db.search.document import Payload
+from corio.db.search.document import Document
 from corio.db.search.evaluator import Evaluator
 from corio.db.search.query import Query, QueryBasic
 from corio.function import ccp
@@ -24,7 +24,7 @@ from corio.iterator import Iterator
 from corio.logs import logger
 
 
-class PayloadMsMarco(Payload):
+class DocumentMsMarco(Document):
     title: str
     url: str
 
@@ -62,18 +62,18 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
 
     def get_document(self, data: MsMarcoDocument):
 
-        doc = self.Payload.Document(
+        doc = self.Document.Point(
             id=get_hash_int(data.doc_id),
             vector=[]
         )
 
-        payload = self.Payload(
+        document = self.Document(
             id=data.doc_id,
             title=data.title,
             url=data.url,
             text=data.body
         )
-        doc.payload_obj = payload
+        doc.document_obj = document
         return doc
 
 
@@ -161,15 +161,15 @@ class EvaluatorMsMarco(DatasetMsMarco, Evaluator):
         return qrels
 
 def build():
-    return PayloadMsMarco.build()
+    return DocumentMsMarco.build()
 
 def eval():
-    scores = PayloadMsMarco.evaluate(query_classes=[Query, QueryBasic])
+    scores = DocumentMsMarco.evaluate(query_classes=[Query, QueryBasic])
     return scores
 
 def query():
     texts=['sql queries in access', 'rivers in south america']
-    results = list(PayloadMsMarco.query(texts=texts))
+    results = list(DocumentMsMarco.query(texts=texts))
     return results
 
 if __name__ == "__main__":

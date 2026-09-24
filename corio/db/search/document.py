@@ -1,11 +1,11 @@
 """
 
-Document and payload models for `corio.db.search`.
+Document and point models for `corio.db.search`.
 
 """
 from __future__ import annotations
 
-from functools import cached_property, lru_cache
+from functools import cached_property
 from pydantic import Field
 from pydantic.json_schema import SkipJsonSchema
 from qdrant_client.http.models import PointStruct
@@ -25,10 +25,10 @@ if TYPE_CHECKING:
     from corio.db.search.evaluator import Evaluator
 
 
-class Payload(dm.Base):
+class Document(dm.Base):
     """
 
-    Base payload stored with each search point and root of a collection definition.
+    Base document stored with each search point and root of a collection definition.
 
     """
 
@@ -39,26 +39,27 @@ class Payload(dm.Base):
     score: SkipJsonSchema[float | None] = Field(default=None, exclude=True)
 
     MAX_LENGTH: ClassVar[int] = 256
+    IS_MULTI: ClassVar[bool] = True
 
     @ccp
-    def Document(cls) -> type[Document]:
+    def Point(cls) -> type[Point]:
         """
 
-        Return the internal document type bound to this payload.
+        Return the internal point type bound to this document.
 
         """
-        document = type(
-            f"{cls.__name__}Document",
-            (Document,),
-            {"__module__": cls.__module__, "Payload": cls},
+        point = type(
+            f"{cls.__name__}Point",
+            (Point,),
+            {"__module__": cls.__module__, "Document": cls},
         )
-        return document
+        return point
 
     @ccp
     def Builder(cls) -> type[Builder]:
         """
 
-        Return the builder configured for this payload.
+        Return the builder configured for this document.
 
         """
         from corio.db.search.builder import Builder
@@ -68,7 +69,7 @@ class Payload(dm.Base):
     def Evaluator(cls) -> type[Evaluator]:
         """
 
-        Return the evaluator configured for this payload.
+        Return the evaluator configured for this document.
 
         """
         from corio.db.search.evaluator import Evaluator
@@ -78,28 +79,24 @@ class Payload(dm.Base):
     def Query(cls) -> type[Query]:
         return Query
 
-    @ccp
-    def IS_MULTI(cls) -> bool:
-        return True
-
     @cached_property
     def text_vector(self) -> str:
         return self.text
 
-    @classmethod
-    def get_embedder(cls) -> Embedder:
+    @ccp
+    def embedder(cls) -> Embedder:
         return Embedder(is_multi=cls.IS_MULTI)
 
     @classmethod
     def build(cls, client: Client | None = None):
-        builder = cls.Builder(payload_type=cls, client=client)
+        builder = cls.Builder(document_type=cls, client=client)
         return builder.build()
 
     @classmethod
     def query(cls, texts: list[str], client: Client | None = None):
         from corio.db.search.querier import Querier
 
-        querier = Querier(payload_type=cls, client=client)
+        querier = Querier(document_type=cls, client=client)
         return querier.query(texts)
 
     @classmethod
@@ -111,7 +108,7 @@ class Payload(dm.Base):
             metrics=None,
             client: Client | None = None,
     ):
-        evaluator = cls.Evaluator(payload_type=cls, client=client)
+        evaluator = cls.Evaluator(document_type=cls, client=client)
         return evaluator.evaluate(
             query_classes=query_classes,
             limit=limit,
@@ -119,25 +116,22 @@ class Payload(dm.Base):
         )
 
 
-class Document(PointStruct):
+class Point(PointStruct):
     """
 
-    Internal Qdrant point model bound to a payload type.
+    Internal Qdrant point model bound to a document type.
 
     """
 
-    Payload: ClassVar[type[Payload]] = Payload
-    Embedder: ClassVar[type[Embedder]] = Embedder
-    Query: ClassVar[type[Query]] = Query
-
+    Document: ClassVar[type[Document]] = Document
     STRIDE_FACTOR: ClassVar[float] = 0.25
 
     @property
-    def payload_obj(self) -> Payload:
-        return self.Payload.model_validate(self.payload)
+    def document_obj(self) -> Document:
+        return self.Document.model_validate(self.payload)
 
-    @payload_obj.setter
-    def payload_obj(self, value: Payload) -> None:
+    @document_obj.setter
+    def document_obj(self, value: Document) -> None:
         self.payload = value.model_dump()
 
     @property
@@ -150,10 +144,10 @@ class Document(PointStruct):
 
     @property
     def text_vector(self) -> str:
-        return self.payload_obj.text_vector
+        return self.document_obj.text_vector
 
     def chunk(self, text: str) -> list[str]:
-        window = int(self.Payload.MAX_LENGTH * TOKENS_WORDS_FACTOR)
+        window = int(self.Document.MAX_LENGTH * TOKENS_WORDS_FACTOR)
         stride = int(window * self.STRIDE_FACTOR)
         return chunk_sliding(text, window, stride)
 
@@ -161,18 +155,13 @@ class Document(PointStruct):
     def points(self):
         yield self
 
-        payload = self.payload_obj
-        for i, subtext in enumerate(self.chunk(payload.text)):
-            payload = self.payload_obj
-            payload.text = subtext
-            payload.chunk_idx = i
-            payload.is_doc = False
-            document_id = get_hash_int(f"{payload.id}/{i}")
-            chunk = self.__class__(id=document_id, vector=[])
-            chunk.payload_obj = payload
+        document = self.document_obj
+        for i, subtext in enumerate(self.chunk(document.text)):
+            document = self.document_obj
+            document.text = subtext
+            document.chunk_idx = i
+            document.is_doc = False
+            point_id = get_hash_int(f"{document.id}/{i}")
+            chunk = self.__class__(id=point_id, vector=[])
+            chunk.document_obj = document
             yield chunk
-
-    @classmethod
-    @lru_cache()
-    def get_embedder(cls) -> Embedder:
-        return cls.Payload.get_embedder()

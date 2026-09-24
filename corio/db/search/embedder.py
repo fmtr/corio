@@ -6,14 +6,15 @@ Embedding helpers for `corio.db.search`.
 
 from __future__ import annotations
 
+from itertools import batched
+
 import numpy as np
 from collections.abc import Mapping
 from fastembed import SparseTextEmbedding
 from functools import cached_property
-from itertools import batched
 from pydantic import StrictFloat
 from qdrant_client.http.models import SparseVector
-from typing import Self, List, ClassVar, Dict, Any, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 from corio import dm, logger
 from corio.db.search import models
@@ -21,7 +22,7 @@ from corio.db.search.constants import DENSE, MULTI, SPARSE, SIMPLE, M3
 from corio.iterator import Iterator
 
 if TYPE_CHECKING:
-    from .document import Document
+    from .document import Point
 
 class Vectors(dm.Base):
     """
@@ -222,7 +223,7 @@ class Embedder:
             )
         return batch
 
-    def add_vectors(self, documents: Iterator[Document]) -> Iterator[Document]:
+    def add_vectors(self, documents: Iterator[Point]) -> Iterator[Point]:
         """
 
         Embed documents in batches and yield them back.
