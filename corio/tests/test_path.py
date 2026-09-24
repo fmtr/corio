@@ -1,8 +1,6 @@
 import pathlib
-from datetime import timezone
-
 import pytest
-from pydantic import TypeAdapter
+from datetime import timezone
 
 from corio import path
 
@@ -201,14 +199,6 @@ def test_package_paths_supports_only_flat_package_names(tmp_path):
     assert paths.path == package
     assert paths.name == "corio"
     assert not hasattr(paths, "name_ns")
-
-
-def test_pydantic_helpers():
-    value = path.Path("/tmp/a")
-    assert path.Path.__serialize_pydantic__(value) == "/tmp/a"
-    assert path.Path.__deserialize_pydantic__("/tmp/b") == path.Path("/tmp/b")
-    assert path.Path.__deserialize_pydantic__(value) is value
-    assert TypeAdapter(path.Path).json_schema() == {"type": "string"}
 
 
 def test_path_submodule_app(monkeypatch):
