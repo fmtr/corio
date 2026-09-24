@@ -1,10 +1,10 @@
 [project]
 name = "corio"
-version = "2.10.0"
+version = "2.11.0"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
-dependencies = ["cached_classproperty"]
+dependencies = ["cached-classproperty"]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 keywords = []
@@ -35,7 +35,6 @@ api = ["fastapi", "uvicorn[standard]", "logfire", "pydantic", "pydantic-extra-ty
 dm = ["pydantic", "pydantic-extra-types", "pycountry"]
 ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "pydantic", "pydantic-extra-types", "pycountry"]
 "openai.api" = ["openai"]
-json-fix = ["json_repair"]
 semantic = ["sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 metrics = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
@@ -75,7 +74,7 @@ encrypt = ["pyrage"]
 secrets = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 sec = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "logfire"]
-all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "flagembedding", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "json_repair", "sentence_transformers", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "semver", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client[fastembed]", "flagembedding", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "sentence_transformers", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -88,7 +87,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.10.0"
+version = "2.11.0"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -107,7 +106,6 @@ test_envs = true
 
 [tool.corio.dependencies]
 install = ["cached-classproperty"]
-
 "path.search" = ["ripgrep-rs"]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
 dev = ["logging", "version.dev", "debug", "sets", "yaml", "db.document", "infra", "db.search", "path.search"]
@@ -186,7 +184,7 @@ corio = ["pyproject.package.toml", "assets/**"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api", "caching", "datatype", "dhcp", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "tasmota", "toml", "tools", "yml"]
+env_list = ["api", "caching", "datatype", "dhcp", "dm", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "tasmota", "toml", "tools", "yml"]
 
 [tool.tox.env.api]
 description = "Run api tests."
@@ -207,6 +205,11 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_datatype
 description = "Run dhcp tests."
 deps = ["httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dhcp.py}"]]
+
+[tool.tox.env.dm]
+description = "Run dm tests."
+deps = ["pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dm.py}"]]
 
 [tool.tox.env.dns]
 description = "Run dns tests."
@@ -265,7 +268,7 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_name.py}
 
 [tool.tox.env.path]
 description = "Run path tests."
-deps = ["appdirs", "filetype", "pydantic", "pytest", "pytest-asyncio", "pytest-cov", "ripgrep-rs"]
+deps = ["appdirs", "filetype", "pytest", "pytest-asyncio", "pytest-cov", "ripgrep-rs"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_path.py}"]]
 
 [tool.tox.env.patterns]
