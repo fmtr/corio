@@ -5,11 +5,15 @@ Document and point models for `corio.db.search`.
 """
 from __future__ import annotations
 
+from datetime import datetime
 from functools import cached_property
 from pydantic import Field
 from pydantic.json_schema import SkipJsonSchema
+from qdrant_client.http import models
 from qdrant_client.http.models import PointStruct
-from typing import TYPE_CHECKING, ClassVar
+from types import UnionType
+from typing import Annotated, Any, TYPE_CHECKING, ClassVar, Union, get_args, get_origin
+from uuid import UUID
 
 from corio import dm
 from corio.db.search.client import Client
@@ -25,6 +29,10 @@ if TYPE_CHECKING:
     from corio.db.search.evaluator import Evaluator
 
 
+class Index:
+    """Mark a document field for a Qdrant payload index."""
+
+
 class Document(dm.Base):
     """
 
@@ -32,14 +40,45 @@ class Document(dm.Base):
 
     """
 
-    id: str
+    id: Annotated[str, Index()] = Field()
     text: str
-    is_doc: bool = True
-    chunk_idx: int | None = None
+    is_doc: Annotated[bool, Index()] = Field(default=True)
+    chunk_idx: Annotated[int | None, Index()] = Field(default=None)
     score: SkipJsonSchema[float | None] = Field(default=None, exclude=True)
 
     MAX_LENGTH: ClassVar[int] = 256
     IS_MULTI: ClassVar[bool] = True
+    INDEX_TYPES: ClassVar[dict[type, models.PayloadSchemaType]] = {
+        str: models.PayloadSchemaType.KEYWORD,
+        int: models.PayloadSchemaType.INTEGER,
+        float: models.PayloadSchemaType.FLOAT,
+        bool: models.PayloadSchemaType.BOOL,
+        datetime: models.PayloadSchemaType.DATETIME,
+        UUID: models.PayloadSchemaType.UUID,
+    }
+
+    @classmethod
+    def field_type(cls, annotation: type) -> type:
+        origin = get_origin(annotation)
+        if origin not in (UnionType, Union):
+            return annotation
+
+        return next(
+            argument
+            for argument in get_args(annotation)
+            if argument is not type(None)
+        )
+
+    @ccp
+    def indexes(cls) -> list[dict[str, Any]]:
+        return [
+            dict(
+                field_name=name,
+                field_schema=cls.INDEX_TYPES[cls.field_type(field.annotation)],
+            )
+            for name, field in cls.model_fields.items()
+            if any(isinstance(metadata, Index) for metadata in field.metadata)
+        ]
 
     @ccp
     def Point(cls) -> type[Point]:

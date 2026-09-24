@@ -43,7 +43,7 @@ class Builder:
                     **self.embedder.config,
                 )
             with logger.span('Creating payload indexes...'):
-                for data in self.embedder.indexes:
+                for data in self.Document.indexes:
                     self.client.create_payload_index(collection_name=self.name, **data)
 
         collection = self.client.get_collection(collection_name=self.name)

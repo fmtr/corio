@@ -9,6 +9,7 @@ from __future__ import annotations
 from itertools import batched
 
 import numpy as np
+from FlagEmbedding import BGEM3FlagModel
 from collections.abc import Mapping
 from fastembed import SparseTextEmbedding
 from functools import cached_property
@@ -109,37 +110,12 @@ class Embedder:
         )
 
     @cached_property
-    def indexes(self):
-        """
-
-        Return the payload indexes required by the collection.
-
-        """
-
-        return [
-            dict(
-                field_name="id",
-                field_schema=models.PayloadSchemaType.KEYWORD
-            ),
-            dict(
-                field_name="is_doc",
-                field_schema=models.PayloadSchemaType.KEYWORD
-            ),
-            dict(
-                field_name="chunk_idx",
-                field_schema=models.PayloadSchemaType.INTEGER
-            ),
-        ]
-
-    @cached_property
     def m3(self) -> BGEM3FlagModel:
         """
 
         Load the BGE-M3 embedding model.
 
         """
-
-        from FlagEmbedding import BGEM3FlagModel
 
         return BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
 
