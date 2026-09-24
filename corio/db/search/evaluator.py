@@ -1,4 +1,8 @@
-"""Evaluation helpers for `corio.db.search`."""
+"""
+
+Evaluation helpers for `corio.db.search`.
+
+"""
 from __future__ import annotations
 
 from functools import cached_property
@@ -13,7 +17,11 @@ from corio.db.search.query import Query
 
 
 class Evaluator:
-    """Score query classes against the stored qrels."""
+    """
+
+    Score query classes against the stored qrels.
+
+    """
 
     METRICS: ClassVar[list[str]] = [
         "ndcg@10", "map@100", "recall@100", "precision@10",
@@ -35,7 +43,18 @@ class Evaluator:
     def qrels(self) -> Qrels:
         raise NotImplementedError()
 
-    def evaluate(self, query_classes: list[type[Query]] | None = None, *, limit: int = 100, metrics=None):
+    def evaluate(
+            self,
+            query_classes: list[type[Query]] | None = None,
+            *,
+            limit: int = 100,
+            metrics=None,
+    ):
+        """
+
+        Evaluate the configured query classes against the stored qrels.
+
+        """
         from ranx import Run, evaluate as run_evaluate
 
         metrics = metrics or self.METRICS

@@ -1,4 +1,8 @@
-"""Query execution helpers for `corio.db.search`."""
+"""
+
+Query execution helpers for `corio.db.search`.
+
+"""
 from __future__ import annotations
 
 from itertools import batched
@@ -15,9 +19,17 @@ from corio.iterator import Iterator
 
 
 class Querier:
-    """Run batched search requests against a collection."""
+    """
 
-    def __init__(self, document_type: type[Document] = Document, client: Client | None = None):
+    Run batched search requests against a collection.
+
+    """
+
+    def __init__(
+            self,
+            document_type: type[Document] = Document,
+            client: Client | None = None,
+    ):
         self.Document = document_type
         self.client = client or Client()
 
@@ -27,12 +39,22 @@ class Querier:
 
     @property
     def collection(self) -> CollectionInfo:
+        """
+
+        Return the active collection.
+
+        """
         collection = self.client.get_collection(collection_name=self.name)
         logger.info(f'Fetched collection: "{self.name}"')
         return collection
 
     @cached_property
     def embedder(self):
+        """
+
+        Return the embedder configured for the document type.
+
+        """
         return self.Document.embedder
 
     def query(
@@ -42,6 +64,11 @@ class Querier:
         limit: int = 10,
             query_type: type[Query] | None = None,
     ):
+        """
+
+        Yield queries annotated with their search hits.
+
+        """
         query_type = query_type or self.Document.Query
         batch_size = self.embedder.BATCH_SIZE_EMBEDDING
         queries = Iterator(

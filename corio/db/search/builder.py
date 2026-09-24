@@ -31,10 +31,20 @@ class Builder:
         return self.Document.__name__
 
     def get_document(self, data: Any) -> Point:
+        """
+
+        Convert a raw dataset row into a point instance.
+
+        """
         raise NotImplementedError()
 
     @property
     def collection(self) -> CollectionInfo:
+        """
+
+        Return the active collection, creating it on demand.
+
+        """
         if not self.client.collection_exists(collection_name=self.name):
             logger.warning(f'Collection "{self.name}" does not exist.')
             with logger.span(f'Creating collection "{self.name}"...'):
@@ -52,6 +62,11 @@ class Builder:
 
     @contextmanager
     def disable_hnsw(self):
+        """
+
+        Temporarily lower HNSW indexing cost during ingest.
+
+        """
         collection = self.client.get_collection(collection_name=self.name)
         original = collection.config.params.vectors[DENSE].hnsw_config
         temp = models.HnswConfigDiff(m=0)
@@ -71,13 +86,28 @@ class Builder:
 
     @cached_property
     def embedder(self):
+        """
+
+        Return the embedder configured for the document type.
+
+        """
         return self.Document.embedder
 
     @property
     def docs(self) -> Iterator[Point]:
+        """
+
+        Yield points ready for upload.
+
+        """
         raise NotImplementedError()
 
     def build(self):
+        """
+
+        Create the collection and upload all points.
+
+        """
         batch_size = self.embedder.BATCH_SIZE_EMBEDDING
         self.collection
         with self.disable_hnsw():

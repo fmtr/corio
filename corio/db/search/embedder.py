@@ -25,6 +25,7 @@ from corio.iterator import Iterator
 if TYPE_CHECKING:
     from .document import Point
 
+
 class Vectors(dm.Base):
     """
 
@@ -36,7 +37,6 @@ class Vectors(dm.Base):
     sparse: SparseVector
     dense: List[StrictFloat]
     multi: List[List[StrictFloat]]
-
 
 
 class Embedder:

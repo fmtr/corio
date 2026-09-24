@@ -57,7 +57,6 @@ class DatasetMsMarco:
 
 class BuilderMsMarco(DatasetMsMarco, Builder):
 
-
     TOTAL_DOCS = 50_000
 
     def get_document(self, data: MsMarcoDocument):
@@ -75,8 +74,6 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
         )
         doc.document_obj = document
         return doc
-
-
 
     @property
     def inserted_ids(self) -> set[str]:
@@ -140,8 +137,6 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
         docs = self.embedder.add_vectors(docs)
 
         return docs
-
-
 
 
 class EvaluatorMsMarco(DatasetMsMarco, Evaluator):

@@ -30,7 +30,11 @@ if TYPE_CHECKING:
 
 
 class Index:
-    """Mark a document field for a Qdrant payload index."""
+    """
+
+    Mark a document field for a Qdrant payload index.
+
+    """
 
 
 class Document(dm.Base):
@@ -59,6 +63,11 @@ class Document(dm.Base):
 
     @classmethod
     def field_type(cls, annotation: type) -> type:
+        """
+
+        Return the concrete type used for a field index.
+
+        """
         origin = get_origin(annotation)
         if origin not in (UnionType, Union):
             return annotation
@@ -71,6 +80,11 @@ class Document(dm.Base):
 
     @ccp
     def indexes(cls) -> list[dict[str, Any]]:
+        """
+
+        Return the Qdrant payload indexes declared by the document fields.
+
+        """
         return [
             dict(
                 field_name=name,
