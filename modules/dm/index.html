@@ -528,8 +528,6 @@
       
         
       
-        
-      
     
     
     
@@ -941,17 +939,6 @@
     <span class="md-ellipsis">
       
         Field Class Pattern
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#llmunclean-json-use" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        LLM/Unclean JSON Use
       
     </span>
   </a>
@@ -1441,34 +1428,6 @@
     
   
     jsn
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../json_fix/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    json_fix
   
 
     
@@ -2462,17 +2421,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#llmunclean-json-use" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        LLM/Unclean JSON Use
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#cli-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2510,7 +2458,6 @@
 <ul>
 <li><code>Field</code>: reusable field definitions with optional auto-defaulting and title/description templating</li>
 <li><code>Base</code>: model base that can aggregate <code>FIELDS</code> declarations across inheritance</li>
-<li><code>MixinFromJson</code>: tolerant <code>from_json</code> flow (especially useful for LLM output cleanup)</li>
 <li><code>to_df</code>: quick conversion to tabular representation (<code>tabular</code> extra needed there)</li>
 </ul>
 <p>Install:</p>
@@ -2525,7 +2472,7 @@
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
 
 
-<span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s1">'{"id": 1, "name": "Ada"}'</span><span class="p">)</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="s1">'{"id": 1, "name": "Ada"}'</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="field-class-pattern">Field Class Pattern</h2>
 <p><code>dm.Field</code> is useful when you want reusable field components across multiple models:</p>
@@ -2541,16 +2488,9 @@
     <span class="n">FIELDS</span> <span class="o">=</span> <span class="p">[</span><span class="n">FieldName</span><span class="p">]</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
 </code></pre></div>
-<h2 id="llmunclean-json-use">LLM/Unclean JSON Use</h2>
-<p><code>MixinFromJson</code> routes through <code>json_fix</code> when available, so model parsing can be more tolerant than strict <code>model_validate_json</code>.</p>
-<p>This is especially useful for:</p>
-<ul>
-<li>tool-call payload recovery</li>
-<li>partially malformed JSON responses</li>
-<li>low-friction CLI/data ingestion flows</li>
-</ul>
 <h2 id="cli-integration">CLI Integration</h2>
-<p><code>CliRunMixin</code> enables subcommand-style <code>run()</code> flow for settings/models that integrate with <code>pydantic-settings</code> subcommands.</p>
+<p><code>Base.run()</code> enables subcommand-style <code>run()</code> flow for settings/models that integrate with <code>pydantic-settings</code>
+subcommands.</p>
 
 
 
