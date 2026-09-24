@@ -1,3 +1,7 @@
+import pytest
+from cached_classproperty import cached_classproperty
+
+from corio import dm
 from corio.path import PackagePaths, Path
 from corio.sets import Base
 
@@ -19,6 +23,65 @@ def make_settings(package_paths):
             return None
 
     return Settings
+
+
+def test_settings_base_inherits_dm_base_and_ignores_cached_classproperty(tmp_path):
+    settings_base = make_settings(make_package_paths(Path(tmp_path)))
+
+    class Settings(settings_base):
+        @cached_classproperty
+        def label(cls) -> str:
+            return cls.__name__
+
+    assert issubclass(Settings, dm.Base)
+    assert "value" in Settings.model_fields
+    assert "label" not in Settings.model_fields
+    assert Settings.FIELDS == {}
+    assert Settings.label == "Settings"
+    assert Settings.run is dm.Base.run
+
+
+def test_settings_run_returns_when_no_subcommand(tmp_path, monkeypatch):
+    settings = make_settings(make_package_paths(Path(tmp_path)))()
+    monkeypatch.setattr("pydantic_settings.get_subcommand", lambda *args, **kwargs: None)
+
+    assert settings.run() is None
+
+
+def test_settings_run_exits_with_sync_subcommand_result(tmp_path, monkeypatch):
+    settings = make_settings(make_package_paths(Path(tmp_path)))()
+
+    class Command:
+        def run(self):
+            return 3
+
+    monkeypatch.setattr("pydantic_settings.get_subcommand", lambda *args, **kwargs: Command())
+
+    with pytest.raises(SystemExit) as error:
+        settings.run()
+
+    assert error.value.code == 3
+
+
+def test_settings_run_exits_with_async_subcommand_result(tmp_path, monkeypatch):
+    settings = make_settings(make_package_paths(Path(tmp_path)))()
+
+    class Command:
+        async def run(self):
+            return 4
+
+    monkeypatch.setattr("pydantic_settings.get_subcommand", lambda *args, **kwargs: Command())
+
+    with pytest.raises(SystemExit) as error:
+        settings.run()
+
+    assert error.value.code == 4
+
+
+def test_settings_accept_init_values(tmp_path):
+    settings = make_settings(make_package_paths(Path(tmp_path)))
+
+    assert settings(value="from-init").value == "from-init"
 
 
 def test_find_env_file_defaults_to_repo(tmp_path):

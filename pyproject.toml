@@ -133,7 +133,6 @@ api = ["fastapi", "uvicorn[standard]", "logging", "dm", "logfire[fastapi]", "htt
 dm = ["pydantic", "pydantic-extra-types", "pycountry"]
 ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "dm"]
 "openai.api" = ["openai"]
-json-fix = ["json_repair"]
 semantic = ["sentence_transformers", "metrics"]
 metrics = ["tabular", "ranx"]
 tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]

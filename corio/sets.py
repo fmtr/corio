@@ -8,8 +8,7 @@ from pydantic_settings import (
 )
 from typing import ClassVar, Any
 
-from corio import Constants, strings
-from corio.dm import CliRunMixin
+from corio import Constants, dm, strings
 from corio.iterator import strip_none
 from corio.path import Path
 from corio.paths import paths
@@ -32,7 +31,7 @@ class YamlScriptConfigSettingsSource(YamlConfigSettingsSource):
         return data
 
 
-class BaseCLI(BaseSettings, CliRunMixin):
+class BaseCLI(BaseSettings, dm.Base):
     """Base settings class that reads configuration only from the CLI."""
 
     ENV_NESTED_DELIMITER: ClassVar = Constants.ENV_NESTED_DELIMITER

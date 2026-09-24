@@ -1,12 +1,12 @@
 import inspect
 from cached_classproperty import cached_classproperty
-from functools import cached_property
 from pydantic import BaseModel
 from pydantic import RootModel, ConfigDict
 from pydantic.fields import FieldInfo
 from pydantic.json_schema import SkipJsonSchema
 from pydantic_core import PydanticUndefined, PydanticUndefinedType
 from typing import ClassVar, List, Any, Dict
+from typing_extensions import TypeForm
 
 from corio.datatype import is_optional, none_else
 from corio.iterator import get_class_lookup
@@ -20,14 +20,14 @@ class Field(FieldInfo):
     Allow DRYer field definitions, set annotation and defaults at the same time, easier field inheritance, etc.
 
     """
-    NAME = Auto
-    ANNOTATION = Empty
-    DEFAULT = Auto
-    FILLS = None
-    DESCRIPTION = None
-    TITLE = Auto
-    SKIP_SCHEMA = False
-    CONFIG = None
+    NAME: ClassVar[type[Auto] | str | None] = Auto
+    ANNOTATION: ClassVar[TypeForm[Any]] = Empty
+    DEFAULT: ClassVar[Any] = Auto
+    FILLS: ClassVar[dict[str, Any] | None] = None
+    DESCRIPTION: ClassVar[str | None] = None
+    TITLE: ClassVar[type[Auto] | str | None] = Auto
+    SKIP_SCHEMA: ClassVar[bool] = False
+    CONFIG: ClassVar[dict[str, Any] | None] = None
 
     def __init__(self, annotation=Empty, default=Empty, description=None, title=None, fills=None, skip_schema=None, **kwargs):
         """
@@ -58,8 +58,8 @@ class Field(FieldInfo):
 
         super().__init__(annotation=self.annotation, default=default, title=title, description=description, **kwargs)
 
-    @classmethod
-    def get_name_auto(cls) -> str:
+    @cached_classproperty
+    def name(cls) -> str:
         """
 
         Infer field name, if set to auto.
@@ -71,18 +71,6 @@ class Field(FieldInfo):
             return cls.__name__
 
         return cls.NAME
-
-    @cached_property
-    def fills(self) -> Dict[str, str]:
-        """
-
-        Get fills with filled title merged in
-
-        """
-
-        fills_super = getattr(super(), 'FILLS', None)
-
-        return (fills_super or {}) | (self.FILLS or {}) | dict(title=self.get_title_auto())
 
     def get_default_auto(self, default) -> type[Any] | None | PydanticUndefinedType:
         """
@@ -162,34 +150,14 @@ class MixinArbitraryTypes:
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-class MixinFromJson:
 
-    @classmethod
-    def from_json(cls, json_str):
-        """
-
-        Error-tolerant deserialization
-
-        """
-        from corio import json_fix
-        data = json_fix.from_json(json_str, default={})
-
-        if type(data) is dict:
-            self = cls(**data)
-        else:
-            self = cls(data)
-
-        return self
-
-
-class CliRunMixin:
+class Base(BaseModel):
     """
 
-    Mixin only so that it can also be used with Pydantic Settings.
-
-    TODO Ideally, the run method would be defined on dm.Base and the settings base would just inherit like set.Base(BaseSettings, dm.Base), but this isn't yet tested/could break Fields.
+    Base model allowing model definition via a list of custom Field objects.
 
     """
+    model_config = ConfigDict(ignored_types=(cached_classproperty,))
 
     def run(self):
         """
@@ -212,15 +180,6 @@ class CliRunMixin:
 
         raise SystemExit(result)
 
-
-class Base(BaseModel, MixinFromJson, CliRunMixin):
-    """
-
-    Base model allowing model definition via a list of custom Field objects.
-
-    """
-    model_config = ConfigDict(ignored_types=(cached_classproperty,))
-
     FIELDS: ClassVar[List[Field] | Dict[str, Field]] = []
 
     def __init_subclass__(cls, **kwargs):
@@ -242,7 +201,7 @@ class Base(BaseModel, MixinFromJson, CliRunMixin):
             if isinstance(raw, dict):
                 fields |= raw
             else:
-                fields |= get_class_lookup(*raw, name_function=lambda cls_field: cls_field.get_name_auto())
+                fields |= get_class_lookup(*raw, name_function=lambda cls_field: cls_field.name)
 
         cls.FIELDS = fields
 
@@ -281,7 +240,8 @@ class Base(BaseModel, MixinFromJson, CliRunMixin):
         df = tabular.pd.DataFrame([row])
         return df
 
-class Root(RootModel, MixinFromJson):
+
+class Root(RootModel):
     """
 
     Root (list) model

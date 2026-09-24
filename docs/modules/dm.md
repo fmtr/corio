@@ -7,7 +7,6 @@ Highlights:
 
 - `Field`: reusable field definitions with optional auto-defaulting and title/description templating
 - `Base`: model base that can aggregate `FIELDS` declarations across inheritance
-- `MixinFromJson`: tolerant `from_json` flow (especially useful for LLM output cleanup)
 - `to_df`: quick conversion to tabular representation (`tabular` extra needed there)
 
 Install:
@@ -27,7 +26,7 @@ class User(dm.Base):
     name: str
 
 
-user = User.from_json('{"id": 1, "name": "Ada"}')
+user = User.model_validate_json('{"id": 1, "name": "Ada"}')
 ```
 
 ## Field Class Pattern
@@ -48,16 +47,7 @@ class User(dm.Base):
     id: int
 ```
 
-## LLM/Unclean JSON Use
-
-`MixinFromJson` routes through `json_fix` when available, so model parsing can be more tolerant than strict `model_validate_json`.
-
-This is especially useful for:
-
-- tool-call payload recovery
-- partially malformed JSON responses
-- low-friction CLI/data ingestion flows
-
 ## CLI Integration
 
-`CliRunMixin` enables subcommand-style `run()` flow for settings/models that integrate with `pydantic-settings` subcommands.
+`Base.run()` enables subcommand-style `run()` flow for settings/models that integrate with `pydantic-settings`
+subcommands.

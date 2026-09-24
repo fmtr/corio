@@ -35,7 +35,6 @@ This table maps friendly imports from `corio.__init__` to docs pages and require
 | `from corio import interface` | `interface` | [interface](interface.md) |
 | `from corio import iterator` | - | [iterator](iterator.md) |
 | `from corio import jsn` | - | [jsn](jsn.md) |
-| `from corio import json_fix` | `json-fix` | [json_fix](json_fix.md) |
 | `from corio import logs` | `logging` | [logs](logs.md) |
 | `from corio import merging` | `merging` | [merging](merging.md) |
 | `from corio import metric` | `metric` | [metric](metric.md) |
