@@ -161,6 +161,17 @@ class Document(dm.Base):
         return querier.query(texts)
 
     @classmethod
+    def get(cls, client: Client, id: str):
+        points = client.retrieve(
+            collection_name=cls.name,
+            ids=[get_hash_int(id)],
+            with_payload=True,
+            with_vectors=False,
+        )
+        point = next(iter(points))
+        return cls.model_validate(point.payload)
+
+    @classmethod
     def evaluate(
             cls,
             query_classes: list[type[Query]] | None = None,
