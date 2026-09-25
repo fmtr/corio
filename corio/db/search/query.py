@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from functools import cached_property
 from qdrant_client.http import models
+from qdrant_client.http.models import Filter
 from typing import Generic, TypeVar
 
 from corio.inherit import Inherit
@@ -31,7 +32,7 @@ class Query(Generic[DocumentT, EmbedderT]):
         self.embedding = None
         self.limit = limit
         self.is_multi = is_multi
-        self.hits=[]
+        self.hits = []
 
     @property
     def text_vector(self) -> str:
@@ -68,18 +69,31 @@ class Query(Generic[DocumentT, EmbedderT]):
     @cached_property
     def data(self):
         if self.is_multi:
-            data=dict(prefetch=models.Prefetch(**self.fusion), **self.multi)
+            data = dict(prefetch=models.Prefetch(**self.fusion), **self.multi)
         else:
-            data=self.fusion
+            data = self.fusion
         return data
 
     @cached_property
+    def filter(self):
+        return dict(
+            filter=Filter(
+                must=[
+                    models.FieldCondition(
+                        key="is_doc",
+                        match=models.MatchValue(value=False),
+                    )
+                ]
+            )
+        )
+
+    @cached_property
     def query(self):
-        return self.data|self.root
+        return self.filter | self.data | self.root
 
     @cached_property
     def root(self):
-        return dict(with_payload=True,limit=self.limit)
+        return dict(with_payload=True, limit=self.limit)
 
     @cached_property
     def request(self):
@@ -168,7 +182,6 @@ class Fusion(QueryIndex[DocumentT, EmbedderT]):
 
     @cached_property
     def data(self):
-
         return dict(
             prefetch=[
                 models.Prefetch(**self.sparse),
