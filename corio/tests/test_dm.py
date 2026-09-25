@@ -15,13 +15,10 @@ def test_base_ignores_cached_class_properties():
     assert Model.label == "Model"
 
 
-def test_base_does_not_shadow_behavior_from_later_mixins():
-    class Runner:
+def test_base_run_can_be_overridden_by_a_tool():
+    class Model(dm.Base):
         def run(self):
             return "ran"
-
-    class Model(dm.Base, Runner):
-        pass
 
     assert Model().run() == "ran"
 

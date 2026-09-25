@@ -1,4 +1,3 @@
-import inspect
 from pydantic_settings import (
     BaseSettings,
     CliSettingsSource,
@@ -36,21 +35,6 @@ class BaseCLI(BaseSettings, dm.Base):
     """Base settings class that reads configuration only from the CLI."""
 
     ENV_NESTED_DELIMITER: ClassVar = Constants.ENV_NESTED_DELIMITER
-
-    def run(self):
-        """Run a configured CLI subcommand and exit with its result."""
-        from pydantic_settings import get_subcommand
-
-        command = get_subcommand(self, is_required=False, cli_exit_on_error=False)
-        if not command:
-            return
-
-        result = command.run()
-        if inspect.isawaitable(result):
-            import asyncio
-            result = asyncio.run(result)
-
-        raise SystemExit(result)
 
     @classmethod
     def settings_customise_sources(

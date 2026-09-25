@@ -195,6 +195,21 @@ class Base(BaseModel):
             setattr(cls, name, field)
             cls.__annotations__[name] = field.annotation
 
+    def run(self):
+        """Run a configured CLI subcommand and exit with its result."""
+        from pydantic_settings import get_subcommand
+
+        command = get_subcommand(self, is_required=False, cli_exit_on_error=False)
+        if not command:
+            return
+
+        result = command.run()
+        if inspect.isawaitable(result):
+            import asyncio
+            result = asyncio.run(result)
+
+        raise SystemExit(result)
+
     def to_df(self, **kwargs):
         """
 
