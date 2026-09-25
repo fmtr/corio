@@ -184,7 +184,7 @@ corio = ["pyproject.package.toml", "assets/**"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api", "caching", "datatype", "dhcp", "dm", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "tasmota", "toml", "tools", "yml"]
+env_list = ["api", "caching", "datatype", "db", "dhcp", "dm", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "tasmota", "toml", "tools", "yml"]
 
 [tool.tox.env.api]
 description = "Run api tests."
@@ -200,6 +200,11 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_caching.
 description = "Run datatype tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_datatype.py}"]]
+
+[tool.tox.env.db]
+description = "Run db tests."
+deps = ["beanie", "deepdiff", "flagembedding", "odfpy", "openpyxl", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client[fastembed]", "ranx", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_db.py}"]]
 
 [tool.tox.env.dhcp]
 description = "Run dhcp tests."
