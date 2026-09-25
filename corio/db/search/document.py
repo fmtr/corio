@@ -22,7 +22,7 @@ from corio.db.search.embedder import Embedder, Vectors
 from corio.db.search.query import Query
 from corio.function import ccp
 from corio.hash import get_hash_int
-from corio.strings import chunk_sliding
+from corio.strings import chunk_sliding, get_docstring
 
 if TYPE_CHECKING:
     from corio.db.search.builder import Builder
@@ -60,6 +60,14 @@ class Document(dm.Base):
         datetime: models.PayloadSchemaType.DATETIME,
         UUID: models.PayloadSchemaType.UUID,
     }
+
+    @ccp
+    def name(cls) -> str:
+        return cls.__name__
+
+    @ccp
+    def description(cls) -> str:
+        return get_docstring(cls)
 
     @classmethod
     def field_type(cls, annotation: type) -> type:

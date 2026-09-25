@@ -25,6 +25,12 @@ from corio.logs import logger
 
 
 class DocumentMsMarco(Document):
+    """
+
+    Selection of documents on general topics, with no specific selection.
+
+    """
+    IS_MULTI = False
     title: str
     url: str
 
@@ -41,10 +47,6 @@ class DocumentMsMarco(Document):
     @ccp
     def Evaluator(cls) -> type[EvaluatorMsMarco]:
         return EvaluatorMsMarco
-
-    @ccp
-    def IS_MULTI(cls) -> bool:
-        return False
 
 
 class DatasetMsMarco:
