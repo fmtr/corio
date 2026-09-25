@@ -30,7 +30,7 @@ class Builder:
     def name(self):
         return self.Document.__name__
 
-    def get_document(self, data: Any) -> Point:
+    def get_point(self, data: Any) -> Point:
         """
 
         Convert a raw dataset row into a point instance.
@@ -94,7 +94,7 @@ class Builder:
         return self.Document.embedder
 
     @property
-    def docs(self) -> Iterator[Point]:
+    def points(self) -> Iterator[Point]:
         """
 
         Yield points ready for upload.
@@ -113,7 +113,7 @@ class Builder:
         with self.disable_hnsw():
             self.client.upload_points(
                 collection_name=self.name,
-                points=self.docs,
+                points=self.points,
                 batch_size=batch_size,
                 parallel=1,
                 method="fork",

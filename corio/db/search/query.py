@@ -39,11 +39,11 @@ class Query(Generic[DocumentT, EmbedderT]):
         return self.text
 
     @property
-    def vectors_obj(self):
+    def vectors(self):
         return self.embedding
 
-    @vectors_obj.setter
-    def vectors_obj(self, value) -> None:
+    @vectors.setter
+    def vectors(self, value) -> None:
         self.embedding = value
 
     @cached_property

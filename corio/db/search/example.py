@@ -61,9 +61,9 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
 
     TOTAL_DOCS = 50_000
 
-    def get_document(self, data: MsMarcoDocument):
+    def get_point(self, data: MsMarcoDocument):
 
-        doc = self.Document.Point(
+        point = self.Document.Point(
             id=get_hash_int(data.doc_id),
             vector=[]
         )
@@ -74,8 +74,8 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
             url=data.url,
             text=data.body
         )
-        doc.document_obj = document
-        return doc
+        point.document = document
+        return point
 
     @property
     def inserted_ids(self) -> set[str]:
@@ -106,7 +106,7 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
         return ids
 
     @property
-    def docs(self) -> Iterator:
+    def points(self) -> Iterator:
 
         dataset = self.ir_dataset
         inserted_ids = self.inserted_ids
@@ -122,23 +122,23 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
 
         ids_gold = (dataset.docs.lookup(id) for id in gold_doc_ids_session)
         ids_other = (
-            doc
-            for doc in islice(
+            dataset_document
+            for dataset_document in islice(
             (
-                doc
-                for doc in dataset.docs_iter()
-                if doc.doc_id not in inserted_ids and doc.doc_id not in gold_doc_ids_session
+                dataset_document
+                for dataset_document in dataset.docs_iter()
+                if dataset_document.doc_id not in inserted_ids and dataset_document.doc_id not in gold_doc_ids_session
             ),
             remaining_non_gold,
         )
         )
         data = chain(ids_other, ids_gold)
-        docs = (self.get_document(datum) for datum in data)
-        docs = Iterator(docs, total=remaining_total)
-        docs = chain.from_iterable(doc.points for doc in docs)
-        docs = self.embedder.add_vectors(docs)
+        points = (self.get_point(datum) for datum in data)
+        points = Iterator(points, total=remaining_total)
+        points = chain.from_iterable(point.points for point in points)
+        points = self.embedder.add_vectors(points)
 
-        return docs
+        return points
 
 
 class EvaluatorMsMarco(DatasetMsMarco, Evaluator):

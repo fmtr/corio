@@ -165,7 +165,7 @@ class Embedder:
     def embed(self, batch):
         """
 
-        Populate each document in a batch with vectors.
+        Populate each point in a batch with vectors.
 
         """
 
@@ -191,7 +191,7 @@ class Embedder:
         for item, (dense, sparse, multi, simple) in zip(batch, m3):
             sparse_vector = SparseVector(indices=list(sparse.keys()), values=list(sparse.values()))
             simple_vector = SparseVector(indices=list(simple.indices), values=list(simple.values))
-            item.vectors_obj = self.Vectors(
+            item.vectors = self.Vectors(
                 simple=simple_vector,
                 sparse=sparse_vector,
                 dense=dense,
@@ -199,12 +199,12 @@ class Embedder:
             )
         return batch
 
-    def add_vectors(self, documents: Iterator[Point]) -> Iterator[Point]:
+    def add_vectors(self, points: Iterator[Point]) -> Iterator[Point]:
         """
 
-        Embed documents in batches and yield them back.
+        Embed points in batches and yield them back.
 
         """
 
-        for batch in batched(documents, self.BATCH_SIZE_EMBEDDING):
+        for batch in batched(points, self.BATCH_SIZE_EMBEDDING):
             yield from self.embed(batch)

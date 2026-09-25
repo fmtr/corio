@@ -199,24 +199,24 @@ class Point(PointStruct):
     STRIDE_FACTOR: ClassVar[float] = 0.25
 
     @property
-    def document_obj(self) -> Document:
+    def document(self) -> Document:
         return self.Document.model_validate(self.payload)
 
-    @document_obj.setter
-    def document_obj(self, value: Document) -> None:
+    @document.setter
+    def document(self, value: Document) -> None:
         self.payload = value.model_dump()
 
     @property
-    def vectors_obj(self) -> Vectors:
+    def vectors(self) -> Vectors:
         return Vectors.model_validate(self.vector)
 
-    @vectors_obj.setter
-    def vectors_obj(self, value: Vectors) -> None:
+    @vectors.setter
+    def vectors(self, value: Vectors) -> None:
         self.vector = value.model_dump()
 
     @property
     def text_vector(self) -> str:
-        return self.document_obj.text_vector
+        return self.document.text_vector
 
     def chunk(self, text: str) -> list[str]:
         window = int(self.Document.MAX_LENGTH * TOKENS_WORDS_FACTOR)
@@ -227,13 +227,13 @@ class Point(PointStruct):
     def points(self):
         yield self
 
-        document = self.document_obj
+        document = self.document
         for i, subtext in enumerate(self.chunk(document.text)):
-            document = self.document_obj
+            document = self.document
             document.text = subtext
             document.chunk_idx = i
             document.is_doc = False
             point_id = get_hash_int(f"{document.id}/{i}")
             chunk = self.__class__(id=point_id, vector=[])
-            chunk.document_obj = document
+            chunk.document = document
             yield chunk
