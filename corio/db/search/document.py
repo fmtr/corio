@@ -110,9 +110,9 @@ class Document(dm.Base):
 
         """
         point = type(
-            f"{cls.__name__}Point",
+            f"{cls.__name__}{Point.__name__}",
             (Point,),
-            {"__module__": cls.__module__, "Document": cls},
+            {"__module__": cls.__module__, Document.__name__: cls},
         )
         return point
 
