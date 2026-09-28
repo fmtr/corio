@@ -70,7 +70,7 @@ class Querier:
 
         """
         query_type = query_type or self.Document.Query
-        batch_size = self.embedder.BATCH_SIZE_EMBEDDING
+        batch_size = self.embedder.batch_size
         queries = Iterator(
             query_type(text=text, limit=limit, is_multi=self.Document.IS_MULTI)
             for text in texts

@@ -54,6 +54,7 @@ class Document(dm.Base):
     IS_MULTI: ClassVar[bool] = True
     INDEX_TYPES: ClassVar[dict[type, models.PayloadSchemaType]] = {
         str: models.PayloadSchemaType.KEYWORD,
+        list[str]: models.PayloadSchemaType.KEYWORD,
         int: models.PayloadSchemaType.INTEGER,
         float: models.PayloadSchemaType.FLOAT,
         bool: models.PayloadSchemaType.BOOL,

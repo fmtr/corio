@@ -9,6 +9,7 @@ from __future__ import annotations
 from itertools import batched
 
 import numpy as np
+import torch
 from FlagEmbedding import BGEM3FlagModel
 from collections.abc import Mapping
 from fastembed import SparseTextEmbedding
@@ -48,7 +49,8 @@ class Embedder:
 
     Vectors = Vectors
 
-    BATCH_SIZE_EMBEDDING = 1_500
+    BATCH_SIZE_BASE = 1_500
+    BATCH_SIZE_MULTI_FACTOR = 32 / BATCH_SIZE_BASE
     MAX_LENGTH = 256
 
     def __init__(self, *, is_multi: bool = True):
@@ -64,6 +66,25 @@ class Embedder:
             for name in SIMPLE, M3:
                 with logger.span(f'Initialising {name}...'):
                     getattr(self, name)
+
+        device_count = torch.cuda.device_count()
+        device_names = ', '.join(
+            torch.cuda.get_device_name(index)
+            for index in range(device_count)
+        ) or 'none'
+        logger.info(f'Embedding models loaded; CUDA devices visible: {device_count} ({device_names})')
+
+    @property
+    def batch_size(self) -> int:
+        """
+
+        Return the embedding batch size for the configured vector types.
+
+        """
+        if not self.is_multi:
+            return self.BATCH_SIZE_BASE
+
+        return int(self.BATCH_SIZE_BASE * self.BATCH_SIZE_MULTI_FACTOR)
 
     @cached_property
     def config(self) -> Mapping:
@@ -127,7 +148,7 @@ class Embedder:
 
         """
 
-        return models.model.config.hidden_size
+        return self.m3.model.config.hidden_size
 
     @cached_property
     def multi_size(self):
@@ -175,7 +196,7 @@ class Embedder:
         with Iterator.span():
             m3 = self.m3.encode(
                 texts,
-                batch_size=self.BATCH_SIZE_EMBEDDING,
+                batch_size=self.batch_size,
                 max_length=self.MAX_LENGTH,
                 return_dense=True,
                 return_sparse=True,
@@ -185,7 +206,7 @@ class Embedder:
         with Iterator.span():
             simples = self.simple.embed(
                 texts,
-                batch_size=self.BATCH_SIZE_EMBEDDING,
+                batch_size=self.batch_size,
             )
         m3 = zip(m3["dense_vecs"], m3["lexical_weights"], self.get_multi(m3), simples)
         for item, (dense, sparse, multi, simple) in zip(batch, m3):
@@ -206,5 +227,5 @@ class Embedder:
 
         """
 
-        for batch in batched(points, self.BATCH_SIZE_EMBEDDING):
+        for batch in batched(points, self.batch_size):
             yield from self.embed(batch)

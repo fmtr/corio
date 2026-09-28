@@ -106,7 +106,7 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
         return ids
 
     @property
-    def points(self) -> Iterator:
+    def points(self) -> Iterator[Point]:
 
         dataset = self.ir_dataset
         inserted_ids = self.inserted_ids
@@ -134,11 +134,7 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
         )
         data = chain(ids_other, ids_gold)
         points = (self.get_point(datum) for datum in data)
-        points = Iterator(points, total=remaining_total)
-        points = chain.from_iterable(point.points for point in points)
-        points = self.embedder.add_vectors(points)
-
-        return points
+        return Iterator(points, total=remaining_total)
 
 
 class EvaluatorMsMarco(DatasetMsMarco, Evaluator):

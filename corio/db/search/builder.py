@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from functools import cached_property
+from itertools import chain
 from qdrant_client.http import models
 from qdrant_client.http.models import CollectionInfo
 from typing import Any
@@ -97,7 +98,7 @@ class Builder:
     def points(self) -> Iterator[Point]:
         """
 
-        Yield points ready for upload.
+        Yield points before expansion and embedding.
 
         """
         raise NotImplementedError()
@@ -108,12 +109,16 @@ class Builder:
         Create the collection and upload all points.
 
         """
-        batch_size = self.embedder.BATCH_SIZE_EMBEDDING
+        batch_size = self.embedder.batch_size
         self.collection
+
+        points = chain.from_iterable(point.points for point in self.points)
+        points = self.embedder.add_vectors(points)
+
         with self.disable_hnsw():
             self.client.upload_points(
                 collection_name=self.name,
-                points=self.points,
+                points=points,
                 batch_size=batch_size,
                 parallel=1,
                 method="fork",
