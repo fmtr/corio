@@ -110,6 +110,15 @@ class MethodDecorator:
         pass
 
 
+def ccm(method: Callable) -> classmethod:
+    """Decorate a method as a cached class method.
+
+    ``classmethod`` wraps the cached method so the class supplied by the
+    descriptor is included in the cache key.
+    """
+
+    return classmethod(functools.lru_cache(method))
+
 ccp = cached_classproperty.cached_classproperty
 csp = cached_classproperty.cached_staticproperty
 cp = functools.cached_property

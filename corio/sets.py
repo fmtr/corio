@@ -6,9 +6,10 @@ from pydantic_settings import (
     PydanticBaseSettingsSource,
     YamlConfigSettingsSource,
 )
-from typing import ClassVar, Any
+from typing import ClassVar, Any, Self
 
 from corio import Constants, dm, strings
+from corio.function import ccp
 from corio.iterator import strip_none
 from corio.path import Path
 from corio.paths import paths
@@ -269,3 +270,28 @@ class Base(BaseCLI):
 
         """
         return self.paths.metadata.version
+
+    @classmethod
+    def subclass(cls, paths: PackagePaths) -> type[Self]:
+        """
+
+        Subclass this class with different class-level package paths.
+
+        """
+        package_paths=paths
+        class Settings(cls, cli_parse_args=True):
+            paths = package_paths
+
+        return Settings
+
+    @ccp
+    def instance(cls) -> Self:
+        """
+
+        Typically a settings object has a single, global instance, that gets imported in many places.
+        But defining it at the module level can lead to circular imports.
+        Hence, we lazily init the global instance.
+
+        """
+        self=cls()
+        return self
