@@ -386,9 +386,13 @@ class Path(type(Path())):
         """
         from pydantic_core import core_schema
 
-        return core_schema.no_info_plain_validator_function(
+        input_schema = core_schema.union_schema([
+            core_schema.is_instance_schema(cls),
+            core_schema.str_schema(),
+        ])
+        return core_schema.no_info_after_validator_function(
             cls.__deserialize_pydantic__,
-            json_schema_input_schema=core_schema.str_schema(),
+            input_schema,
             serialization=core_schema.plain_serializer_function_ser_schema(
                 cls.__serialize_pydantic__
             ),

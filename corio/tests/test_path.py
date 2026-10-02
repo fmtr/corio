@@ -18,6 +18,15 @@ def test_path_args(args):
     assert actual == expected
 
 
+def test_path_pydantic_rejects_non_string_input():
+    from pydantic import TypeAdapter, ValidationError
+
+    adapter = TypeAdapter(path.Path)
+
+    with pytest.raises(ValidationError):
+        adapter.validate_python(123)
+
+
 def test_path_module():
     """
 
