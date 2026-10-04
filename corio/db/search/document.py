@@ -150,16 +150,22 @@ class Document(dm.Base):
         return Embedder(is_multi=cls.IS_MULTI)
 
     @classmethod
-    def build(cls, client: Client | None = None):
-        builder = cls.Builder(document_type=cls, client=client)
+    def build(cls, data=(), client: Client | None = None):
+        builder = cls.Builder(document_type=cls, client=client, data=data)
         return builder.build()
 
     @classmethod
-    def query(cls, texts: list[str], client: Client | None = None):
+    def query(
+        cls,
+        texts: list[str],
+        client: Client | None = None,
+        *,
+        runtime_filter: models.Filter | None = None,
+    ):
         from corio.db.search.querier import Querier
 
         querier = Querier(document_type=cls, client=client)
-        return querier.query(texts)
+        return querier.query(texts, runtime_filter=runtime_filter)
 
     @classmethod
     def get(cls, client: Client, id: str):
@@ -171,6 +177,28 @@ class Document(dm.Base):
         )
         point = next(iter(points))
         return cls.model_validate(point.payload)
+
+    @classmethod
+    def get_chunks(cls, client: Client, id: str, chunks: list[int]):
+        points, _ = client.scroll(
+            collection_name=cls.name,
+            scroll_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="id",
+                        match=models.MatchValue(value=id),
+                    ),
+                    models.FieldCondition(
+                        key="chunk_idx",
+                        match=models.MatchAny(any=chunks),
+                    ),
+                ]
+            ),
+            with_payload=True,
+            with_vectors=False,
+            limit=len(chunks),
+        )
+        return [cls.model_validate(point.payload) for point in points]
 
     @classmethod
     def evaluate(

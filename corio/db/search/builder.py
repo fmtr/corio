@@ -9,6 +9,7 @@ from itertools import chain
 from qdrant_client.http import models
 from qdrant_client.http.models import CollectionInfo
 from typing import Any
+from collections.abc import Iterable
 
 from corio import logger
 from corio.db.search.client import Client
@@ -23,9 +24,15 @@ class Builder:
     Document: type[Document] = Document
     MAX_RETRIES = 3
 
-    def __init__(self, document_type: type[Document] = Document, client: Client | None = None):
+    def __init__(
+        self,
+        document_type: type[Document] = Document,
+        client: Client | None = None,
+        data: Iterable[Any] = (),
+    ):
         self.Document = document_type
         self.client = client or Client()
+        self.data = data
 
     @cached_property
     def name(self):
@@ -96,12 +103,10 @@ class Builder:
 
     @property
     def points(self) -> Iterator[Point]:
-        """
-
-        Yield points before expansion and embedding.
-
-        """
-        raise NotImplementedError()
+        """Yield points converted from the runtime input data."""
+        return Iterator(
+            (self.get_point(data) for data in self.data),
+        )
 
     def build(self):
         """

@@ -27,11 +27,19 @@ class Query(Generic[DocumentT, EmbedderT]):
 
     DESCRIPTION = "rrf_sparse_dense_bm25_then_multi"
 
-    def __init__(self, text: str, *, limit: int, is_multi: bool = True):
+    def __init__(
+        self,
+        text: str,
+        *,
+        limit: int,
+        is_multi: bool = True,
+        runtime_filter: Filter | None = None,
+    ):
         self.text = text
         self.embedding = None
         self.limit = limit
         self.is_multi = is_multi
+        self.runtime_filter = runtime_filter
         self.hits = []
 
     @property
@@ -76,16 +84,16 @@ class Query(Generic[DocumentT, EmbedderT]):
 
     @cached_property
     def filter(self):
-        return dict(
-            filter=Filter(
-                must=[
-                    models.FieldCondition(
-                        key="is_doc",
-                        match=models.MatchValue(value=False),
-                    )
-                ]
+        conditions = [
+            models.FieldCondition(
+                key="is_doc",
+                match=models.MatchValue(value=False),
             )
-        )
+        ]
+        if self.runtime_filter:
+            conditions.append(self.runtime_filter)
+
+        return dict(filter=Filter(must=conditions))
 
     @cached_property
     def query(self):
@@ -184,9 +192,9 @@ class Fusion(QueryIndex[DocumentT, EmbedderT]):
     def data(self):
         return dict(
             prefetch=[
-                models.Prefetch(**self.sparse),
-                models.Prefetch(**self.dense),
-                models.Prefetch(**self.simple),
+                models.Prefetch(**self.sparse, **self.filter),
+                models.Prefetch(**self.dense, **self.filter),
+                models.Prefetch(**self.simple, **self.filter),
             ],
             query=models.FusionQuery(fusion=models.Fusion.RRF),
             limit=self.limit * 5,

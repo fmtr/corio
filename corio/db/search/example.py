@@ -8,20 +8,22 @@ from __future__ import annotations
 
 from itertools import chain, islice
 
-import ir_datasets
-from functools import cached_property
-from ir_datasets.datasets.msmarco_document import MsMarcoDocument
-from ranx import Qrels
 
+import typing
+from functools import cached_property
 from corio.db.search.builder import Builder
 from corio.db.search.client import models
-from corio.db.search.document import Document
+from corio.db.search.document import Document, Point
 from corio.db.search.evaluator import Evaluator
 from corio.db.search.query import Query, QueryBasic
 from corio.function import ccp
 from corio.hash import get_hash_int
 from corio.iterator import Iterator
 from corio.logs import logger
+
+if typing.TYPE_CHECKING:
+    from ir_datasets.datasets.msmarco_document import MsMarcoDocument
+    from ranx import Qrels
 
 
 class DocumentMsMarco(Document):
@@ -54,6 +56,7 @@ class DatasetMsMarco:
 
     @cached_property
     def ir_dataset(self):
+        import ir_datasets
         return ir_datasets.load(self.DATASET_NAME)
 
 
@@ -148,6 +151,7 @@ class EvaluatorMsMarco(DatasetMsMarco, Evaluator):
 
     @cached_property
     def qrels(self)->Qrels:
+        from ranx import Qrels
         qrels = Qrels(name=self.name)
         for qrel in self.ir_dataset.qrels_iter():
             qrels.add_score(qrel.query_id, qrel.doc_id, qrel.relevance)

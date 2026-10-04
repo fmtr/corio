@@ -8,6 +8,7 @@ from __future__ import annotations
 from itertools import batched
 
 from collections.abc import Iterable
+from qdrant_client.http import models
 from functools import cached_property
 from qdrant_client.http.models import CollectionInfo
 
@@ -62,7 +63,8 @@ class Querier:
         texts: Iterable[str],
         *,
         limit: int = 10,
-            query_type: type[Query] | None = None,
+        query_type: type[Query] | None = None,
+        runtime_filter: models.Filter | None = None,
     ):
         """
 
@@ -72,7 +74,12 @@ class Querier:
         query_type = query_type or self.Document.Query
         batch_size = self.embedder.batch_size
         queries = Iterator(
-            query_type(text=text, limit=limit, is_multi=self.Document.IS_MULTI)
+            query_type(
+                text=text,
+                limit=limit,
+                is_multi=self.Document.IS_MULTI,
+                runtime_filter=runtime_filter,
+            )
             for text in texts
         )
 
