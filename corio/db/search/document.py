@@ -257,7 +257,8 @@ class Point(PointStruct):
         yield self
 
         document = self.document
-        for i, subtext in enumerate(self.chunk(document.text)):
+        chunks = self.chunk(document.text) or [document.text]
+        for i, subtext in enumerate(chunks):
             document = self.document
             document.text = subtext
             document.chunk_idx = i
