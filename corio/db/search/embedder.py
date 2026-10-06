@@ -153,6 +153,7 @@ class EmbedderClient:
                 texts=texts,
             ),
         )
+        response.raise_for_status()
         return [self.Vectors.model_validate(vector) for vector in response.json()]
 
     def add_vectors(self, points: Iterable[Point]) -> Iterable[Point]:
