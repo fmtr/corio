@@ -18,7 +18,7 @@ from uuid import UUID
 from corio import dm
 from corio.db.search.client import Client
 from corio.db.search.constants import TOKENS_WORDS_FACTOR
-from corio.db.search.embedder import Embedder, Vectors
+from corio.db.search.embedder import EmbedderClient, Vectors
 from corio.db.search.query import Query
 from corio.function import ccp
 from corio.hash import get_hash_int
@@ -146,8 +146,8 @@ class Document(dm.Base):
         return self.text
 
     @ccp
-    def embedder(cls) -> Embedder:
-        return Embedder(is_multi=cls.IS_MULTI)
+    def embedder(cls) -> EmbedderClient:
+        return EmbedderClient(is_multi=cls.IS_MULTI, max_length=cls.MAX_LENGTH)
 
     @classmethod
     def build(cls, data=(), client: Client | None = None):

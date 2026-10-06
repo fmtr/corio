@@ -8,8 +8,8 @@ from __future__ import annotations
 from itertools import batched
 
 from collections.abc import Iterable
-from qdrant_client.http import models
 from functools import cached_property
+from qdrant_client.http import models
 from qdrant_client.http.models import CollectionInfo
 
 from corio import logger
@@ -84,7 +84,7 @@ class Querier:
         )
 
         for query_batch in batched(queries, batch_size):
-            self.embedder.embed(query_batch)
+            list(self.embedder.add_vectors(query_batch))
             requests = [query.request for query in query_batch]
             with Iterator.span():
                 results = self.client.query_batch_points(

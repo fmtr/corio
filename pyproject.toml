@@ -152,7 +152,8 @@ webhook = ["http"]
 browsers = ["playwright==1.61.0"]
 db = []
 "db.document" = ["beanie"]
-"db.search" = ["qdrant-client[fastembed]", "dm", "flagembedding", "compute", "metrics"]
+"db.search" = ["qdrant-client", "dm", "http"]
+"db.search.compute" = ["db.search", "compute", "qdrant-client[fastembed]", "flagembedding", "metrics"]
 mqtt = ["aiomqtt"]
 av = ["av"]
 env = []
@@ -203,7 +204,7 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_datatype
 
 [tool.tox.env.db]
 description = "Run db tests."
-deps = ["beanie", "deepdiff", "flagembedding", "odfpy", "openpyxl", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client[fastembed]", "ranx", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
+deps = ["beanie", "deepdiff", "flagembedding", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "odfpy", "openpyxl", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client[fastembed]", "ranx", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_db.py}"]]
 
 [tool.tox.env.dhcp]

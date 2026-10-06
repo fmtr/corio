@@ -3,17 +3,18 @@ Collection-building helpers for `corio.db.search`.
 """
 from __future__ import annotations
 
+from itertools import chain
+
+from collections.abc import Iterable
 from contextlib import contextmanager
 from functools import cached_property
-from itertools import chain
 from qdrant_client.http import models
 from qdrant_client.http.models import CollectionInfo
 from typing import Any
-from collections.abc import Iterable
 
 from corio import logger
 from corio.db.search.client import Client
-from corio.db.search.constants import DENSE
+from corio.db.search.constants import DENSE, DENSE_SIZE, MULTI, MULTI_SIZE, SIMPLE, SPARSE
 from corio.db.search.document import Document, Point
 from corio.iterator import Iterator
 
@@ -22,6 +23,8 @@ class Builder:
     """Create and ingest the backing Qdrant collection."""
 
     Document: type[Document] = Document
+    DENSE_SIZE = DENSE_SIZE
+    MULTI_SIZE = MULTI_SIZE
     MAX_RETRIES = 3
 
     def __init__(
@@ -37,6 +40,43 @@ class Builder:
     @cached_property
     def name(self):
         return self.Document.__name__
+
+    @cached_property
+    def config(self):
+        return dict(
+            vectors_config={
+                DENSE: models.VectorParams(
+                    size=self.DENSE_SIZE,
+                    distance=models.Distance.COSINE,
+                    on_disk=True,
+                    hnsw_config=models.HnswConfigDiff(m=16),
+                ),
+                MULTI: models.VectorParams(
+                    size=self.MULTI_SIZE,
+                    distance=models.Distance.COSINE,
+                    on_disk=True,
+                    multivector_config=models.MultiVectorConfig(
+                        comparator=models.MultiVectorComparator.MAX_SIM,
+                    ),
+                    hnsw_config=models.HnswConfigDiff(m=0)
+                ),
+            },
+            sparse_vectors_config={
+                SPARSE: models.SparseVectorParams(
+                    index=models.SparseIndexParams(on_disk=True),
+                    modifier=models.Modifier.IDF,
+                ),
+                SIMPLE: models.SparseVectorParams(
+                    index=models.SparseIndexParams(on_disk=True),
+                    modifier=models.Modifier.IDF,
+                ),
+            },
+            quantization_config=models.ScalarQuantization(
+                scalar=models.ScalarQuantizationConfig(
+                    type=models.ScalarType.INT8,
+                ),
+            ),
+        )
 
     def get_point(self, data: Any) -> Point:
         """
@@ -58,7 +98,7 @@ class Builder:
             with logger.span(f'Creating collection "{self.name}"...'):
                 self.client.create_collection(
                     collection_name=self.name,
-                    **self.embedder.config,
+                    **self.config,
                 )
             with logger.span('Creating payload indexes...'):
                 for data in self.Document.indexes:

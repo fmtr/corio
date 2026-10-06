@@ -3,28 +3,22 @@
 Embedding helpers for `corio.db.search`.
 
 """
-
 from __future__ import annotations
 
 from itertools import batched
 
-import numpy as np
-import torch
-from FlagEmbedding import BGEM3FlagModel
-from collections.abc import Mapping
-from fastembed import SparseTextEmbedding
-from functools import cached_property
+from collections.abc import Iterable
 from pydantic import StrictFloat
 from qdrant_client.http.models import SparseVector
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
-from corio import dm, logger
-from corio.db.search import models
-from corio.db.search.constants import DENSE, MULTI, SPARSE, SIMPLE, M3
-from corio.iterator import Iterator
+from corio import dm
+from corio.constants import Constants
+from corio.db.search.constants import MULTI_SIZE
+from corio.function import ccp
 
 if TYPE_CHECKING:
-    from .document import Point
+    from corio.db.search.document import Point
 
 
 class Vectors(dm.Base):
@@ -48,125 +42,36 @@ class Embedder:
     """
 
     Vectors = Vectors
-
-    BATCH_SIZE_BASE = 1_500
-    BATCH_SIZE_MULTI_FACTOR = 32 / BATCH_SIZE_BASE
     MAX_LENGTH = 256
 
-    def __init__(self, *, is_multi: bool = True):
+    def __init__(self, *, is_multi: bool = True, max_length: int = MAX_LENGTH):
         """
 
-        Prime the sparse and M3 embedder state for this instance.
+        Configure the embedder without loading its models.
 
         """
-
         self.is_multi = is_multi
+        self.max_length = max_length
 
-        with logger.span(f'Initialising {self.__class__.__name__}...'):
-            for name in SIMPLE, M3:
-                with logger.span(f'Initialising {name}...'):
-                    getattr(self, name)
-
-        device_count = torch.cuda.device_count()
-        device_names = ', '.join(
-            torch.cuda.get_device_name(index)
-            for index in range(device_count)
-        ) or 'none'
-        logger.info(f'Embedding models loaded; CUDA devices visible: {device_count} ({device_names})')
-
-    @property
-    def batch_size(self) -> int:
+    @ccp
+    def m3(cls):
         """
 
-        Return the embedding batch size for the configured vector types.
+        Load the BGE-M3 embedding model once for the process.
 
         """
-        if not self.is_multi:
-            return self.BATCH_SIZE_BASE
-
-        return int(self.BATCH_SIZE_BASE * self.BATCH_SIZE_MULTI_FACTOR)
-
-    @cached_property
-    def config(self) -> Mapping:
-        """
-
-        Return the collection vector and quantization configuration.
-
-        """
-
-        return dict(
-            # collection_name=self.COLLECTION_NAME,
-            vectors_config={
-                DENSE: models.VectorParams(
-                    size=self.dense_size,
-                    distance=models.Distance.COSINE,
-                    on_disk=True,
-                    hnsw_config=models.HnswConfigDiff(m=16),
-                ),
-                MULTI: models.VectorParams(
-                    size=self.multi_size,
-                    distance=models.Distance.COSINE,
-                    on_disk=True,
-                    multivector_config=models.MultiVectorConfig(
-                        comparator=models.MultiVectorComparator.MAX_SIM,
-                    ),
-                    hnsw_config=models.HnswConfigDiff(m=0)
-                ),
-            },
-            sparse_vectors_config={
-                SPARSE: models.SparseVectorParams(
-                    index=models.SparseIndexParams(on_disk=True),
-                    modifier=models.Modifier.IDF,
-                ),
-                SIMPLE: models.SparseVectorParams(
-                    index=models.SparseIndexParams(on_disk=True),
-                    modifier=models.Modifier.IDF,
-                ),
-            },
-            quantization_config=models.ScalarQuantization(
-                scalar=models.ScalarQuantizationConfig(
-                    type=models.ScalarType.INT8,
-                ),
-            ),
-        )
-
-    @cached_property
-    def m3(self) -> BGEM3FlagModel:
-        """
-
-        Load the BGE-M3 embedding model.
-
-        """
+        from FlagEmbedding import BGEM3FlagModel
 
         return BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
 
-    @cached_property
-    def dense_size(self):
+    @ccp
+    def simple(cls):
         """
 
-        Return the dense vector width used by the model.
+        Load the sparse BM25 embedding model once for the process.
 
         """
-
-        return self.m3.model.config.hidden_size
-
-    @cached_property
-    def multi_size(self):
-        """
-
-        Return the ColBERT vector width used by the model.
-
-        """
-
-        return self.m3.model.colbert_linear.out_features
-
-    @cached_property
-    def simple(self) -> SparseTextEmbedding:
-        """
-
-        Load the sparse BM25 embedder.
-
-        """
+        from fastembed import SparseTextEmbedding
 
         return SparseTextEmbedding(model_name="Qdrant/bm25")
 
@@ -176,56 +81,84 @@ class Embedder:
         Return ColBERT vectors or a zero-filled fallback.
 
         """
-
         if self.is_multi:
             return m3["colbert_vecs"]
 
+        import numpy as np
+
         batch_size = len(m3["dense_vecs"])
-        return np.zeros((batch_size, 1, self.multi_size), dtype=np.float32).tolist()
+        return np.zeros((batch_size, 1, MULTI_SIZE), dtype=np.float32).tolist()
 
-    def embed(self, batch):
-        """
+    def get_vectors(self, dense, sparse, multi, simple):
+        sparse_vector = SparseVector(indices=list(sparse.keys()), values=list(sparse.values()))
+        simple_vector = SparseVector(indices=list(simple.indices), values=list(simple.values))
+        return self.Vectors(
+            simple=simple_vector,
+            sparse=sparse_vector,
+            dense=dense,
+            multi=multi,
+        )
 
-        Populate each point in a batch with vectors.
+    def embed(self, texts: list[str]) -> list[Vectors]:
+        """Embed the supplied texts as one request."""
+        m3 = self.m3.encode(
+            texts,
+            batch_size=len(texts),
+            max_length=self.max_length,
+            return_dense=True,
+            return_sparse=True,
+            return_colbert_vecs=self.is_multi,
+        )
+        multi = self.get_multi(m3)
+        simples = self.simple.embed(texts)
+        vectors = zip(m3["dense_vecs"], m3["lexical_weights"], multi, simples)
+        result = []
+        for dense, sparse, multi_vectors, simple in vectors:
+            result.append(self.get_vectors(dense, sparse, multi_vectors, simple))
+        return result
 
-        """
 
-        texts = [item.text_vector for item in batch]
+class EmbedderClient:
+    """Consume the remote embedding service."""
 
-        logger.info('Encoding M3...')
-        with Iterator.span():
-            m3 = self.m3.encode(
-                texts,
-                batch_size=self.batch_size,
-                max_length=self.MAX_LENGTH,
-                return_dense=True,
-                return_sparse=True,
-                return_colbert_vecs=self.is_multi,
-            )
-        logger.info('Encoding simples...')
-        with Iterator.span():
-            simples = self.simple.embed(
-                texts,
-                batch_size=self.batch_size,
-            )
-        m3 = zip(m3["dense_vecs"], m3["lexical_weights"], self.get_multi(m3), simples)
-        for item, (dense, sparse, multi, simple) in zip(batch, m3):
-            sparse_vector = SparseVector(indices=list(sparse.keys()), values=list(sparse.values()))
-            simple_vector = SparseVector(indices=list(simple.indices), values=list(simple.values))
-            item.vectors = self.Vectors(
-                simple=simple_vector,
-                sparse=sparse_vector,
-                dense=dense,
-                multi=multi
-            )
-        return batch
+    Vectors = Vectors
+    BATCH_SIZE_BASE = 1_500
+    BATCH_SIZE_MULTI_FACTOR = 32 / BATCH_SIZE_BASE
 
-    def add_vectors(self, points: Iterator[Point]) -> Iterator[Point]:
-        """
+    def __init__(
+            self,
+            *,
+            is_multi: bool = True,
+            max_length: int = Embedder.MAX_LENGTH,
+            url: str = Constants.FMTR_DB_EMBED_URL_DEFAULT,
+    ):
+        self.is_multi = is_multi
+        self.max_length = max_length
+        self.url = url
 
-        Embed points in batches and yield them back.
+    @property
+    def batch_size(self) -> int:
+        if not self.is_multi:
+            return self.BATCH_SIZE_BASE
+        return int(self.BATCH_SIZE_BASE * self.BATCH_SIZE_MULTI_FACTOR)
 
-        """
+    def embed(self, texts: list[str]) -> list[Vectors]:
+        from corio import https
 
+        response = https.client.post(
+            f"{self.url}/embed",
+            json=dict(
+                is_multi=self.is_multi,
+                max_length=self.max_length,
+                texts=texts,
+            ),
+        )
+        return [self.Vectors.model_validate(vector) for vector in response.json()]
+
+    def add_vectors(self, points: Iterable[Point]) -> Iterable[Point]:
+        """Embed points in batches and yield them back."""
         for batch in batched(points, self.batch_size):
-            yield from self.embed(batch)
+            vectors = self.embed([point.text_vector for point in batch])
+            for point, vector in zip(batch, vectors):
+                point.vectors = vector
+                yield point
