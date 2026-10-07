@@ -124,6 +124,7 @@ class EmbedderClient:
     Vectors = Vectors
     BATCH_SIZE_BASE = 1_500
     BATCH_SIZE_MULTI_FACTOR = 32 / BATCH_SIZE_BASE
+    TIMEOUT = 120
 
     def __init__(
             self,
@@ -152,6 +153,7 @@ class EmbedderClient:
                 max_length=self.max_length,
                 texts=texts,
             ),
+            timeout=self.TIMEOUT,
         )
         response.raise_for_status()
         return [self.Vectors.model_validate(vector) for vector in response.json()]

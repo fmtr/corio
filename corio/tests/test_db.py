@@ -64,8 +64,9 @@ def test_embedder_client_calls_api_with_vectors_from_embedder():
         point.document = Document(id=text, text=text)
         points.append(point)
 
-    def embed_api_call(url, *, json):
+    def embed_api_call(url, *, json, timeout):
         assert url == "https://embed.example/embed"
+        assert timeout == 120
         assert json["is_multi"] is False
         assert json["max_length"] == 128
         vectors = embedder.embed(json["texts"])
