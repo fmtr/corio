@@ -1,27 +1,22 @@
 """
 
-Qdrant client wrapper used by `corio.db.search`.
+Qdrant async client wrapper used by `corio.db.search`.
 
 """
 
 import qdrant_client as qc
 from qdrant_client.http import models
-from typing import ClassVar
+from typing import ClassVar, Self
 
 from corio.constants import Constants
-from corio.logs import logger
 
 
-class Client(qc.QdrantClient):
-    """
+class Client(qc.AsyncQdrantClient):
+    """Qdrant async client with Corio defaults."""
 
-    Qdrant client with Corio defaults and startup logging.
+    MEMORY: ClassVar[str] = ":memory:"
 
-    """
-
-    MEMORY: ClassVar[str]=":memory:"
-
-    models=models
+    models = models
 
     def __init__(
         self,
@@ -51,5 +46,8 @@ class Client(qc.QdrantClient):
             **kwargs,
         )
 
-        with logger.span(f'Connecting to search database {self.location=} {self.url=} {self.port=}'):
-            logger.info(f'Found collections: {self.get_collections().collections}')
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        await self.close()

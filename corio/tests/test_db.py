@@ -1,8 +1,9 @@
+import pytest
 from datetime import datetime
 from qdrant_client.http import models
 from types import SimpleNamespace
 from typing import Annotated
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 from uuid import UUID
 
 from corio.db.search.document import Document, Index
@@ -44,7 +45,8 @@ def test_indexed_subclass_fields_are_mapped_from_python_types():
     ]
 
 
-def test_embedder_client_calls_api_with_vectors_from_embedder():
+@pytest.mark.asyncio
+async def test_embedder_client_calls_api_with_vectors_from_embedder():
     m3 = Mock()
     m3.encode.side_effect = lambda texts, **kwargs: dict(
         dense_vecs=[[0.1] if texts[0] == "one" else [0.2]],
@@ -64,7 +66,7 @@ def test_embedder_client_calls_api_with_vectors_from_embedder():
         point.document = Document(id=text, text=text)
         points.append(point)
 
-    def embed_api_call(url, *, json, timeout):
+    async def embed_api_call(url, *, json, timeout):
         assert url == "https://embed.example/embed"
         assert timeout == 120
         assert json["is_multi"] is False
@@ -79,8 +81,13 @@ def test_embedder_client_calls_api_with_vectors_from_embedder():
     client.BATCH_SIZE_MULTI_FACTOR = 1
 
     with patch.object(Embedder, "m3", m3), patch.object(Embedder, "simple", simple):
-        with patch("corio.https.client.post", side_effect=embed_api_call) as post:
-            embedded = list(client.add_vectors(points))
+        http_client = AsyncMock()
+        http_client.__aenter__.return_value = http_client
+        http_client.post.side_effect = embed_api_call
+        with patch("corio.https.AsyncClient", return_value=http_client):
+            embedded = await client.add_vectors(points)
+
+        post = http_client.post
 
     assert embedded == points
     assert [point.vectors.dense for point in points] == [[0.1], [0.2]]

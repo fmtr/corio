@@ -22,11 +22,7 @@ if TYPE_CHECKING:
 
 
 class Vectors(dm.Base):
-    """
-
-    Vector payload returned by the embedder.
-
-    """
+    """Vector payload returned by the embedder."""
 
     simple: SparseVector
     sparse: SparseVector
@@ -35,52 +31,32 @@ class Vectors(dm.Base):
 
 
 class Embedder:
-    """
-
-    Build dense, sparse, and multi-vector representations.
-
-    """
+    """Build dense, sparse, and multi-vector representations."""
 
     Vectors = Vectors
     MAX_LENGTH = 256
 
     def __init__(self, *, is_multi: bool = True, max_length: int = MAX_LENGTH):
-        """
-
-        Configure the embedder without loading its models.
-
-        """
+        """Configure the embedder without loading its models."""
         self.is_multi = is_multi
         self.max_length = max_length
 
     @ccp
     def m3(cls):
-        """
-
-        Load the BGE-M3 embedding model once for the process.
-
-        """
+        """Load the BGE-M3 embedding model once for the process."""
         from FlagEmbedding import BGEM3FlagModel
 
         return BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
 
     @ccp
     def simple(cls):
-        """
-
-        Load the sparse BM25 embedding model once for the process.
-
-        """
+        """Load the sparse BM25 embedding model once for the process."""
         from fastembed import SparseTextEmbedding
 
         return SparseTextEmbedding(model_name="Qdrant/bm25")
 
     def get_multi(self, m3):
-        """
-
-        Return ColBERT vectors or a zero-filled fallback.
-
-        """
+        """Return ColBERT vectors or a zero-filled fallback."""
         if self.is_multi:
             return m3["colbert_vecs"]
 
@@ -119,7 +95,7 @@ class Embedder:
 
 
 class EmbedderClient:
-    """Consume the remote embedding service."""
+    """Consume the remote embedding service asynchronously."""
 
     Vectors = Vectors
     BATCH_SIZE_BASE = 1_500
@@ -143,25 +119,28 @@ class EmbedderClient:
             return self.BATCH_SIZE_BASE
         return int(self.BATCH_SIZE_BASE * self.BATCH_SIZE_MULTI_FACTOR)
 
-    def embed(self, texts: list[str]) -> list[Vectors]:
+    async def embed(self, texts: list[str]) -> list[Vectors]:
         from corio import https
 
-        response = https.client.post(
-            f"{self.url}/embed",
-            json=dict(
-                is_multi=self.is_multi,
-                max_length=self.max_length,
-                texts=texts,
-            ),
-            timeout=self.TIMEOUT,
-        )
+        async with https.AsyncClient() as client:
+            response = await client.post(
+                f"{self.url}/embed",
+                json=dict(
+                    is_multi=self.is_multi,
+                    max_length=self.max_length,
+                    texts=texts,
+                ),
+                timeout=self.TIMEOUT,
+            )
         response.raise_for_status()
         return [self.Vectors.model_validate(vector) for vector in response.json()]
 
-    def add_vectors(self, points: Iterable[Point]) -> Iterable[Point]:
-        """Embed points in batches and yield them back."""
+    async def add_vectors(self, points: Iterable[Point]) -> list[Point]:
+        """Embed points in batches and return them with their vectors."""
+        result = []
         for batch in batched(points, self.batch_size):
-            vectors = self.embed([point.text_vector for point in batch])
+            vectors = await self.embed([point.text_vector for point in batch])
             for point, vector in zip(batch, vectors):
                 point.vectors = vector
-                yield point
+                result.append(point)
+        return result

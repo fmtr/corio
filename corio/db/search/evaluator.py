@@ -27,9 +27,9 @@ class Evaluator:
         "ndcg@10", "map@100", "recall@100", "precision@10",
     ]
 
-    def __init__(self, document_type: type[Document] = Document, client: Client | None = None):
+    def __init__(self, document_type: type[Document], client: Client):
         self.Document = document_type
-        self.client = client or Client()
+        self.client = client
 
     @cached_property
     def name(self):
@@ -43,7 +43,7 @@ class Evaluator:
     def qrels(self) -> Qrels:
         raise NotImplementedError()
 
-    def evaluate(
+    async def evaluate(
             self,
             query_classes: list[type[Query]] | None = None,
             *,
@@ -60,7 +60,7 @@ class Evaluator:
         metrics = metrics or self.METRICS
         query_classes = query_classes or [self.Document.Query]
         querier = Querier(document_type=self.Document, client=self.client)
-        collection_meta = querier.collection
+        collection_meta = await querier.collection()
         scores_by_query_desc: dict[str, dict[str, float]] = {}
 
         with logger.span("Evaluating query classes..."):
@@ -71,7 +71,8 @@ class Evaluator:
                         self.queries.values(), limit=limit, query_type=query_cls,
                     )
                     run = Run(name=query_desc)
-                    for query_id, query in zip(self.queries, queries):
+                    for query_id in self.queries:
+                        query = await anext(queries)
                         for hit in query.hits:
                             run.add_score(query_id, hit.id, hit.score)
                     scores = run_evaluate(self.qrels, run, metrics, make_comparable=True)

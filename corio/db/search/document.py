@@ -5,6 +5,7 @@ Document and point models for `corio.db.search`.
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import datetime
 from functools import cached_property
 from pydantic import Field
@@ -150,15 +151,20 @@ class Document(dm.Base):
         return EmbedderClient(is_multi=cls.IS_MULTI, max_length=cls.MAX_LENGTH)
 
     @classmethod
-    def build(cls, data=(), client: Client | None = None):
+    async def build(
+            cls,
+            data: Iterable[Any] | None = None,
+            *,
+            client: Client,
+    ):
         builder = cls.Builder(document_type=cls, client=client, data=data)
-        return builder.build()
+        return await builder.build()
 
     @classmethod
     def query(
         cls,
         texts: list[str],
-        client: Client | None = None,
+            client: Client,
         *,
         runtime_filter: models.Filter | None = None,
     ):
@@ -168,8 +174,8 @@ class Document(dm.Base):
         return querier.query(texts, runtime_filter=runtime_filter)
 
     @classmethod
-    def get(cls, client: Client, id: str):
-        points = client.retrieve(
+    async def get(cls, client: Client, id: str):
+        points = await client.retrieve(
             collection_name=cls.name,
             ids=[get_hash_int(id)],
             with_payload=True,
@@ -179,8 +185,8 @@ class Document(dm.Base):
         return cls.model_validate(point.payload)
 
     @classmethod
-    def get_chunks(cls, client: Client, id: str, chunks: list[int]):
-        points, _ = client.scroll(
+    async def get_chunks(cls, client: Client, id: str, chunks: list[int]):
+        points, _ = await client.scroll(
             collection_name=cls.name,
             scroll_filter=models.Filter(
                 must=[
@@ -201,16 +207,16 @@ class Document(dm.Base):
         return [cls.model_validate(point.payload) for point in points]
 
     @classmethod
-    def evaluate(
+    async def evaluate(
             cls,
             query_classes: list[type[Query]] | None = None,
             *,
             limit: int = 100,
             metrics=None,
-            client: Client | None = None,
+            client: Client,
     ):
         evaluator = cls.Evaluator(document_type=cls, client=client)
-        return evaluator.evaluate(
+        return await evaluator.evaluate(
             query_classes=query_classes,
             limit=limit,
             metrics=metrics,

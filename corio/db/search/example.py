@@ -8,17 +8,19 @@ from __future__ import annotations
 
 from itertools import chain, islice
 
-
+import asyncio
 import typing
+from collections.abc import AsyncIterator
 from functools import cached_property
+
 from corio.db.search.builder import Builder
+from corio.db.search.client import Client
 from corio.db.search.client import models
 from corio.db.search.document import Document, Point
 from corio.db.search.evaluator import Evaluator
 from corio.db.search.query import Query, QueryBasic
 from corio.function import ccp
 from corio.hash import get_hash_int
-from corio.iterator import Iterator
 from corio.logs import logger
 
 if typing.TYPE_CHECKING:
@@ -80,13 +82,12 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
         point.document = document
         return point
 
-    @property
-    def inserted_ids(self) -> set[str]:
-        collection = self.collection
+    async def inserted_ids(self) -> set[str]:
+        collection = await self.collection()
         ids: set[str] = set()
         offset = None
         while True:
-            points, offset = self.client.scroll(
+            points, offset = await self.client.scroll(
                 collection_name=self.name,
                 scroll_filter=models.Filter(
                     must=[
@@ -108,11 +109,10 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
         logger.info(f"Found {len(ids)} already inserted docs")
         return ids
 
-    @property
-    def points(self) -> Iterator[Point]:
+    async def points(self) -> AsyncIterator[Point]:
 
         dataset = self.ir_dataset
-        inserted_ids = self.inserted_ids
+        inserted_ids = await self.inserted_ids()
         remaining_total = self.TOTAL_DOCS - len(inserted_ids)
 
         gold_doc_ids = {qrel.doc_id for qrel in dataset.qrels_iter()} - inserted_ids
@@ -136,8 +136,8 @@ class BuilderMsMarco(DatasetMsMarco, Builder):
         )
         )
         data = chain(ids_other, ids_gold)
-        points = (self.get_point(datum) for datum in data)
-        return Iterator(points, total=remaining_total)
+        for datum in data:
+            yield self.get_point(datum)
 
 
 class EvaluatorMsMarco(DatasetMsMarco, Evaluator):
@@ -157,18 +157,30 @@ class EvaluatorMsMarco(DatasetMsMarco, Evaluator):
             qrels.add_score(qrel.query_id, qrel.doc_id, qrel.relevance)
         return qrels
 
-def build():
-    return DocumentMsMarco.build()
 
-def eval():
-    scores = DocumentMsMarco.evaluate(query_classes=[Query, QueryBasic])
-    return scores
+async def build(client):
+    return await DocumentMsMarco.build(data=(), client=client)
 
-def query():
-    texts=['sql queries in access', 'rivers in south america']
-    results = list(DocumentMsMarco.query(texts=texts))
-    return results
+
+async def evaluate(client):
+    return await DocumentMsMarco.evaluate(
+        query_classes=[Query, QueryBasic],
+        client=client,
+    )
+
+
+async def query(client):
+    texts = ["sql queries in access", "rivers in south america"]
+    return [
+        query
+        async for query in DocumentMsMarco.query(texts=texts, client=client)
+    ]
+
+
+async def main():
+    async with Client() as client:
+        await query(client)
+
 
 if __name__ == "__main__":
-    query()
-
+    asyncio.run(main())
