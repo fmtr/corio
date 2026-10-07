@@ -164,7 +164,7 @@ class Builder:
         points = await self.embedder.add_vectors(points)
 
         async with self.disable_hnsw():
-            await self.client.upload_points(
+            self.client.upload_points(
                 collection_name=self.name,
                 points=points,
                 batch_size=batch_size,
