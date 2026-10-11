@@ -43,6 +43,7 @@ def test_strip_none_flatten_tree_and_iterdiffer():
     diff = iterator.IterDiffer(before=[1, 2], after=[2, 3])
     assert diff.added == {3}
     assert diff.removed == {1}
+    assert diff.same == {2}
     assert diff.is_changed is True
 
 

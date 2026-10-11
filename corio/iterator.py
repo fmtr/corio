@@ -293,6 +293,15 @@ class IterDiffer(Generic[IterDifferT]):
         return self.before - self.after
 
     @property
+    def same(self) -> set[IterDifferT]:
+        """
+
+        Items present in both iterables.
+
+        """
+        return self.before & self.after
+
+    @property
     def is_changed(self) -> bool:
         """
 
