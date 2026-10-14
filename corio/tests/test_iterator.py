@@ -305,6 +305,29 @@ def test_iterator_supports_context_manager():
     assert any(message.startswith("Completed 1 item") for message in info_events)
 
 
+@pytest.mark.asyncio
+async def test_async_iterator_yields_stats_and_closes_source(monkeypatch):
+    monkeypatch.setattr(iterator, "logger", _NoopLogger())
+    closed = False
+
+    async def source():
+        nonlocal closed
+        try:
+            yield "delete:1"
+            yield "upsert:2"
+        finally:
+            closed = True
+
+    wrapped = iterator.AsyncIterator(source(), total=2)
+    values = [value async for value in wrapped]
+
+    assert values == ["delete:1", "upsert:2"]
+    assert wrapped.count == 2
+    assert wrapped.total == 2
+    assert wrapped.percentage == 100.0
+    assert closed is True
+
+
 def test_iterator_span_context_manager():
     events = []
 

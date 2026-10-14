@@ -3,8 +3,6 @@ Collection-building helpers for asynchronous `corio.db.search`.
 """
 from __future__ import annotations
 
-from itertools import chain
-
 from collections.abc import AsyncIterator, Iterable
 from contextlib import asynccontextmanager
 from functools import cached_property
@@ -12,7 +10,7 @@ from qdrant_client.http import models
 from qdrant_client.http.models import CollectionInfo
 from typing import Any
 
-from corio import logger
+from corio import iterator, logger
 from corio.db.search.client import Client
 from corio.db.search.constants import DENSE, DENSE_SIZE, MULTI, MULTI_SIZE, SIMPLE, SPARSE
 from corio.db.search.document import Document, Point
@@ -150,6 +148,18 @@ class Builder:
         for data in self.data:
             yield self.get_point(data)
 
+    async def point_batches(self, batch_size: int) -> AsyncIterator[list[Point]]:
+        """Yield bounded batches from the async point stream."""
+        points = []
+        async for root in self.points():
+            for point in root.points:
+                points.append(point)
+                if len(points) == batch_size:
+                    yield points
+                    points = []
+        if points:
+            yield points
+
     async def build(self):
         """
 
@@ -159,16 +169,11 @@ class Builder:
         batch_size = self.embedder.batch_size
         await self.collection()
 
-        points = [point async for point in self.points()]
-        points = chain.from_iterable(point.points for point in points)
-        points = await self.embedder.add_vectors(points)
-
         async with self.disable_hnsw():
-            self.client.upload_points(
-                collection_name=self.name,
-                points=points,
-                batch_size=batch_size,
-                parallel=1,
-                method="fork",
-                max_retries=self.MAX_RETRIES,
-            )
+            async for points in iterator.AsyncIterator(self.point_batches(batch_size)):
+                embedded = await self.embedder.add_vectors(points)
+                await self.client.upsert(
+                    collection_name=self.name,
+                    points=embedded,
+                    wait=True,
+                )

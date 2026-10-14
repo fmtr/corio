@@ -247,7 +247,12 @@ class Point(PointStruct):
 
     @vectors.setter
     def vectors(self, value: Vectors) -> None:
-        self.vector = value.model_dump()
+        """
+
+        Set the vector mapping without recursively serializing nested Qdrant models.
+
+        """
+        self.vector = dict(value)
 
     @property
     def text_vector(self) -> str:

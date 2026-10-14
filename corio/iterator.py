@@ -2,9 +2,21 @@ from __future__ import annotations
 
 from itertools import chain, batched
 
+from collections.abc import AsyncIterable
 from datetime import timedelta
 from types import EllipsisType
-from typing import List, Dict, Any, TypeVar, Generic, Iterable, Mapping, Sequence, Iterator as TypingIterator
+from typing import AsyncIterator as TypingAsyncIterator
+from typing import (
+    List,
+    Dict,
+    Any,
+    TypeVar,
+    Generic,
+    Iterable,
+    Mapping,
+    Sequence,
+    Iterator as TypingIterator,
+)
 
 from corio import dt, Constants
 from corio.datatype import is_none
@@ -311,14 +323,14 @@ class IterDiffer(Generic[IterDifferT]):
         return bool(self.added or self.removed)
 
 
-class Iterator(Generic[IteratorT]):
+class IteratorBase(Generic[IteratorT]):
     """
 
     Integrate an iterable with observability and progress/throughput stats.
 
     """
 
-    def __init__(self, iterable: Iterable[IteratorT], *, total: int | None = None):
+    def __init__(self, iterable: Iterable[IteratorT] | AsyncIterable[IteratorT], *, total: int | None = None):
         """
 
         Initialize with iterable and optional explicit total.
@@ -341,7 +353,7 @@ class Iterator(Generic[IteratorT]):
         return cls([None], total=1)
 
     @staticmethod
-    def _get_total(iterable: Iterable[IteratorT]) -> int | None:
+    def _get_total(iterable: Iterable[IteratorT] | AsyncIterable[IteratorT]) -> int | None:
         """
 
         Return len(iterable) when available, else None.
@@ -458,31 +470,6 @@ class Iterator(Generic[IteratorT]):
         """
         logger.warning(f"Count exceeded total: {self.count}/{self.total}")
 
-    def __iter__(self) -> TypingIterator[IteratorT]:
-        """
-
-        Yield items while updating stats and ensuring iterator cleanup.
-
-        """
-        self.count = 0
-        self.started_at = dt.now()
-        self.item = None
-        iterator = iter(self.iterable)
-
-        with self.span_iteration:
-            try:
-                for item in iterator:
-                    self.count += 1
-                    self.item = item
-                    if self.is_over_count:
-                        self.log_over_total_warning()
-                    with self.span_item:
-                        yield item
-                self.log_completion()
-            finally:
-                close = getattr(iterator, "close", lambda: None)
-                close()
-
     def __enter__(self):
         """
 
@@ -574,3 +561,52 @@ class Iterator(Generic[IteratorT]):
         if self.rate is None:
             return None
         return f"avg={suffix_plural(count=self.rate, name=self.item_desc, mask_count='{:.2f}')}/s"
+
+
+class Iterator(IteratorBase[IteratorT]):
+    """Observe a synchronous iterable with progress and throughput stats."""
+
+    def __iter__(self) -> TypingIterator[IteratorT]:
+        self.count = 0
+        self.started_at = dt.now()
+        self.item = None
+        iterator = iter(self.iterable)
+
+        with self.span_iteration:
+            try:
+                for item in iterator:
+                    self.count += 1
+                    self.item = item
+                    if self.is_over_count:
+                        self.log_over_total_warning()
+                    with self.span_item:
+                        yield item
+                self.log_completion()
+            finally:
+                close = getattr(iterator, "close", lambda: None)
+                close()
+
+
+class AsyncIterator(IteratorBase[IteratorT]):
+    """Observe an asynchronous iterable with progress and throughput stats."""
+
+    async def __aiter__(self) -> TypingAsyncIterator[IteratorT]:
+        self.count = 0
+        self.started_at = dt.now()
+        self.item = None
+        iterator = aiter(self.iterable)
+
+        with self.span_iteration:
+            try:
+                async for item in iterator:
+                    self.count += 1
+                    self.item = item
+                    if self.is_over_count:
+                        self.log_over_total_warning()
+                    with self.span_item:
+                        yield item
+                self.log_completion()
+            finally:
+                aclose = getattr(iterator, "aclose", None)
+                if aclose is not None:
+                    await aclose()
