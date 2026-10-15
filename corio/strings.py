@@ -1,16 +1,43 @@
-import re
-from collections import namedtuple
-from dataclasses import dataclass
 from string import Formatter
+
+import re
+from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, List
+from typing import Any, Iterator, List, NamedTuple
 
 from corio.datatype import is_none
 
 ELLIPSIS = '…'
 formatter = Formatter()
 
-Segment = namedtuple('Segment', ['literal_text', 'field_name', 'format_spec', 'conversion'])
+
+class Segment(NamedTuple):
+    literal_text: str
+    field_name: str | None
+    format_spec: str
+    conversion: str | None
+
+
+class Portion(NamedTuple):
+    value: str
+    captured: bool
+
+
+def get_portions(match: re.Match) -> Iterator[Portion]:
+    """Iterate over unmatched and captured portions of a regex match."""
+    cursor = match.start()
+    if not match.groups():
+        yield Portion(match.group(0), captured=False)
+        return
+
+    for start, end in match.regs[1:]:
+        if start < 0:
+            continue
+        yield Portion(match.string[cursor:start], captured=False)
+        yield Portion(match.string[start:end], captured=True)
+        cursor = end
+
+    yield Portion(match.string[cursor:match.end()], captured=False)
 
 
 def parse_string(string: str) -> List[Segment]:

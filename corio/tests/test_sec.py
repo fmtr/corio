@@ -1,9 +1,28 @@
 from corio import sec
 
 
-def test_definition_nodes_defaults_to_empty_but_accepts_null():
+def test_definition_casts_string_nodes_to_nodes():
+    definition = sec.Definition(files=[], nodes=["*"])
+
+    assert isinstance(definition.nodes[0], sec.Node)
+    assert definition.nodes[0].glob == "*"
+    assert definition.nodes[0].pattern is None
+
+
+def test_definition_parses_complex_nodes_and_anchors_pattern():
+    definition = sec.Definition(
+        files=[],
+        nodes=[{"glob": "app/password", "pattern": r"https?://user:(.*)@.*&token=(.*)"}],
+    )
+
+    node = definition.nodes[0]
+    assert node.glob == "app/password"
+    assert node.rx.fullmatch("https://user:alice@example.test&token=secret")
+    assert not node.rx.search("prefix https://user:alice@example.test&token=secret")
+
+
+def test_definition_nodes_defaults_to_empty():
     assert sec.Definition(files=[]).nodes == []
-    assert sec.Definition(files=[], nodes=None).nodes is None
 
 
 def test_decrypt_mirrors_source_tree_into_target(tmp_path, monkeypatch):

@@ -3,15 +3,15 @@ from __future__ import annotations
 import os
 import stat
 from functools import cached_property
+from pydantic import Field, model_validator
+from pydantic_settings import CLI_SUPPRESS, CliSubCommand
 from typing import ClassVar
 from typing import Generator
 from typing import TYPE_CHECKING
 
-from pydantic import Field
-from pydantic_settings import CLI_SUPPRESS, CliSubCommand
-
 from corio import dm as dm
 from corio import sets as sets
+from corio.encrypt import Node
 from corio.iterator import dedupe, flatten_tree
 from corio.logs import logger
 from corio.path import Path
@@ -36,7 +36,20 @@ class Definition(dm.Base):
     else:
         config: object | None = Field(default=None, exclude=True, repr=False, description=CLI_SUPPRESS)
     files: list[str]
-    nodes: list[str] | None = Field(default_factory=list)
+    nodes: list[str | Node] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def cast_string_nodes(self):
+        """
+
+        Convert string node globs to complete-value nodes.
+
+        """
+        self.nodes = [
+            Node(glob=node) if isinstance(node, str) else node
+            for node in self.nodes or []
+        ]
+        return self
 
     @cached_property
     def encryptor(self) -> EncryptorValuesSelect:
@@ -58,7 +71,7 @@ class Definition(dm.Base):
         black_flat = flatten_tree(black_robin)
 
         for path, value in black_flat.items():
-            is_key_encrypted = self.encryptor.include_node(path)
+            is_key_encrypted = bool(self.encryptor.include(path))
             is_value_encrypted = self.encryptor.is_encrypted(value)
             if is_key_encrypted != is_value_encrypted:
                 return False

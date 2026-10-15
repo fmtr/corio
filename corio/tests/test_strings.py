@@ -1,4 +1,21 @@
+import re
+
 from corio import strings
+
+
+def test_get_portions_iterates_captured_and_uncaptured_portions():
+    match = re.fullmatch(
+        r"https?://user:(.*)@.*&token=(.*)",
+        "https://user:alice@example.test&token=secret",
+    )
+
+    assert list(strings.get_portions(match)) == [
+        ("https://user:", False),
+        ("alice", True),
+        ("@example.test&token=", False),
+        ("secret", True),
+        ("", False),
+    ]
 
 
 def test_is_format_string_handles_valid_and_invalid_masks():
