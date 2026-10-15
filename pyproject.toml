@@ -1,6 +1,6 @@
 [project]
 name = "corio"
-version = "2.14.2"
+version = "2.14.3"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
@@ -88,7 +88,7 @@ Homepage = "https://github.com/fmtr/corio"
 corio = "corio.entrypoint:main"
 
 [tool.corio.metadata]
-version = "2.14.2"
+version = "2.14.3"
 port = 0
 base = "python"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
@@ -186,7 +186,7 @@ corio = ["pyproject.package.toml", "assets/**"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api", "caching", "datatype", "db", "dhcp", "dm", "dns", "dt", "encrypt", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "tasmota", "toml", "tools", "yml"]
+env_list = ["api", "caching", "datatype", "db", "dhcp", "dm", "dns", "dt", "encrypt", "enums", "env", "hash", "hook", "infra", "inherit", "iterator", "jsn", "name", "path", "patterns", "rand", "sec", "sets", "shell", "strings", "tasmota", "toml", "tools", "yml"]
 
 [tool.tox.env.api]
 description = "Run api tests."
@@ -232,6 +232,11 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dt.py}"]
 description = "Run encrypt tests."
 deps = ["pyrage", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_encrypt.py}"]]
+
+[tool.tox.env.enums]
+description = "Run enums tests."
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_enums.py}"]]
 
 [tool.tox.env.env]
 description = "Run env tests."
