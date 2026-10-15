@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
 
 from corio import https
 
@@ -19,17 +18,6 @@ class PaperlessClient:
     def headers(self) -> dict[str, str]:
         return {"Authorization": f"Token {self.token}"}
 
-    def _next_url(self, url: str) -> str:
-        next_url = urlsplit(url)
-        base_url = urlsplit(self.base_url)
-        return urlunsplit((
-            base_url.scheme,
-            base_url.netloc,
-            next_url.path,
-            next_url.query,
-            next_url.fragment,
-        ))
-
     async def _get(self, url: str) -> Any:
         async with https.AsyncClient(headers=self.headers) as client:
             response = await client.get(url)
@@ -37,18 +25,18 @@ class PaperlessClient:
         return response.json()
 
     async def list_documents(self):
-        """Return all Paperless documents without downloading OCR content."""
-        from corio.db.search.examples.paperless.document import Paperless
+        """Return lightweight Paperless metadata without downloading OCR content."""
+        from corio.db.search.examples.paperless.document import PaperlessIndex
 
         url = f"{self.base_url}/api/documents/?truncate_content=true"
         documents = []
         while url:
             page = await self._get(url)
             documents.extend(
-                Paperless.from_paperless(data, instance=self.instance)
+                PaperlessIndex.from_paperless(data)
                 for data in page["results"]
             )
-            url = self._next_url(page["next"]) if page["next"] else None
+            url = page["next"]
         return documents
 
     async def get_document(self, document_id: int):

@@ -11,6 +11,7 @@ from corio.db.search.document import Document, Index
 from corio.db.search.embedder import Embedder, EmbedderClient
 from corio.db.search.examples.paperless import PaperlessClient, Paperless
 from corio.db.search.examples.paperless.builder import PaperlessBuilder
+from corio.db.search.examples.paperless.document import PaperlessIndex
 
 
 class IndexedDocument(Document):
@@ -119,7 +120,7 @@ async def test_paperless_list_paginates_without_content_download():
     responses = [
         Response({"results": [{"id": 1, "title": "One", "content": "", "modified": "2024-01-01T00:00:00Z",
                                "added": "2024-01-01T00:00:00Z", "checksum": "a"}],
-                  "next": "http://paperless/api/documents/?page=2"}),
+                  "next": "https://paperless/api/documents/?page=2"}),
         Response({"results": [{"id": 2, "title": "Two", "content": "", "modified": "2024-01-02T00:00:00Z",
                                "added": "2024-01-02T00:00:00Z", "checksum": "b"}], "next": None}),
     ]
@@ -132,6 +133,7 @@ async def test_paperless_list_paginates_without_content_download():
         documents = await client.list_documents()
 
     assert [document.id for document in documents] == ["1", "2"]
+    assert all(isinstance(document, PaperlessIndex) for document in documents)
     assert http.get.call_args_list[0].args == ("https://paperless/api/documents/?truncate_content=true",)
     assert http.get.call_args_list[1].args == ("https://paperless/api/documents/?page=2",)
 
@@ -197,7 +199,8 @@ def test_paperless_root_and_chunk_text_vectors():
 async def test_paperless_reconciliation_reads_only_indexed_root_fields():
     client = AsyncMock()
     client.scroll.return_value = (
-        [Mock(payload={"id": "1", "paperless_id": 1, "sync_fingerprint": "fingerprint"})],
+        [Mock(payload={"paperless_id": 1, "modified": "2024-01-01T00:00:00Z", "checksum": "a",
+                       "archive_checksum": None})],
         None,
     )
     builder = PaperlessBuilder(document_type=Paperless, client=client, paperless=Mock())
@@ -205,4 +208,5 @@ async def test_paperless_reconciliation_reads_only_indexed_root_fields():
     roots = await builder.indexed_roots()
 
     assert roots[0].id == "1"
-    assert client.scroll.call_args.kwargs["with_payload"] == ["id", "paperless_id", "sync_fingerprint"]
+    assert client.scroll.call_args.kwargs["with_payload"] == ["paperless_id", "modified", "checksum",
+                                                              "archive_checksum"]

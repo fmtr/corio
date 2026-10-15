@@ -7,9 +7,10 @@ import asyncio
 from collections.abc import AsyncIterator
 from qdrant_client.http import models
 
+from corio import iterator
 from corio.db.search.builder import Builder
 from corio.db.search.document import Point
-from corio.db.search.examples.paperless.document import PaperlessIndexedRoot
+from corio.db.search.examples.paperless.document import PaperlessIndex
 from corio.hash import get_hash_int
 from corio.iterator import ilist
 
@@ -28,7 +29,7 @@ class PaperlessBuilder(Builder):
         point.document = data
         return point
 
-    async def indexed_roots(self) -> ilist[PaperlessIndexedRoot]:
+    async def indexed_roots(self) -> ilist[PaperlessIndex]:
         roots = ilist()
         offset = None
         scroll_filter = models.Filter(
@@ -43,14 +44,14 @@ class PaperlessBuilder(Builder):
             kwargs = dict(
                 collection_name=self.name,
                 scroll_filter=scroll_filter,
-                with_payload=["id", "paperless_id", "sync_fingerprint"],
+                with_payload=["paperless_id", "modified", "checksum", "archive_checksum"],
                 with_vectors=False,
-                limit=100,
+                limit=1000,
             )
             if offset is not None:
                 kwargs["offset"] = offset
             page, offset = await self.client.scroll(**kwargs)
-            roots.extend(PaperlessIndexedRoot.model_validate(point.payload) for point in page)
+            roots.extend(PaperlessIndex.model_validate(point.payload) for point in page)
             if offset is None:
                 return roots
 
@@ -71,7 +72,8 @@ class PaperlessBuilder(Builder):
 
     async def points(self) -> AsyncIterator[Point]:
         """Yield full points only for Paperless documents needing replacement."""
-        for documents in batched(self.data, self.DETAIL_BATCH_SIZE):
+        data = iterator.Iterator(self.data)
+        for documents in batched(data, self.DETAIL_BATCH_SIZE):
             details = await asyncio.gather(
                 *(self.paperless.get_document(document.paperless_id) for document in documents)
             )
@@ -97,9 +99,10 @@ class PaperlessBuilder(Builder):
                 replacement_ids.append(document_id)
 
         await self.delete_documents(replacement_ids)
-        self.data = (
+        self.data = [
             source
             for source in source_documents
             if source.id not in indexed_by_id or source.id in replacement_ids
-        )
+        ]
+
         return await super().build()

@@ -528,7 +528,7 @@ class IteratorBase(Generic[IteratorT]):
         if rate is None:
             return None
 
-        return f"{suffix_plural(count=rate, name=self.item_desc, mask_count='{:.2f}')}/s"
+        return f"{suffix_plural(count=rate, name=self.item_desc, mask_count='{:.2f}')}"
 
     @property
     def eta_text(self) -> str | None:

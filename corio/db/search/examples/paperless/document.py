@@ -13,15 +13,40 @@ from corio.function import ccp
 from corio.hash import get_hash_readable
 
 
-class PaperlessIndexedRoot(dm.Base):
-    """The payload fields needed to reconcile an indexed Paperless root."""
+class PaperlessFingerprint:
+    """Provide the stable fingerprint shared by Paperless representations."""
 
-    id: str
+    @computed_field
+    @property
+    def sync_fingerprint(self) -> str:
+        canonical = json.dumps(
+            [self.modified.isoformat(), self.checksum, self.archive_checksum],
+            separators=(",", ":"),
+        )
+        return get_hash_readable(canonical)
+
+
+class PaperlessIndex(PaperlessFingerprint, dm.Base):
+    """Metadata needed to reconcile a Paperless document without OCR text."""
+
     paperless_id: int
-    sync_fingerprint: str
+    modified: datetime
+    checksum: str | None = None
+    archive_checksum: str | None = None
+
+    @property
+    def id(self) -> str:
+        return str(self.paperless_id)
+
+    @classmethod
+    def from_paperless(cls, data: dict[str, Any]) -> "PaperlessIndex":
+        """Convert list metadata without constructing a full search document."""
+        values = dict(data)
+        values["paperless_id"] = values.pop("id")
+        return cls.model_validate(values)
 
 
-class Paperless(Document):
+class Paperless(PaperlessFingerprint, Document):
     """A Paperless document, either from a list page or a detail response."""
 
     paperless_id: Annotated[int, Index()]
@@ -57,15 +82,6 @@ class Paperless(Document):
         values["archive_filename"] = values.pop("archived_file_name", values.get("archive_filename"))
         values["text"] = values.pop("content", "")
         return cls.model_validate(values)
-
-    @computed_field
-    @property
-    def sync_fingerprint(self) -> str:
-        canonical = json.dumps(
-            [self.modified.isoformat(), self.checksum, self.archive_checksum],
-            separators=(",", ":"),
-        )
-        return get_hash_readable(canonical)
 
     @property
     def text_vector(self) -> str:
