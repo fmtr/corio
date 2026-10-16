@@ -69,11 +69,13 @@ def test_encryptor_values_round_trip(key):
 def test_encryptor_values_select_encrypts_each_capture_group(key):
     encryptor = EncryptorValuesSelect(
         key=key,
-        nodes=[Node(glob="app/*", pattern=r"https?://user:(.*)@.*&token=(.*)")],
+        nodes=[Node(glob="app/*/password", pattern=r"https?://user:(.*)@.*&token=(.*)")],
     )
     expected = {
         "app": {
-            "password": "https://user:alice@example.test&token=secret",
+            "credentials": {
+                "password": "https://user:alice@example.test&token=secret",
+            },
             "other": "not encrypted",
         }
     }
@@ -81,7 +83,9 @@ def test_encryptor_values_select_encrypts_each_capture_group(key):
     encrypted = encryptor.encrypt(expected)
     assert encrypted == {
         "app": {
-            "password": "https://user:⁂ClBQCyo0Nf50cod+si1I1HoijpRrC5kat0AqjQD2sy0=⁂@example.test&token=⁂wZgCZPwiOokK+ug8kb0tQ47yrQ2udR/eo2YMPlVrE5Y=⁂",
+            "credentials": {
+                "password": "https://user:⁂ClBQCyo0Nf50cod+si1I1HoijpRrC5kat0AqjQD2sy0=⁂@example.test&token=⁂wZgCZPwiOokK+ug8kb0tQ47yrQ2udR/eo2YMPlVrE5Y=⁂",
+            },
             "other": "not encrypted",
         }
     }
@@ -91,7 +95,7 @@ def test_encryptor_values_select_encrypts_each_capture_group(key):
 def test_encryptor_values_select_encrypts_partial_root_scalar(key):
     encryptor = EncryptorValuesSelect(
         key=key,
-        nodes=[Node(glob="*", pattern=r"user=(.*);token=(.*)")],
+        nodes=[Node(glob=None, pattern=r"user=(.*);token=(.*)")],
     )
     expected = "user=alice;token=secret"
 
@@ -99,6 +103,64 @@ def test_encryptor_values_select_encrypts_partial_root_scalar(key):
 
     assert encrypted == "user=⁂ClBQCyo0Nf50cod+si1I1HoijpRrC5kat0AqjQD2sy0=⁂;token=⁂wZgCZPwiOokK+ug8kb0tQ47yrQ2udR/eo2YMPlVrE5Y=⁂"
     assert encryptor.decrypt(encrypted) == expected
+
+
+def test_encryptor_values_select_finds_root_node_among_other_nodes(key):
+    encryptor = EncryptorValuesSelect(
+        key=key,
+        nodes=[
+            Node(glob="app/*", pattern=r"user=(.*);token=(.*)"),
+            Node(glob=None, pattern=r"user=(.*);token=(.*)"),
+        ],
+    )
+
+    encrypted = encryptor.encrypt("user=alice;token=secret")
+
+    assert encryptor.is_encrypted(encrypted)
+
+
+def test_encryptor_values_select_can_partially_encrypt_a_root_scalar(key):
+    encryptor = EncryptorValuesSelect(
+        key=key,
+        nodes=[Node(glob=None, pattern=r"user=(.*);token=(.*)")],
+    )
+
+    encrypted = encryptor.encrypt("user=alice;token=secret")
+
+    assert encryptor.is_encrypted(encrypted)
+    assert encryptor.decrypt(encrypted) == "user=alice;token=secret"
+
+
+def test_encryptor_values_select_does_not_apply_non_root_node_to_root_scalar(key):
+    encryptor = EncryptorValuesSelect(
+        key=key,
+        nodes=[Node(glob="app/*", pattern=r"user=(.*);token=(.*)")],
+    )
+
+    value = "user=alice;token=secret"
+
+    assert encryptor.encrypt(value) == value
+
+
+def test_encryptor_values_select_can_leave_a_root_scalar_unencrypted(key):
+    encryptor = EncryptorValuesSelect(
+        key=key,
+        nodes=[Node(glob=None, pattern=False)],
+    )
+
+    value = "user=alice;token=secret"
+
+    assert encryptor.encrypt(value) == value
+
+
+def test_encryptor_values_select_reports_an_unmatched_partial_pattern(key):
+    encryptor = EncryptorValuesSelect(
+        key=key,
+        nodes=[Node(glob="app/*", pattern=r"user=(.*);token=(.*)")],
+    )
+
+    with pytest.raises(ValueError, match="app/secret"):
+        encryptor.encrypt({"app": {"secret": "not a user token"}})
 
 
 @pytest.mark.parametrize(

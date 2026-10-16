@@ -25,6 +25,21 @@ def test_definition_nodes_defaults_to_empty():
     assert sec.Definition(files=[]).nodes == []
 
 
+def test_definition_accepts_a_nullable_root_node():
+    definition = sec.Definition(
+        files=[],
+        nodes=[{"glob": None, "pattern": r"user=(.*);token=(.*)"}],
+    )
+
+    assert definition.nodes[0].glob is None
+
+
+def test_definition_accepts_a_root_opt_out_node():
+    definition = sec.Definition(files=[], nodes=[{"glob": None, "pattern": False}])
+
+    assert definition.nodes[0].pattern is False
+
+
 def test_decrypt_mirrors_source_tree_into_target(tmp_path, monkeypatch):
     source = sec.Path(tmp_path / "source")
     target = sec.Path(tmp_path / "target")

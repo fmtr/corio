@@ -20,8 +20,8 @@ Serializable = Union[SerializableScalar, dict, list]
 class Node:
     """Select a path and, optionally, parts of its string value."""
 
-    glob: str
-    pattern: str | None = None
+    glob: str | None
+    pattern: str | bool | None = None
 
     @cached_property
     def rx(self) -> re.Pattern:
@@ -266,9 +266,16 @@ class EncryptorValues(Encryptor):
         node = self.include(path)
         if node is None:
             return data
+        if node.pattern is False:
+            return data
         if not isinstance(data, str) or not node.pattern:
             return super().encrypt(data)
-        return node.rx.sub(MatchTransformer(super().encrypt), data)
+
+        encrypted = node.rx.sub(MatchTransformer(super().encrypt), data)
+        if encrypted == data:
+            message = f'Partial encryption pattern did not match path "{path}": {node.pattern}'
+            raise ValueError(message)
+        return encrypted
 
     def decrypt(self, data: Serializable) -> Serializable:
         """
@@ -305,13 +312,16 @@ class EncryptorValuesSelect(EncryptorValues):
 
         Include a path if it matches any configured node.
 
-        For a root scalar, use the first configured node so its partial
-        pattern can be applied.
+        A node with ``glob=None`` matches only a root scalar. A root scalar
+        does not match ordinary path globs, so configured nodes with another
+        glob are excluded from the root.
 
         """
         if path != Path():
             for node in self.nodes or []:
                 if path.match(node.glob):
+                    if node.pattern is False:
+                        return None
                     return node
             return None
 
@@ -320,5 +330,7 @@ class EncryptorValuesSelect(EncryptorValues):
         if not self.nodes:
             node = self.default
             return node
-        node = self.nodes[0]
-        return node
+        for node in self.nodes:
+            if node.glob is None:
+                return node
+        return None
