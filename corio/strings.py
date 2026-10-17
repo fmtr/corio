@@ -123,17 +123,19 @@ class Truncation:
     original: str
     remainder: str | None
     sep: str
+    was_truncated: bool = False
 
 
-def truncate(text, length=None, sep=ELLIPSIS, return_type=str):
+def truncate(text, length=None, sep=ELLIPSIS, return_type=str, flatten_text=True):
     """
 
     Truncate a string to length characters
 
     """
-    text = flatten(text)
+    if flatten_text:
+        text = flatten(text)
     if len(text) <= length or not length:
-        return text if return_type is str else Truncation(text, text, text, None, sep)
+        return text if return_type is str else Truncation(text, text, text, None, sep, False)
 
     cutoff = length - len(sep)
     truncated = text[:cutoff] + sep
@@ -146,19 +148,21 @@ def truncate(text, length=None, sep=ELLIPSIS, return_type=str):
             text_without_sep=text[:cutoff],
             original=text,
             remainder=text[cutoff:] or None,
-            sep=sep
+            sep=sep,
+            was_truncated=True,
         )
 
 
-def truncate_mid(text, length=None, sep=ELLIPSIS, return_type=str):
+def truncate_mid(text, length=None, sep=ELLIPSIS, return_type=str, flatten_text=True):
     """
 
     Truncate a string to `length` characters in the middle.
 
     """
-    text = flatten(text)
+    if flatten_text:
+        text = flatten(text)
     if len(text) <= length or not length:
-        return text if return_type is str else Truncation(text, text, text, '', sep)
+        return text if return_type is str else Truncation(text, text, text, '', sep, False)
 
     half = (length - len(sep)) // 2
     left = text[:half]
@@ -173,7 +177,8 @@ def truncate_mid(text, length=None, sep=ELLIPSIS, return_type=str):
             text_without_sep=None,
             original=text,
             remainder=None,
-            sep=sep
+            sep=sep,
+            was_truncated=True,
         )
 
 

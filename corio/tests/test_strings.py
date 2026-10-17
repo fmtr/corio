@@ -41,6 +41,7 @@ def test_truncate_return_type_structured():
     assert actual.text == "abcd…"
     assert actual.text_without_sep == "abcd"
     assert actual.remainder == "ef"
+    assert actual.was_truncated is True
 
 
 def test_truncate_mid_return_type_structured():
@@ -49,6 +50,20 @@ def test_truncate_mid_return_type_structured():
     assert actual.text == "abc…hij"
     assert actual.original == "abcdefghij"
     assert actual.text_without_sep is None
+    assert actual.was_truncated is True
+
+
+def test_truncate_mid_can_preserve_whitespace():
+    actual = strings.truncate_mid(
+        "  abc  ",
+        length=20,
+        flatten_text=False,
+        return_type=strings.Truncation,
+    )
+
+    assert actual.text == "  abc  "
+    assert actual.original == "  abc  "
+    assert actual.was_truncated is False
 
 
 def test_join_natural_masks_and_empty():
