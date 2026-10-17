@@ -6,6 +6,7 @@ from corio.function import ccp
 class MapEnum(StrEnum):
     """A string enum whose members also carry descriptions."""
 
+    @staticmethod
     def _generate_next_value_(name, start, count, last_values):
         return name
 
