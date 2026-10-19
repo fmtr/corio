@@ -288,6 +288,8 @@
       
         
       
+        
+      
     
     
     
@@ -371,6 +373,34 @@
     
   
     2.6.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
   
 
     
@@ -2021,6 +2051,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    strings
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -2037,6 +2085,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#truncation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Truncation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -2322,6 +2400,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#truncation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Truncation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2343,6 +2440,19 @@
 <h1 id="strings">strings</h1>
 <p><code>from corio import strings</code></p>
 <p>String formatting and transform helpers.</p>
+<h2 id="truncation">Truncation</h2>
+<p><code>truncate</code> and <code>truncate_mid</code> flatten whitespace by default. Set <code>flatten_text=False</code> when the original whitespace must be preserved. Structured results expose <code>was_truncated</code> so callers can distinguish unchanged text from text that was shortened.</p>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">strings</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">strings</span><span class="o">.</span><span class="n">truncate</span><span class="p">(</span>
+    <span class="s2">"  a long value  "</span><span class="p">,</span>
+    <span class="n">length</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">flatten_text</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">return_type</span><span class="o">=</span><span class="n">strings</span><span class="o">.</span><span class="n">Truncation</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">was_truncated</span> <span class="ow">is</span> <span class="kc">True</span>
+</code></pre></div>
 
 
 
