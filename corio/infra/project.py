@@ -7,6 +7,10 @@ from corio.iterator import ilist
 from corio.path import PackagePaths
 
 
+class InvalidPinnedVersion(Exception):
+    """A pinned release version contains a pre-release suffix."""
+
+
 class Project:
     """
 
@@ -14,8 +18,8 @@ class Project:
 
     """
 
-    def __init__(self, name, context='gex', channel='dev', extras=None, pinned=None):
-        self.paths = PackagePaths(PackagePaths.dev_repo / name)
+    def __init__(self, name=None, context='gex', channel='dev', extras=None, pinned=None, pre=False, path=None):
+        self.paths = PackagePaths(path or PackagePaths.dev_repo / name)
 
         # project settings:
         self.services = self.paths.metadata.services
@@ -29,9 +33,9 @@ class Project:
         self.channel = channel
         self.extras = extras or ['all']
 
-        self.name = name
+        self.name = self.paths.name if name is None else name
 
-        self.versions = Versions(self, pinned=pinned)
+        self.versions = Versions(self, pinned=pinned, pre=pre)
 
     @cached_property
     def repo(self):
@@ -95,11 +99,17 @@ class Project:
 
 class Versions(Inherit[Project]):
 
-    def __init__(self, project: Project, pinned: str | None = None):
+    def __init__(self, project: Project, pinned: str | None = None, pre: bool = False):
         super().__init__(project)
+        self.pre_next = pre
         self.pinned = None
         if pinned:
             self.pinned = version.Version.parse(pinned)
+            if self.pinned.prerelease:
+                raise InvalidPinnedVersion(
+                    f'Pinned version "{pinned}" must be a regular semantic version without a pre-release suffix. '
+                    "Set pre=True to create a pre-release."
+                )
 
     def get(self):
         return self.paths.metadata.version_obj
@@ -109,12 +119,27 @@ class Versions(Inherit[Project]):
         return self.get()
 
     @property
-    def is_pre(self):
+    def pre_current(self):
         return bool(self.new.prerelease)
 
     @property
     def next_pre(self):
-        if self.is_pre:
+        if self.pre_current:
             return None
 
         return self.new.bump_patch().replace(prerelease="alpha000")
+
+    @property
+    def next(self):
+        if self.pinned:
+            if not self.pre_next:
+                return self.pinned
+            return self.pinned.replace(prerelease="alpha000")
+
+        if self.pre_current:
+            return self.new.bump_prerelease()
+
+        if self.pre_next:
+            return self.next_pre
+
+        return self.new.bump_patch()

@@ -21,6 +21,15 @@ from corio.logs import logger, sanitize
 from corio.path import Path
 
 
+class ReleaseTestsFailed(RuntimeError):
+    """The project test suite failed during a release."""
+
+    def __init__(self, code: int, output: str):
+        self.code = code
+        self.output = output
+        super().__init__(f"Tests failed with exit code {code}.\n{output}")
+
+
 class Releaser(Inherit[Project]):
     """
 
@@ -47,12 +56,14 @@ class Releaser(Inherit[Project]):
         self.repo.fetch()
         self.increment()
 
-        is_passed = self.tester.run()
-        if not is_passed:
-            if self.versions.is_pre:
-                logger.warning(f"Tests failed, but release is pre-release ({self.version.prerelease}). Continuing.")
-            else:
-                raise RuntimeError("Tests failed. Aborting release.")
+        test_failure = None
+        try:
+            self.tester.run()
+        except ReleaseTestsFailed as exception:
+            if not self.versions.pre_current:
+                raise
+            logger.warning(f"Tests failed, but release is pre-release ({self.version.prerelease}). Continuing.")
+            test_failure = exception
 
         self.commit()
         self.repo.push()
@@ -70,6 +81,9 @@ class Releaser(Inherit[Project]):
 
         if release:
             self.release()
+
+        if test_failure:
+            raise test_failure
 
     @property
     def message(self):
@@ -234,13 +248,14 @@ class IncrementorVersion(Incrementor):
     def pinned_tag(self):
         if not self.versions.pinned:
             return None
-        return self.versions.pinned.tag
+        return self.versions.next.tag
 
     @cached_property
     def pinned(self):
-        new = self.versions.pinned
-        if not new:
+        if not self.versions.pinned:
             return None
+
+        new = self.versions.next
 
         if not self.has_old_tag:
             raise RuntimeError(
@@ -266,10 +281,7 @@ class IncrementorVersion(Incrementor):
             )
             return self.old
 
-        if self.old.prerelease:
-            return self.old.bump_prerelease()
-        else:
-            return self.old.bump_patch()
+        return self.versions.next
 
     @logger.instrument('Incrementing release version in-memory for "{self.paths.name}"...')
     def apply(self) -> Path | list[Path] | None:
@@ -297,7 +309,7 @@ class IncrementorHomeAssistantAddon(Incrementor):
             logger.info(f"{self.DESC} not found: {self.path}. Skipping.")
             return None
 
-        if self.versions.is_pre:
+        if self.versions.pre_current:
             logger.warning(f"Release is pre-release ({self.version.prerelease}). Skipping {self.DESC}.")
             return None
 
@@ -345,7 +357,7 @@ class IncrementorChangelog(IncrementorChangelogSymlink):
             logger.info(f"New changelog not found: {path}. Skipping.")
             return None
 
-        if self.versions.is_pre:
+        if self.versions.pre_current:
             logger.warning(f"Release is pre-release ({self.version.prerelease}). Skipping {self.DESC}.")
             return None
 
@@ -421,7 +433,7 @@ class ReleaseGithub(Release):
     @cached_property
     def previous_version(self):
         return self.repo.get_most_recent_release_tag(
-            include_pre=self.versions.is_pre,
+            include_pre=self.versions.pre_current,
             before=self.version,
         )
 
@@ -462,7 +474,7 @@ class ReleaseGithub(Release):
             "name": name,
             "body": self.body,
             "draft": False,
-            "prerelease": self.versions.is_pre
+            "prerelease": self.versions.pre_current
         }
 
         with logger.span(f'Creating release "{name}"...'):
@@ -677,10 +689,14 @@ class Tester(Inherit[Releaser]):
         )
 
         assert process.stdout is not None
+        output = []
         for line in process.stdout:
+            output.append(line)
             logger.info(sanitize(line))
 
         code = process.wait()
+        if code:
+            raise ReleaseTestsFailed(code, sanitize("".join(output)))
         return code
 
     @logger.instrument('Running test suite for "{self.paths.name}"...')
@@ -700,4 +716,4 @@ class Tester(Inherit[Releaser]):
             return True
 
         logger.error(f"Test suite failed with exit code {code}.")
-        return False
+        raise ReleaseTestsFailed(code, "")

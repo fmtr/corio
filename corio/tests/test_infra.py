@@ -9,7 +9,7 @@ from corio import version
 from corio.infra.api import DocumentationRelease, PreVersion, ProjectName, Release
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
 from corio.infra.project import Versions
-from corio.infra.releaser import Releaser, IncrementorVersion, Tester as ReleaserTester
+from corio.infra.releaser import IncrementorVersion, Releaser, ReleaseTestsFailed, Tester as ReleaserTester
 from corio.infra.repository import Repository
 from corio.path import Path
 from corio.paths import paths
@@ -25,7 +25,7 @@ def _write_editable_repo(path_repo: Path, name: str, version: str) -> None:
     )
 
 
-def _make_incrementor(path_repo: Path, is_pre: bool = False, test_envs: bool = True) -> IncrementorPyproject:
+def _make_incrementor(path_repo: Path, pre_current: bool = False, test_envs: bool = True) -> IncrementorPyproject:
     path_package = path_repo / "corio"
     path_package.mkdir(parents=True, exist_ok=True)
     path_tests = path_repo / "corio" / "tests"
@@ -39,7 +39,7 @@ def _make_incrementor(path_repo: Path, is_pre: bool = False, test_envs: bool = T
             tests=path_tests,
             metadata=SimpleNamespace(test_envs=test_envs),
         ),
-        versions=SimpleNamespace(is_pre=is_pre),
+        versions=SimpleNamespace(pre_current=pre_current),
     )
     return IncrementorPyproject(parent)
 
@@ -129,7 +129,7 @@ def test_pin_editables_raises_on_prerelease_when_current_is_release(tmp_path):
         encoding="utf-8",
     )
 
-    incrementor = _make_incrementor(path_main_repo, is_pre=False)
+    incrementor = _make_incrementor(path_main_repo, pre_current=False)
 
     try:
         _ = incrementor.editables
@@ -139,7 +139,7 @@ def test_pin_editables_raises_on_prerelease_when_current_is_release(tmp_path):
         raise AssertionError("Expected ValueError for prerelease editable dependency")
 
 
-def test_pin_editables_allows_prerelease_when_current_is_prerelease(tmp_path):
+def test_pin_editables_allows_prerelease_when_current_pre_currentrelease(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
@@ -152,7 +152,7 @@ def test_pin_editables_allows_prerelease_when_current_is_prerelease(tmp_path):
         encoding="utf-8",
     )
 
-    incrementor = _make_incrementor(path_main_repo, is_pre=True)
+    incrementor = _make_incrementor(path_main_repo, pre_current=True)
 
     assert incrementor._pin_editable("haco") == "haco~=1.2.3-rc.1"
 
@@ -181,9 +181,10 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
     failure = RuntimeError("package build failed")
 
     class DummyProject:
-        def __init__(self, name, pinned=None):
+        def __init__(self, name, pinned=None, pre=False):
             assert name == "demo"
             assert pinned == "1.2.3"
+            assert pre is False
             self.releaser = SimpleNamespace(run=self.run)
 
         @staticmethod
@@ -457,7 +458,7 @@ def test_tester_run_skips_when_no_tox_envs_found(tmp_path):
     assert tester.run() is True
 
 
-def test_tester_run_returns_false_when_subprocess_fails(tmp_path, monkeypatch):
+def test_tester_run_raises_when_subprocess_fails(tmp_path, monkeypatch):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
@@ -465,7 +466,8 @@ def test_tester_run_returns_false_when_subprocess_fails(tmp_path, monkeypatch):
 
     monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: 1)
 
-    assert tester.run() is False
+    with pytest.raises(ReleaseTestsFailed, match="exit code 1"):
+        tester.run()
 
 
 def test_repository_get_most_recent_release_tag_filters_and_orders():
@@ -497,7 +499,10 @@ def _make_version_incrementor(*, old: str, pinned: str | None, tags: set[str]):
     metadata = SimpleNamespace(version=old, version_obj=version.parse(old))
     parent = SimpleNamespace(
         paths=SimpleNamespace(name="corio", metadata=metadata),
-        versions=SimpleNamespace(pinned=version.parse(pinned) if pinned else None),
+        versions=SimpleNamespace(
+            pinned=version.parse(pinned) if pinned else None,
+            next=version.parse(pinned) if pinned else version.parse(old).bump_patch(),
+        ),
         repo=SimpleNamespace(tags=SimpleNamespace(all=tags)),
     )
     return IncrementorVersion(parent), metadata
@@ -584,7 +589,7 @@ def test_releaser_run_continues_when_pre_tests_fail(monkeypatch):
     releaser = Releaser(SimpleNamespace(
         name="corio",
         version=version.parse("1.2.3-rc.1"),
-        versions=SimpleNamespace(is_pre=True),
+        versions=SimpleNamespace(pre_current=True),
         paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
     ))
     releaser.repo = _Repo()

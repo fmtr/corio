@@ -38,6 +38,7 @@ class Release(api.endpoint.API):
             self,
             name: ProjectName,
             pinned: str = None,
+            pre: bool = False,
             build: bool = False,
             release: bool = True,
     ):
@@ -46,7 +47,7 @@ class Release(api.endpoint.API):
         Run a project's release workflow.
 
         """
-        project = Project(name, pinned=pinned)
+        project = Project(name, pinned=pinned, pre=pre)
         project.releaser.run(build=build, release=release)
 
 

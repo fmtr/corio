@@ -48,7 +48,7 @@ class Production(Stack):
     @cached_property
     def tags_public(self):
         tags = [f"{Constants.ORG_NAME}/{self.name}:{self.tag}"]
-        if not self.versions.is_pre:
+        if not self.versions.pre_current:
             tags.append(f"{Constants.ORG_NAME}/{self.name}:latest")
         return tags
 
