@@ -511,6 +511,10 @@ class Metadata:
         return version
 
 
+class InvalidCorioRepoError(RuntimeError):
+    """Raised when a path does not identify a valid Corio repository."""
+
+
 class PackagePaths(FromCallerMixin):
     """
 
@@ -849,7 +853,7 @@ class PathsSearchData:
 
         if len(packages) != 1:
             msg = f"Expected exactly 1 package marker {Constants.FILENAME_PYPROJECT_PACKAGE!r} under {path_repo}, found {len(packages)}: {join_natural(targets)}"
-            raise FileNotFoundError(msg)
+            raise InvalidCorioRepoError(msg)
 
         path_package = next(iter(packages))
         return path_package

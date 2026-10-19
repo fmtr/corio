@@ -18,6 +18,13 @@ def test_path_args(args):
     assert actual == expected
 
 
+def test_package_paths_rejects_invalid_repository(tmp_path):
+    path.Path(tmp_path / "pyproject.toml").write_text("")
+
+    with pytest.raises(path.InvalidCorioRepoError):
+        path.PackagePaths(path.Path(tmp_path))
+
+
 def test_path_module():
     """
 
