@@ -127,14 +127,14 @@ class Versions(Inherit[Project]):
         if self.pre_current:
             return None
 
-        return self.new.bump_patch().replace(prerelease="alpha000")
+        return self.new.bump_patch().replace(prerelease="alpha.0")
 
     @property
     def next(self):
         if self.pinned:
             if not self.pre_next:
                 return self.pinned
-            return self.pinned.replace(prerelease="alpha000")
+            return self.pinned.replace(prerelease="alpha.0")
 
         if self.pre_current:
             return self.new.bump_prerelease()

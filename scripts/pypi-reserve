@@ -7,7 +7,7 @@ set -euo pipefail
 : "${NAME:?must be set}"
 : "${TOKEN:?must be set}"
 
-VERSION="${VERSION:-0.0.0-alpha000}"
+VERSION="${VERSION:-0.0.0-alpha.0}"
 EMAIL="${EMAIL:-innovative.fowler@mask.pro.fmtr.dev}"
 
 BASE_DIR="/tmp/pypi"

@@ -157,14 +157,14 @@ def test_pin_editables_allows_prerelease_when_current_pre_currentrelease(tmp_pat
     assert incrementor._pin_editable("haco") == "haco~=1.2.3-rc.1"
 
 
-def test_versions_next_pre_uses_literal_alpha000():
+def test_versions_next_pre_uses_alpha_dot_zero():
     parent = SimpleNamespace(
         paths=SimpleNamespace(
             metadata=SimpleNamespace(version_obj=version.parse("0.1.0")),
         )
     )
 
-    assert str(Versions(parent).next_pre) == "0.1.1-alpha000"
+    assert str(Versions(parent).next_pre) == "0.1.1-alpha.0"
 
 
 def test_versions_next_pre_returns_none_for_prerelease():
@@ -175,6 +175,32 @@ def test_versions_next_pre_returns_none_for_prerelease():
     )
 
     assert Versions(parent).next_pre is None
+
+
+def test_versions_next_increments_numeric_prerelease_suffix():
+    parent = SimpleNamespace(
+        paths=SimpleNamespace(
+            metadata=SimpleNamespace(version_obj=version.parse("2.2.0-alpha.1")),
+        )
+    )
+
+    assert str(Versions(parent).next) == "2.2.0-alpha.2"
+
+
+def test_incrementor_version_writes_numeric_prerelease():
+    metadata = SimpleNamespace(
+        version="2.2.0-alpha.1",
+        version_obj=version.parse("2.2.0-alpha.1"),
+    )
+    parent = SimpleNamespace(
+        paths=SimpleNamespace(name="corio", metadata=metadata),
+        repo=SimpleNamespace(tags=SimpleNamespace(all={"v2.2.0-alpha.1"})),
+    )
+    parent.versions = Versions(parent)
+
+    IncrementorVersion(parent).apply()
+
+    assert metadata.version == "2.2.0-alpha.2"
 
 
 def test_release_endpoint_propagates_release_failure(monkeypatch):
@@ -240,13 +266,13 @@ def test_pre_version_endpoint_returns_next_pre_release(monkeypatch):
     class DummyProject:
         def __init__(self, name):
             assert name == "demo"
-            self.versions = SimpleNamespace(next_pre=version.parse("0.1.1-alpha000"))
+            self.versions = SimpleNamespace(next_pre=version.parse("0.1.1-alpha.0"))
 
     monkeypatch.setattr("corio.infra.api.Project", DummyProject)
 
     endpoint = PreVersion(SimpleNamespace())
 
-    assert asyncio.run(endpoint.run("demo")) == "0.1.1-alpha000"
+    assert asyncio.run(endpoint.run("demo")) == "0.1.1-alpha.0"
 
 
 def test_process_deps_pins_project_dependencies(tmp_path):
