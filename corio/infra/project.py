@@ -99,7 +99,7 @@ class Project:
 
 class Versions(Inherit[Project]):
 
-    def __init__(self, project: Project, pinned: str | None = None, pre: bool = False):
+    def __init__(self, project: Project, pinned: str | None = None, pre: bool | None = False):
         super().__init__(project)
         self.pre_next = pre
         self.pinned = None
@@ -132,14 +132,18 @@ class Versions(Inherit[Project]):
     @property
     def next(self):
         if self.pinned:
-            if not self.pre_next:
-                return self.pinned
-            return self.pinned.replace(prerelease="alpha.0")
+            if self.pre_next is True:
+                return self.pinned.replace(prerelease="alpha.0")
+            if self.pre_next is None and self.pre_current:
+                return self.pinned.replace(prerelease="alpha.0")
+            return self.pinned
 
         if self.pre_current:
+            if self.pre_next is False:
+                return self.new.replace(prerelease=None)
             return self.new.bump_prerelease()
 
-        if self.pre_next:
+        if self.pre_next is True:
             return self.next_pre
 
         return self.new.bump_patch()

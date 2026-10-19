@@ -8,7 +8,7 @@ from corio import entrypoint
 from corio import version
 from corio.infra.api import DocumentationRelease, PreVersion, ProjectName, Release
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
-from corio.infra.project import Versions
+from corio.infra.project import InvalidPinnedVersion, Versions
 from corio.infra.releaser import IncrementorVersion, Releaser, ReleaseTestsFailed, Tester as ReleaserTester
 from corio.infra.repository import Repository
 from corio.path import Path
@@ -177,14 +177,58 @@ def test_versions_next_pre_returns_none_for_prerelease():
     assert Versions(parent).next_pre is None
 
 
-def test_versions_next_increments_numeric_prerelease_suffix():
+@pytest.mark.parametrize(
+    ("current", "pinned", "pre", "expected"),
+    [
+        ("2.2.0", None, False, "2.2.1"),
+        ("2.2.0", None, True, "2.2.1-alpha.0"),
+        ("2.2.0", None, None, "2.2.1"),
+        ("2.2.0", "3.0.0", False, "3.0.0"),
+        ("2.2.0", "3.0.0", True, "3.0.0-alpha.0"),
+        ("2.2.0", "3.0.0", None, "3.0.0"),
+        ("2.2.0-alpha.1", None, False, "2.2.0"),
+        ("2.2.0-alpha.1", None, True, "2.2.0-alpha.2"),
+        ("2.2.0-alpha.1", None, None, "2.2.0-alpha.2"),
+        ("2.2.0-alpha.1", "3.0.0", False, "3.0.0"),
+        ("2.2.0-alpha.1", "3.0.0", True, "3.0.0-alpha.0"),
+        ("2.2.0-alpha.1", "3.0.0", None, "3.0.0-alpha.0"),
+    ],
+)
+def test_versions_next_covers_release_version_matrix(current, pinned, pre, expected):
     parent = SimpleNamespace(
         paths=SimpleNamespace(
-            metadata=SimpleNamespace(version_obj=version.parse("2.2.0-alpha.1")),
+            metadata=SimpleNamespace(version_obj=version.parse(current)),
         )
     )
 
-    assert str(Versions(parent).next) == "2.2.0-alpha.2"
+    assert str(Versions(parent, pinned=pinned, pre=pre).next) == expected
+
+
+def test_versions_rejects_pinned_prerelease():
+    parent = SimpleNamespace(
+        paths=SimpleNamespace(
+            metadata=SimpleNamespace(version_obj=version.parse("2.2.0")),
+        )
+    )
+
+    with pytest.raises(InvalidPinnedVersion):
+        Versions(parent, pinned="3.0.0-alpha.1")
+
+
+def test_incrementor_version_writes_stable_version_from_prerelease():
+    metadata = SimpleNamespace(
+        version="2.2.0-alpha.1",
+        version_obj=version.parse("2.2.0-alpha.1"),
+    )
+    parent = SimpleNamespace(
+        paths=SimpleNamespace(name="corio", metadata=metadata),
+        repo=SimpleNamespace(tags=SimpleNamespace(all={"v2.2.0-alpha.1"})),
+    )
+    parent.versions = Versions(parent)
+
+    IncrementorVersion(parent).apply()
+
+    assert metadata.version == "2.2.0"
 
 
 def test_incrementor_version_writes_numeric_prerelease():
@@ -196,7 +240,7 @@ def test_incrementor_version_writes_numeric_prerelease():
         paths=SimpleNamespace(name="corio", metadata=metadata),
         repo=SimpleNamespace(tags=SimpleNamespace(all={"v2.2.0-alpha.1"})),
     )
-    parent.versions = Versions(parent)
+    parent.versions = Versions(parent, pre=True)
 
     IncrementorVersion(parent).apply()
 

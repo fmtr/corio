@@ -38,7 +38,7 @@ class Release(api.endpoint.API):
             self,
             name: ProjectName,
             pinned: str = None,
-            pre: bool = False,
+            pre: bool | None = False,
             build: bool = False,
             release: bool = True,
     ):
