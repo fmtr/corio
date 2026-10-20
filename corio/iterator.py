@@ -149,6 +149,27 @@ class ilist(list[ilistT], Generic[ilistT]):
 
     """
 
+    @classmethod
+    def __get_pydantic_core_schema__(cls, source, handler):
+        """
+
+        Allow pydantic serialisation as list
+
+        """
+        from pydantic_core import core_schema
+        from typing import get_args
+
+        item_type = get_args(source)[0] if get_args(source) else Any
+        input_schema = core_schema.union_schema([
+            core_schema.is_instance_schema(cls),
+            handler.generate_schema(list[item_type]),
+        ])
+        return core_schema.no_info_after_validator_function(
+            cls,
+            input_schema,
+            serialization=core_schema.plain_serializer_function_ser_schema(list),
+        )
+
     def __init__(self, iterable: Iterable[ilistT] = ()):
         """
 
