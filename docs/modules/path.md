@@ -7,6 +7,7 @@ Primary exports:
 
 - `Path`: enhanced path object with convenience readers/writers (`json`, `yaml`, `toml`, `.env`, inferred `read_data`/`write_data`)
 - `PackagePaths`: canonical package/repo metadata and path discovery
+- `InvalidCorioRepoError`: raised when a path does not identify exactly one Corio package marker
 - `AppPaths`: appdirs wrapper (`path.app` extra)
 
 ## What Is Useful Here
