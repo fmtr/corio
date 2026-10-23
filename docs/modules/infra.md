@@ -53,3 +53,5 @@ Docs release expects:
 2. optional container build/push
 3. package build/upload
 4. docs deploy
+
+When a current pre-release version has no matching Git tag, the release flow stops rather than assuming that version can be safely reused. Resolve the release state or pin the intended stable base explicitly before retrying.
