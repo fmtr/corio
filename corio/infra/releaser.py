@@ -29,6 +29,9 @@ class ReleaseTestsFailed(RuntimeError):
         self.output = output
         super().__init__(f"Tests failed with exit code {code}.\n{output}")
 
+class InvalidVersion(RuntimeError):
+    pass
+
 
 class Releaser(Inherit[Project]):
     """
@@ -271,7 +274,7 @@ class IncrementorVersion(Incrementor):
         if not self.has_old_tag:
             pre_next = self.versions.pre_next
             if pre_next is not None and self.versions.pre_current != pre_next:
-                raise RuntimeError(
+                raise InvalidVersion(
                     f'Current version tag "{self.old.tag}" was not found. '
                     f'Pin the intended release version to proceed past the missing tag.'
                 )
@@ -451,11 +454,20 @@ class ReleaseGithub(Release):
 
     @property
     def body(self):
+        """
+
+        Return the changelog or a marker for a first release without one.
+
+        This can happen for a pre-release because pre-releases do not require
+        changelogs, and it also applies to the first release of a project.
+        GitHub requires the release body to be a string when it is provided.
+
+        """
         path_changelog = self.incrementors.cls[IncrementorChangelog].dest
         if path_changelog.exists():
             return path_changelog.read_text()
         if not self.previous_version:
-            return None
+            return "[No Previous Version]"
         return f'**Full Changelog**: [{self.previous_tag} {Constants.ARROW_RIGHT} {self.tag}]({self.url})'
 
     def release(self):

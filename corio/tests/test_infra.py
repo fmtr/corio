@@ -9,7 +9,14 @@ from corio import version
 from corio.infra.api import DocumentationRelease, PreVersion, ProjectName, Release
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
 from corio.infra.project import InvalidPinnedVersion, Versions
-from corio.infra.releaser import IncrementorVersion, Releaser, ReleaseTestsFailed, Tester as ReleaserTester
+from corio.infra.releaser import (
+    IncrementorChangelog,
+    IncrementorVersion,
+    ReleaseGithub,
+    Releaser,
+    ReleaseTestsFailed,
+    Tester as ReleaserTester,
+)
 from corio.infra.repository import Repository
 from corio.path import Path
 from corio.paths import paths
@@ -42,6 +49,24 @@ def _make_incrementor(path_repo: Path, pre_current: bool = False, test_envs: boo
         versions=SimpleNamespace(pre_current=pre_current),
     )
     return IncrementorPyproject(parent)
+
+
+def test_release_github_body_without_previous_version(tmp_path):
+    changelog = Path(tmp_path / "docs" / "changelog" / "changelog.md")
+    parent = SimpleNamespace(
+        incrementors=SimpleNamespace(
+            cls={IncrementorChangelog: SimpleNamespace(dest=changelog)},
+        ),
+        repo=SimpleNamespace(
+            get_most_recent_release_tag=lambda **kwargs: None,
+        ),
+        version="0.0.1-alpha.1",
+        versions=SimpleNamespace(pre_current=True),
+    )
+
+    release = ReleaseGithub(parent)
+
+    assert release.body == "[No Previous Version]"
 
 
 def test_pin_editables_and_flatten_dependencies(tmp_path):
