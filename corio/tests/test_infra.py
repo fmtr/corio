@@ -378,7 +378,7 @@ def test_pyproject_cli_endpoint_returns_success_exit_code(monkeypatch):
     )
 
     class _Project:
-        def __init__(self, name):
+        def __init__(self, name, path=None):
             events.append(("project", name))
 
         @property
@@ -399,12 +399,12 @@ def test_pyproject_cli_endpoint_returns_success_exit_code(monkeypatch):
 
     monkeypatch.setattr("corio.infra.project.Project", _Project)
     monkeypatch.setattr("corio.infra.incrementor_pyproject.IncrementorPyproject", _IncrementorPyproject)
-    monkeypatch.setattr("corio.paths.paths", SimpleNamespace(name="corio"))
+    monkeypatch.setattr("corio.path.PackagePaths", lambda path: SimpleNamespace(name="target", repo=Path("/repo")))
 
     assert entrypoint.Pyproject().run() == 0
     assert project.versions.pinned == "1.2.3"
     assert events == [
-        ("project", "corio"),
+        ("project", "target"),
         ("incrementor", releaser),
         ("apply", None),
     ]

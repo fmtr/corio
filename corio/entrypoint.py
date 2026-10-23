@@ -31,9 +31,10 @@ class Pyproject(dm.Base):
     def run(self):
         from corio.infra.incrementor_pyproject import IncrementorPyproject
         from corio.infra.project import Project
-        from corio.paths import paths
+        from corio.path import PackagePaths, Path
 
-        project = Project(paths.name)
+        paths = PackagePaths(Path.cwd())
+        project = Project(paths.name, path=paths.repo)
         project.versions.pinned = project.versions.new
         IncrementorPyproject(project.releaser).apply()
         return 0
