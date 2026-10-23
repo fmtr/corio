@@ -28,6 +28,7 @@ pip install "corio[infra]"
 - **Wrap iteration with observability.** `corio.iterator.Iterator` tracks count, percentage, elapsed time, ETA, completion, and cleanup.
 - **Expose tools as HTTP and MCP endpoints.** Define endpoint classes once and mount them into FastAPI and MCP surfaces.
 - **Keep release metadata generated.** `corio pyproject` turns Corio dependency groups and project metadata into the generated `pyproject.toml` sections.
+- **Configure generated test environments.** Set `test_pass_env` in Corio metadata to pass selected environment variables through every generated tox test environment.
 - **Install integrations only when needed.** Extras keep heavy dependencies like API servers, vector search, ML, PDFs, and tabular tooling out of the base install.
 
 ## Examples
