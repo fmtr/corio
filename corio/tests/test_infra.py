@@ -590,6 +590,17 @@ def test_incrementor_version_does_not_increment_when_old_tag_missing():
     assert metadata.version == "1.2.3"
 
 
+def test_incrementor_version_raises_when_pre_release_tag_missing():
+    incrementor, _ = _make_version_incrementor(
+        old="1.2.3-alpha.0",
+        pinned=None,
+        tags={"v1.2.2"},
+    )
+
+    with pytest.raises(RuntimeError, match="Current pre-release version tag"):
+        incrementor.apply()
+
+
 def test_incrementor_version_raises_when_pinned_and_old_tag_missing():
     incrementor, _ = _make_version_incrementor(
         old="1.2.3",

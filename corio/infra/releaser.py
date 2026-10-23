@@ -275,6 +275,11 @@ class IncrementorVersion(Incrementor):
             return new
 
         if not self.has_old_tag:
+            if self.old.prerelease:
+                raise RuntimeError(
+                    f'Current pre-release version tag "{self.old.tag}" was not found. '
+                    f'Refusing to reuse pre-release version "{self.old}" without an explicit pin.'
+                )
             logger.warning(
                 f'Current version tag "{self.old.tag}" was not found. '
                 f'Assuming previous release failed and reusing version "{self.old}".'
