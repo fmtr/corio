@@ -257,12 +257,6 @@ class IncrementorVersion(Incrementor):
 
         new = self.versions.next
 
-        if not self.has_old_tag:
-            raise RuntimeError(
-                f'Current version tag "{self.old.tag}" was not found. '
-                f'Refusing pinned release "{new}" until the previous release state is resolved.'
-            )
-
         if self.pinned_tag in self.repo.tags.all:
             raise RuntimeError(f'Pinned version tag already exists: "{self.pinned_tag}".')
 
@@ -275,10 +269,11 @@ class IncrementorVersion(Incrementor):
             return new
 
         if not self.has_old_tag:
-            if self.old.prerelease:
+            pre_next = self.versions.pre_next
+            if pre_next is not None and self.versions.pre_current != pre_next:
                 raise RuntimeError(
-                    f'Current pre-release version tag "{self.old.tag}" was not found. '
-                    f'Refusing to reuse pre-release version "{self.old}" without an explicit pin.'
+                    f'Current version tag "{self.old.tag}" was not found. '
+                    f'Pin the intended release version to proceed past the missing tag.'
                 )
             logger.warning(
                 f'Current version tag "{self.old.tag}" was not found. '

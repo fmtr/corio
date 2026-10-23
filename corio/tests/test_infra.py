@@ -565,20 +565,17 @@ def test_repository_get_most_recent_release_tag_filters_and_orders():
     assert stable_tag.tag == "v1.2.2"
 
 
-def _make_version_incrementor(*, old: str, pinned: str | None, tags: set[str]):
+def _make_version_incrementor(*, old: str, pinned: str | None, pre: bool | None = False, tags: set[str]):
     metadata = SimpleNamespace(version=old, version_obj=version.parse(old))
     parent = SimpleNamespace(
         paths=SimpleNamespace(name="corio", metadata=metadata),
-        versions=SimpleNamespace(
-            pinned=version.parse(pinned) if pinned else None,
-            next=version.parse(pinned) if pinned else version.parse(old).bump_patch(),
-        ),
         repo=SimpleNamespace(tags=SimpleNamespace(all=tags)),
     )
+    parent.versions = Versions(parent, pinned=pinned, pre=pre)
     return IncrementorVersion(parent), metadata
 
 
-def test_incrementor_version_does_not_increment_when_old_tag_missing():
+def test_incrementor_version_reuses_stable_version_when_release_mode_aligned():
     incrementor, metadata = _make_version_incrementor(
         old="1.2.3",
         pinned=None,
@@ -590,6 +587,18 @@ def test_incrementor_version_does_not_increment_when_old_tag_missing():
     assert metadata.version == "1.2.3"
 
 
+def test_incrementor_version_raises_when_stable_tag_missing_for_pre_release():
+    incrementor, _ = _make_version_incrementor(
+        old="0.0.0",
+        pinned=None,
+        pre=True,
+        tags=set(),
+    )
+
+    with pytest.raises(RuntimeError, match="Pin the intended release version"):
+        incrementor.apply()
+
+
 def test_incrementor_version_raises_when_pre_release_tag_missing():
     incrementor, _ = _make_version_incrementor(
         old="1.2.3-alpha.0",
@@ -597,24 +606,46 @@ def test_incrementor_version_raises_when_pre_release_tag_missing():
         tags={"v1.2.2"},
     )
 
-    with pytest.raises(RuntimeError, match="Current pre-release version tag"):
+    with pytest.raises(RuntimeError, match="Pin the intended release version"):
         incrementor.apply()
 
 
-def test_incrementor_version_raises_when_pinned_and_old_tag_missing():
-    incrementor, _ = _make_version_incrementor(
+def test_incrementor_version_reuses_pre_release_when_release_mode_aligned():
+    incrementor, metadata = _make_version_incrementor(
+        old="1.2.3-alpha.0",
+        pinned=None,
+        pre=True,
+        tags=set(),
+    )
+
+    incrementor.apply()
+
+    assert metadata.version == "1.2.3-alpha.0"
+
+
+def test_incrementor_version_allows_pinned_release_when_old_tag_missing():
+    incrementor, metadata = _make_version_incrementor(
         old="1.2.3",
         pinned="2.0.0",
         tags={"v1.2.2"},
     )
 
-    try:
-        incrementor.apply()
-    except RuntimeError as exception:
-        assert 'Current version tag "v1.2.3" was not found.' in str(exception)
-        assert 'Refusing pinned release "2.0.0"' in str(exception)
-    else:
-        raise AssertionError("Expected RuntimeError when old tag is missing for pinned release.")
+    incrementor.apply()
+
+    assert metadata.version == "2.0.0"
+
+
+def test_incrementor_version_allows_pinned_pre_release_when_old_tag_missing():
+    incrementor, metadata = _make_version_incrementor(
+        old="0.0.0",
+        pinned="2.0.0",
+        pre=True,
+        tags=set(),
+    )
+
+    incrementor.apply()
+
+    assert metadata.version == "2.0.0-alpha.0"
 
 
 def test_incrementor_version_raises_when_pinned_tag_exists():
