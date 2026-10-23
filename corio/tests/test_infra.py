@@ -44,7 +44,10 @@ def _make_incrementor(path_repo: Path, pre_current: bool = False, test_envs: boo
             name="corio",
             path=path_package,
             tests=path_tests,
-            metadata=SimpleNamespace(test_envs=test_envs),
+            metadata=SimpleNamespace(
+                test_envs=test_envs,
+                test_pass_env=[],
+            ),
         ),
         versions=SimpleNamespace(pre_current=pre_current),
     )
@@ -503,6 +506,17 @@ def test_generator_test_envs_use_file_module_name_with_test_envs(tmp_path):
         "{posargs:corio/tests/test_path.py}",
     ]]
     assert envs["strings"]["deps"] == ["pytest", "pytest-cov"]
+
+
+def test_generator_test_envs_passes_configured_environment(tmp_path):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    generator = _make_test_env_generator(path_repo, test_envs=True, dependencies={"test": ["pytest"]})
+    generator.paths.metadata.test_pass_env = ["PLAYWRIGHT_BROWSERS_PATH"]
+
+    env = generator.get_env("corio", ["pytest"], path_repo / "corio" / "tests")
+
+    assert env["corio"]["pass_env"] == ["PLAYWRIGHT_BROWSERS_PATH"]
 
 
 def test_generator_test_envs_fall_back_to_single_env_when_test_envs_disabled(tmp_path):

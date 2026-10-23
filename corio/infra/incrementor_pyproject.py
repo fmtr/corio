@@ -319,14 +319,16 @@ class GeneratorTestEnvs:
         return self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
 
     def get_env(self, name, deps, path):
-        path=path.relative_to(self.paths.repo)
-        return {
-            name: dict(
-                description=f"Run {name} tests.",
-                deps=deps,
-                commands=[["python", "-m", "pytest", "-q", f"{{posargs:{path}}}"]],
-            )
-        }
+        path = path.relative_to(self.paths.repo)
+        env = dict(
+            description=f"Run {name} tests.",
+            deps=deps,
+            commands=[["python", "-m", "pytest", "-q", f"{{posargs:{path}}}"]],
+        )
+        if self.paths.metadata.test_pass_env:
+            env["pass_env"] = self.paths.metadata.test_pass_env
+
+        return {name: env}
 
     @cached_property
     def env(self):
