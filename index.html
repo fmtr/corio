@@ -363,6 +363,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#async-cli-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async CLI Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -444,6 +455,8 @@
   
     
     
+      
+        
       
         
       
@@ -656,6 +669,34 @@
     
   
     2.15.5
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="changelog/2.15.6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.15.6
   
 
     
@@ -2735,6 +2776,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#async-cli-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async CLI Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2892,6 +2944,8 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"cori
 <div class="language-bash highlight"><pre><span></span><code>corio<span class="w"> </span>pyproject
 </code></pre></div>
 <p>That keeps extras flattened for packaging while preserving a maintainable source-of-truth dependency graph.</p>
+<h3 id="async-cli-execution">Async CLI Execution</h3>
+<p>Typed CLI models expose an async <code>run()</code> method. Synchronous entrypoints can use <code>launch()</code>, while applications that already run an event loop can await <code>run()</code> directly. Subcommand dispatch supports both synchronous and asynchronous command implementations.</p>
 <h2 id="useful-areas">Useful Areas</h2>
 <ul>
 <li><code>corio.path</code>: typed path helpers, app paths, file type guessing, serialization helpers.</li>
