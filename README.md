@@ -123,6 +123,10 @@ corio pyproject
 
 That keeps extras flattened for packaging while preserving a maintainable source-of-truth dependency graph.
 
+### Async CLI Execution
+
+Typed CLI models expose an async `run()` method. Synchronous entrypoints can use `launch()`, while applications that already run an event loop can await `run()` directly. Subcommand dispatch supports both synchronous and asynchronous command implementations.
+
 ## Useful Areas
 
 - `corio.path`: typed path helpers, app paths, file type guessing, serialization helpers.
