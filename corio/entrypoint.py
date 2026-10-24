@@ -106,7 +106,7 @@ class Cli(sets.Base, cli_parse_args=True):
 
 def main():
     config = Cli()
-    config.run()
+    config.launch()
 
 
 if __name__ == "__main__":

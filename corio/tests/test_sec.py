@@ -1,3 +1,5 @@
+import asyncio
+
 from corio import sec
 
 
@@ -55,7 +57,7 @@ def test_decrypt_mirrors_source_tree_into_target(tmp_path, monkeypatch):
     decrypt = sec.Decrypt(source=source, target=target)
     monkeypatch.setattr(sec.Decrypt, "encryptor", _Encryptor())
 
-    decrypt.run()
+    asyncio.run(decrypt.run())
 
     assert (target / "a" / "b" / ".env.red.yml").read_data() == {"API_KEY": "plaintext"}
 
@@ -202,7 +204,7 @@ def test_decrypt_restore_writes_original_name_and_format(tmp_path, monkeypatch):
     decrypt = sec.Decrypt(source=source, target=target, restore=True)
     monkeypatch.setattr(sec.Decrypt, "encryptor", _Encryptor())
 
-    decrypt.run()
+    asyncio.run(decrypt.run())
 
     path_restored = target / "credentials.json"
     assert path_restored.read_json() == {"token": "plaintext"}

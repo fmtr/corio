@@ -195,19 +195,32 @@ class Base(BaseModel):
             setattr(cls, name, field)
             cls.__annotations__[name] = field.annotation
 
-    def run(self):
-        """Run a configured CLI subcommand and exit with its result."""
+    async def run(self):
+        result = await self.run_subs()
+        if result is not Empty:
+            return result
+
+    async def run_subs(self):
+        """Run the selected CLI subcommand, if any."""
         from pydantic_settings import get_subcommand
 
         command = get_subcommand(self, is_required=False, cli_exit_on_error=False)
         if not command:
-            return
+            return Empty
 
         result = command.run()
         if inspect.isawaitable(result):
-            import asyncio
-            result = asyncio.run(result)
+            result = await result
 
+        return self.exit(result)
+
+    def launch(self):
+        """Run this CLI model from a synchronous entrypoint."""
+        import asyncio
+
+        return asyncio.run(self.run())
+
+    def exit(self, result):
         raise SystemExit(result)
 
     def to_df(self, **kwargs):

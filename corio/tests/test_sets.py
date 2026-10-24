@@ -1,4 +1,6 @@
 import pytest
+import asyncio
+
 from cached_classproperty import cached_classproperty
 
 from corio import dm
@@ -45,7 +47,7 @@ def test_settings_run_returns_when_no_subcommand(tmp_path, monkeypatch):
     settings = make_settings(make_package_paths(Path(tmp_path)))()
     monkeypatch.setattr("pydantic_settings.get_subcommand", lambda *args, **kwargs: None)
 
-    assert settings.run() is None
+    assert asyncio.run(settings.run()) is None
 
 
 def test_settings_run_exits_with_sync_subcommand_result(tmp_path, monkeypatch):
@@ -58,7 +60,7 @@ def test_settings_run_exits_with_sync_subcommand_result(tmp_path, monkeypatch):
     monkeypatch.setattr("pydantic_settings.get_subcommand", lambda *args, **kwargs: Command())
 
     with pytest.raises(SystemExit) as error:
-        settings.run()
+        asyncio.run(settings.run())
 
     assert error.value.code == 3
 
@@ -73,7 +75,7 @@ def test_settings_run_exits_with_async_subcommand_result(tmp_path, monkeypatch):
     monkeypatch.setattr("pydantic_settings.get_subcommand", lambda *args, **kwargs: Command())
 
     with pytest.raises(SystemExit) as error:
-        settings.run()
+        asyncio.run(settings.run())
 
     assert error.value.code == 4
 

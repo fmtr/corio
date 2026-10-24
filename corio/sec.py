@@ -158,13 +158,13 @@ class Encrypt(Command):
         if self.delete:
             path_red.unlink()
 
-    def run(self):
+    async def run(self):
         """
 
         Encrypt all the files specified in the definitions
 
         """
-        super().run()
+        await self.run_subs()
 
         with logger.span(f'Encrypting secrets in repo "{self.config.path_repo}"...'):
             definitions_by_path = {}
@@ -274,13 +274,13 @@ class Decrypt(Command):
         path_red.chmod(stat.S_IMODE(metadata.st_mode))
         os.chown(path_red, metadata.st_uid, metadata.st_gid)
 
-    def run(self):
+    async def run(self):
         """
 
         Decrypt every black file under source into the mirrored target tree.
 
         """
-        super().run()
+        await self.run_subs()
 
         with logger.span(f'Decrypting secrets from "{self.source}" to "{self.target}"...'):
             for path in self.get_paths():
