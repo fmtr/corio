@@ -74,7 +74,7 @@ class Infra(dm.Base):
     def run(self):
         from corio.infra.api import Api
 
-        return Api.launch()
+        return Api.launch_async()
 
 
 class InstallYamlscript(dm.Base):
