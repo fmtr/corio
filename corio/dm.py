@@ -1,4 +1,6 @@
 import inspect
+from dataclasses import dataclass
+
 from cached_classproperty import cached_classproperty
 from pydantic import BaseModel
 from pydantic import RootModel, ConfigDict
@@ -13,6 +15,12 @@ from corio.function import ccp
 from corio.iterator import get_class_lookup
 from corio.strings import camel_to_snake
 from corio.tools import Auto, Required, Empty
+
+
+@dataclass
+class SubcommandResult:
+    ran: bool
+    result: Any = None
 
 
 class Field(FieldInfo):
@@ -196,23 +204,22 @@ class Base(BaseModel):
             cls.__annotations__[name] = field.annotation
 
     async def run(self):
-        result = await self.run_subs()
-        if result is not Empty:
-            return result
+        return await self.run_subs()
 
-    async def run_subs(self):
+    async def run_subs(self) -> SubcommandResult:
         """Run the selected CLI subcommand, if any."""
         from pydantic_settings import get_subcommand
 
         command = get_subcommand(self, is_required=False, cli_exit_on_error=False)
         if not command:
-            return Empty
+            return SubcommandResult(ran=False)
 
         result = command.run()
         if inspect.isawaitable(result):
             result = await result
 
-        return self.exit(result)
+        result = self.exit(result)
+        return SubcommandResult(ran=True, result=result)
 
     def launch(self):
         """Run this CLI model from a synchronous entrypoint."""

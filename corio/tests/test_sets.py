@@ -47,7 +47,9 @@ def test_settings_run_returns_when_no_subcommand(tmp_path, monkeypatch):
     settings = make_settings(make_package_paths(Path(tmp_path)))()
     monkeypatch.setattr("pydantic_settings.get_subcommand", lambda *args, **kwargs: None)
 
-    assert asyncio.run(settings.run()) is None
+    result = asyncio.run(settings.run())
+
+    assert result.ran is False
 
 
 def test_settings_run_exits_with_sync_subcommand_result(tmp_path, monkeypatch):
