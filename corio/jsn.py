@@ -1,11 +1,22 @@
+import dataclasses
 import json
 from datetime import date, datetime, time
+from pathlib import Path
 
 from corio.constants import Constants
 
 
 def _default(obj):
-    return obj.isoformat()
+    if dataclasses.is_dataclass(obj):
+        return dataclasses.asdict(obj)
+
+    if isinstance(obj, (date, datetime, time)):
+        return obj.isoformat()
+
+    if isinstance(obj, Path):
+        return str(obj)
+
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
 def to_json(obj):
