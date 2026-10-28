@@ -1,5 +1,7 @@
 FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim
 
+RUN uvx --from corio apt-headless ca-certificates # emSign mitigation.
+
 ARG WHEEL
 ARG PACKAGE
 ARG ENTRYPOINT
