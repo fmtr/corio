@@ -1,10 +1,8 @@
-from functools import cached_property
-from typing import List
-
 import beanie
-import certifi
 from beanie.odm import actions
+from functools import cached_property
 from pymongo import AsyncMongoClient
+from typing import List
 
 from corio import dm
 from corio.logs import logger
@@ -52,7 +50,6 @@ class Client:
         return dict(
             tz_aware=True,
             tls=self.is_tls,
-            tlsCAFile=certifi.where(),
         )
 
     @cached_property
