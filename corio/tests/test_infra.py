@@ -523,8 +523,7 @@ def test_generator_test_envs_fall_back_to_single_env_when_test_envs_disabled(tmp
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     generator = _make_test_env_generator(path_repo, test_envs=False, dependencies={"test": ["pytest", "pytest-cov"]})
-    (generator.paths.path / "path.py").write_text("", encoding="utf-8")
-    (generator.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    (generator.paths.tests / "test_unmatched.py").write_text("", encoding="utf-8")
     envs = generator.envs
 
     assert set(envs) == {"corio"}

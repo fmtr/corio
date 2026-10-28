@@ -339,11 +339,14 @@ class GeneratorTestEnvs:
     @cached_property
     def envs(self) -> dict[str, dict]:
 
-        if not self._tests_modules:
+        if not self.paths.tests.exists():
             return {}
 
         if not self.paths.metadata.test_envs:
             return self.env
+
+        if not self._tests_modules:
+            return {}
 
         envs = {}
         for module in self._tests_modules:
