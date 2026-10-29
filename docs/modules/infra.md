@@ -11,6 +11,8 @@ Core objects:
 - `Releaser`: version increment, package build/upload, docs deploy flow
 - `infrastructure.api.Api`: FastAPI surface for release/build/recreate operations
 
+Production images built by `Stack` run their entrypoint as the unprivileged `user` account (UID 1000). Files accessed by the process must be readable or writable by that UID as needed.
+
 Install:
 
 ```bash

@@ -49,5 +49,5 @@ class User(dm.Base):
 
 ## CLI Integration
 
-`Base.run()` enables subcommand-style `run()` flow for settings/models that integrate with `pydantic-settings`
-subcommands.
+`dm.Base` provides data modelling without CLI execution. For settings and CLI subcommands, use the dedicated bases in
+[`sets`](sets.md): `sets.Base` for a CLI entrypoint and `sets.SubCommand` for models that dispatch nested commands.
