@@ -11,7 +11,7 @@ from typing import ClassVar, Any, Self
 from corio import Constants, dm, strings
 from corio.function import ccp
 from corio.iterator import strip_none
-from corio.path import Path
+from corio.path import PackagePaths, Path
 from corio.paths import paths
 
 
