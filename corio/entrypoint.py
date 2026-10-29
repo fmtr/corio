@@ -23,7 +23,7 @@ class DocServe(dm.Base):
             )
 
 
-class Docs(dm.Base):
+class Docs(sets.SubCommand):
     serve: CliSubCommand[DocServe]
 
 

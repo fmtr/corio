@@ -5,7 +5,7 @@ from cached_classproperty import cached_classproperty
 
 from corio import dm
 from corio.path import PackagePaths, Path
-from corio.sets import Base
+from corio.sets import Base, SubCommand
 
 
 def make_package_paths(repo):
@@ -36,11 +36,12 @@ def test_settings_base_inherits_dm_base_and_ignores_cached_classproperty(tmp_pat
             return cls.__name__
 
     assert issubclass(Settings, dm.Base)
+    assert issubclass(Settings, SubCommand)
     assert "value" in Settings.model_fields
     assert "label" not in Settings.model_fields
     assert Settings.FIELDS == {}
     assert Settings.label == "Settings"
-    assert Settings.run is Base.run
+    assert Settings.run is SubCommand.run
 
 
 def test_settings_run_returns_when_no_subcommand(tmp_path, monkeypatch):

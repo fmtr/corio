@@ -1,3 +1,7 @@
+import asyncio
+import inspect
+from dataclasses import dataclass
+
 from pydantic_settings import (
     BaseSettings,
     CliSettingsSource,
@@ -32,7 +36,42 @@ class YamlScriptConfigSettingsSource(YamlConfigSettingsSource):
         return data
 
 
-class BaseCLI(BaseSettings, dm.Base):
+@dataclass
+class SubcommandResult:
+    ran: bool
+    result: Any = None
+
+
+class SubCommand(dm.Base):
+    """Base for models that dispatch CLI subcommands."""
+
+    async def run(self):
+        return await self.run_subs()
+
+    async def run_subs(self) -> SubcommandResult:
+        """Run the selected CLI subcommand, if any."""
+        from pydantic_settings import get_subcommand
+
+        command = get_subcommand(self, is_required=False, cli_exit_on_error=False)
+        if not command:
+            return SubcommandResult(ran=False)
+
+        result = command.run()
+        if inspect.isawaitable(result):
+            result = await result
+
+        result = self.exit(result)
+        return SubcommandResult(ran=True, result=result)
+
+    def launch(self):
+        """Run this CLI model from a synchronous entrypoint."""
+        return asyncio.run(self.run())
+
+    def exit(self, result):
+        raise SystemExit(result)
+
+
+class BaseCLI(BaseSettings, SubCommand):
     """Base settings class that reads configuration only from the CLI."""
 
     ENV_NESTED_DELIMITER: ClassVar = Constants.ENV_NESTED_DELIMITER

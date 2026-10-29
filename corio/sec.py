@@ -126,7 +126,7 @@ class Definition(dm.Base):
         return path_black
 
 
-class Command(dm.Base):
+class Command(sets.SubCommand):
     """
 
     CLI subcommand base

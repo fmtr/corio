@@ -15,12 +15,11 @@ def test_base_ignores_cached_class_properties():
     assert Model.label == "Model"
 
 
-def test_base_run_can_be_overridden_by_a_tool():
-    class Model(dm.Base):
-        def run(self):
-            return "ran"
-
-    assert Model().run() == "ran"
+def test_base_does_not_provide_command_execution():
+    assert "run" not in dir(dm.Base)
+    assert "run_subs" not in dir(dm.Base)
+    assert "launch" not in dir(dm.Base)
+    assert "exit" not in dir(dm.Base)
 
 
 def test_field_name_is_inferred_from_class_name():
