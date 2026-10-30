@@ -833,9 +833,16 @@ class PathsSearchData:
             path_package = cls.find_package(path_caller)
             repo = path_caller
         else:
-            path_package_marker = path_caller.find_up(
-                Constants.FILENAME_PYPROJECT_PACKAGE
-            )
+            try:
+                path_package_marker = path_caller.find_up(
+                    Constants.FILENAME_PYPROJECT_PACKAGE
+                )
+            except FileNotFoundError as error:
+                msg = (
+                    f'Could not find a Corio package marker '
+                    f'{Constants.FILENAME_PYPROJECT_PACKAGE!r} in "{path_caller}" or any parent directory.'
+                )
+                raise InvalidCorioRepoError(msg) from error
             path_package = path_package_marker.parent
             repo = cls.find_repo(path_package_marker)
 

@@ -25,6 +25,11 @@ def test_package_paths_rejects_invalid_repository(tmp_path):
         path.PackagePaths(path.Path(tmp_path))
 
 
+def test_package_paths_rejects_missing_package_marker(tmp_path):
+    with pytest.raises(path.InvalidCorioRepoError, match="Could not find a Corio package marker"):
+        path.PackagePaths(path.Path(tmp_path))
+
+
 def test_path_module():
     """
 
