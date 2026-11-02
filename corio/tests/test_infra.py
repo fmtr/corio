@@ -461,6 +461,10 @@ def _make_tester(path_repo: Path, *, env_list: list[str] | None = None) -> Relea
             tests=path_tests,
             pyproject_repo=path_pyproject,
             name="corio",
+            metadata=SimpleNamespace(editables=[]),
+        ),
+        incrementors=SimpleNamespace(
+            cls={IncrementorPyproject: SimpleNamespace(editables={})},
         ),
     )
     return ReleaserTester(parent)
@@ -608,6 +612,68 @@ def test_tester_run_skips_when_no_tox_envs_found(tmp_path):
     (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
 
     assert tester.run() is True
+
+
+def test_tester_checks_editables_in_configured_order_before_tests(tmp_path, monkeypatch):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    tester = _make_tester(path_repo, env_list=["corio"])
+    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    tester.paths.metadata.editables = ["xah", "haco"]
+    tester.inherit_parent.incrementors.cls[IncrementorPyproject].editables = {
+        "xah": SimpleNamespace(version="1.2.3"),
+        "haco": SimpleNamespace(version="4.5.6"),
+    }
+    events = []
+    responses = iter([404, 200, 200])
+
+    def get(url, *, timeout):
+        events.append((url, timeout))
+        return SimpleNamespace(status_code=next(responses))
+
+    monkeypatch.setattr("corio.infra.releaser.https.client.get", get)
+    monkeypatch.setattr("corio.infra.releaser.time.sleep", lambda interval: events.append(("wait", interval)))
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: events.append("tests") or 0)
+
+    assert tester.run() is True
+    assert [event[0] if isinstance(event, tuple) else event for event in events] == [
+        "https://pypi.org/pypi/xah/1.2.3/json",
+        "https://pypi.org/pypi/haco/4.5.6/json",
+        "wait",
+        "https://pypi.org/pypi/xah/1.2.3/json",
+        "tests",
+    ]
+    request_timeouts = [
+        event[1]
+        for event in events
+        if isinstance(event, tuple) and event[0].startswith("https:")
+    ]
+    assert request_timeouts == [10, 10, 10]
+
+
+def test_tester_does_not_start_tests_when_editable_is_missing_from_pypi(tmp_path, monkeypatch):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    tester = _make_tester(path_repo, env_list=["corio"])
+    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    tester.paths.metadata.editables = ["xah"]
+    tester.inherit_parent.incrementors.cls[IncrementorPyproject].editables = {
+        "xah": SimpleNamespace(version="1.2.3"),
+    }
+    monkeypatch.setattr(
+        "corio.infra.releaser.https.client.get",
+        lambda url, *, timeout: SimpleNamespace(status_code=404),
+    )
+    monotonic_values = iter([0, 0, 601])
+    monkeypatch.setattr("corio.infra.releaser.time.monotonic", lambda: next(monotonic_values))
+    monkeypatch.setattr(
+        ReleaserTester,
+        "run_subprocess",
+        lambda self: pytest.fail("Tests must not start when an editable is missing from PyPI."),
+    )
+
+    with pytest.raises(RuntimeError, match="xah==1.2.3"):
+        tester.run()
 
 
 def test_tester_run_raises_when_subprocess_fails(tmp_path, monkeypatch):

@@ -51,9 +51,13 @@ Docs release expects:
 
 `releaser.run(...)` orchestrates:
 
-1. version increment + git/tag flow
-2. optional container build/push
-3. package build/upload
-4. docs deploy
+1. version increment and release metadata updates
+2. editable dependency availability checks and configured tox tests
+3. commit, tag, and push
+4. optional container build/push
+5. package build/upload
+6. docs deploy
+
+Before tox starts, the release checks each configured `[tool.corio.metadata].editables` entry ([editable packages](path.md#editable-packages)), in order, using its pinned sibling-repository version. It polls PyPI for up to 10 minutes; if a version does not appear, the release stops without starting tests.
 
 When a current pre-release version has no matching Git tag, the release flow stops rather than assuming that version can be safely reused. Resolve the release state or pin the intended stable base explicitly before retrying.

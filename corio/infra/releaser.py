@@ -2,6 +2,7 @@ import build
 import pygit2 as vcs
 import shutil
 import subprocess
+import time
 import twine.settings
 from functools import cached_property
 from mkdocs.__main__ import cli
@@ -658,6 +659,8 @@ class ReleaseDocumentation(Release):
 class Tester(Inherit[Releaser]):
     TEST_FILENAME_PREFIX = "test_"
     TEST_FILENAME_SUFFIX = ".py"
+    EDITABLE_WAIT_TIMEOUT = 600
+    EDITABLE_CHECK_INTERVAL = 10
 
     @cached_property
     def modules(self) -> list[str]:
@@ -675,6 +678,43 @@ class Tester(Inherit[Releaser]):
     def env_list(self) -> list[str]:
         data = self.paths.pyproject_repo.read_toml()
         return list(data.get("tool", {}).get("tox", {}).get("env_list", []))
+
+    def check_editables(self):
+        from corio.infra.incrementor_pyproject import IncrementorPyproject
+
+        editables = self.inherit_parent.incrementors.cls[IncrementorPyproject].editables
+        pending = list(self.paths.metadata.editables)
+        deadline = time.monotonic() + self.EDITABLE_WAIT_TIMEOUT
+
+        while pending:
+            unavailable = []
+            for name in pending:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    unavailable.append(name)
+                    continue
+
+                version = editables[name].version
+                url = f"https://pypi.org/pypi/{name}/{version}/json"
+                response = https.client.get(url, timeout=min(https.ClientBase.TIMEOUT, remaining))
+                if response.status_code != 200:
+                    unavailable.append(name)
+                    continue
+
+                logger.info(f'Editable dependency "{name}=={version}" is available on PyPI.')
+
+            pending = unavailable
+            if not pending:
+                return
+
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                missing_versions = [f"{name}=={editables[name].version}" for name in pending]
+                missing = ", ".join(missing_versions)
+                raise RuntimeError(f"Timed out waiting for editable dependencies to appear on PyPI: {missing}.")
+
+            logger.info(f"Waiting for {len(pending)} editable dependency version(s) to appear on PyPI...")
+            time.sleep(min(self.EDITABLE_CHECK_INTERVAL, remaining))
 
     def run_subprocess(self) -> int:
         command = [
@@ -721,6 +761,7 @@ class Tester(Inherit[Releaser]):
             logger.warning(f'No tox envs found in "{self.paths.pyproject_repo}". Skipping.')
             return True
 
+        self.check_editables()
         code = self.run_subprocess()
 
         if code == 0:
