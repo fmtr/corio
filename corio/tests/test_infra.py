@@ -32,7 +32,12 @@ def _write_editable_repo(path_repo: Path, name: str, version: str) -> None:
     )
 
 
-def _make_incrementor(path_repo: Path, pre_current: bool = False, test_envs: bool = True) -> IncrementorPyproject:
+def _make_incrementor(
+    path_repo: Path,
+    pre_current: bool = False,
+    test_envs: bool = True,
+    editables: tuple[str, ...] = (),
+) -> IncrementorPyproject:
     path_package = path_repo / "corio"
     path_package.mkdir(parents=True, exist_ok=True)
     path_tests = path_repo / "corio" / "tests"
@@ -47,6 +52,7 @@ def _make_incrementor(path_repo: Path, pre_current: bool = False, test_envs: boo
             metadata=SimpleNamespace(
                 test_envs=test_envs,
                 test_pass_env=[],
+                editables=list(editables),
             ),
         ),
         versions=SimpleNamespace(pre_current=pre_current),
@@ -76,16 +82,11 @@ def test_pin_editables_and_flatten_dependencies(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(path_main_repo / "haco")
+    path_haco_repo = Path(tmp_path / "haco")
     path_haco_repo.mkdir(parents=True)
     _write_editable_repo(path_haco_repo, name="haco", version="1.2.3")
 
-    (path_main_repo / "pyproject.toml").write_text(
-        '[tool.uv.sources.haco]\npath = "haco"\neditable = true\n',
-        encoding="utf-8",
-    )
-
-    incrementor = _make_incrementor(path_main_repo)
+    incrementor = _make_incrementor(path_main_repo, editables=("haco",))
 
     assert incrementor._pin_editable("haco") == "haco~=1.2.3"
     assert incrementor._pin_editable("requests") == "requests"
@@ -101,7 +102,7 @@ def test_pin_editables_and_flatten_dependencies(tmp_path):
     assert extras == {"dev": ["haco"], "all": ["haco"]}
 
 
-def test_pin_editables_resolves_uv_source_path(tmp_path):
+def test_pin_editables_resolves_metadata_editable_sibling(tmp_path):
     path_main_repo = Path(tmp_path / "app")
     path_main_repo.mkdir(parents=True)
 
@@ -109,29 +110,55 @@ def test_pin_editables_resolves_uv_source_path(tmp_path):
     path_corio_repo.mkdir(parents=True)
     _write_editable_repo(path_corio_repo, name="corio", version="1.2.3")
 
-    (path_main_repo / "pyproject.toml").write_text(
-        '[tool.uv.sources.corio]\npath = "../corio"\neditable = true\n',
-        encoding="utf-8",
-    )
-
-    incrementor = _make_incrementor(path_main_repo)
+    incrementor = _make_incrementor(path_main_repo, editables=("corio",))
     assert incrementor._pin_editable("corio") == "corio~=1.2.3"
+
+
+def test_generate_editable_uv_sources_and_compat_from_metadata(tmp_path):
+    path_main_repo = Path(tmp_path / "app")
+    path_main_repo.mkdir(parents=True)
+    incrementor = _make_incrementor(path_main_repo, editables=("corio", "xah"))
+    data = {
+        "tool": {
+            "uv": {
+                "sources": {
+                    "corio": {"path": "old-corio", "editable": True},
+                    "stale": {"path": "../stale", "editable": True},
+                    "remote": {"index": "private"},
+                },
+                "config-settings-package": {
+                    "corio": {"editable_mode": "strict", "other": "keep"},
+                    "stale": {"editable_mode": "compat", "other": "keep"},
+                    "remote": {"setting": "keep"},
+                },
+            }
+        }
+    }
+
+    incrementor._generate_editables(data)
+
+    assert data["tool"]["uv"]["sources"] == {
+        "corio": {"path": "../corio", "editable": True},
+        "xah": {"path": "../xah", "editable": True},
+        "remote": {"index": "private"},
+    }
+    assert data["tool"]["uv"]["config-settings-package"] == {
+        "corio": {"editable_mode": "compat", "other": "keep"},
+        "stale": {"other": "keep"},
+        "xah": {"editable_mode": "compat"},
+        "remote": {"setting": "keep"},
+    }
 
 
 def test_pin_editables_preserves_extras_and_skips_existing_specifiers(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(path_main_repo / "haco")
+    path_haco_repo = Path(tmp_path / "haco")
     path_haco_repo.mkdir(parents=True)
     _write_editable_repo(path_haco_repo, name="haco", version="1.2.3")
 
-    (path_main_repo / "pyproject.toml").write_text(
-        '[tool.uv.sources.haco]\npath = "haco"\neditable = true\n',
-        encoding="utf-8",
-    )
-
-    incrementor = _make_incrementor(path_main_repo)
+    incrementor = _make_incrementor(path_main_repo, editables=("haco",))
 
     dep = incrementor._pin_editable("haco[version.dev,logging,sets,yaml,debug,caching,api,mqtt]")
     req = Requirement(dep)
@@ -148,16 +175,11 @@ def test_pin_editables_raises_on_prerelease_when_current_is_release(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(path_main_repo / "haco")
+    path_haco_repo = Path(tmp_path / "haco")
     path_haco_repo.mkdir(parents=True)
     _write_editable_repo(path_haco_repo, name="haco", version="1.2.3-rc.1")
 
-    (path_main_repo / "pyproject.toml").write_text(
-        '[tool.uv.sources.haco]\npath = "haco"\neditable = true\n',
-        encoding="utf-8",
-    )
-
-    incrementor = _make_incrementor(path_main_repo, pre_current=False)
+    incrementor = _make_incrementor(path_main_repo, pre_current=False, editables=("haco",))
 
     try:
         _ = incrementor.editables
@@ -171,16 +193,11 @@ def test_pin_editables_allows_prerelease_when_current_pre_currentrelease(tmp_pat
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(path_main_repo / "haco")
+    path_haco_repo = Path(tmp_path / "haco")
     path_haco_repo.mkdir(parents=True)
     _write_editable_repo(path_haco_repo, name="haco", version="1.2.3-rc.1")
 
-    (path_main_repo / "pyproject.toml").write_text(
-        '[tool.uv.sources.haco]\npath = "haco"\neditable = true\n',
-        encoding="utf-8",
-    )
-
-    incrementor = _make_incrementor(path_main_repo, pre_current=True)
+    incrementor = _make_incrementor(path_main_repo, pre_current=True, editables=("haco",))
 
     assert incrementor._pin_editable("haco") == "haco~=1.2.3-rc.1"
 
@@ -351,16 +368,11 @@ def test_process_deps_pins_project_dependencies(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(path_main_repo / "haco")
+    path_haco_repo = Path(tmp_path / "haco")
     path_haco_repo.mkdir(parents=True)
     _write_editable_repo(path_haco_repo, name="haco", version="1.2.3")
 
-    (path_main_repo / "pyproject.toml").write_text(
-        '[tool.uv.sources.haco]\npath = "haco"\neditable = true\n',
-        encoding="utf-8",
-    )
-
-    incrementor = _make_incrementor(path_main_repo)
+    incrementor = _make_incrementor(path_main_repo, editables=("haco",))
 
     dependencies = ["haco", "requests>=2"]
     optional_dev = ["haco[logging]", "pytest"]
@@ -410,8 +422,14 @@ def test_pyproject_cli_endpoint_returns_success_exit_code(monkeypatch):
     ]
 
 
-def _make_test_env_generator(path_repo: Path, *, test_envs: bool, dependencies: dict[str, list[str]]) -> GeneratorTestEnvs:
-    incrementor = _make_incrementor(path_repo, test_envs=test_envs)
+def _make_test_env_generator(
+    path_repo: Path,
+    *,
+    test_envs: bool,
+    dependencies: dict[str, list[str]],
+    editables: tuple[str, ...] = (),
+) -> GeneratorTestEnvs:
+    incrementor = _make_incrementor(path_repo, test_envs=test_envs, editables=editables)
     return GeneratorTestEnvs(paths=incrementor.paths, optionals=dependencies)
 
 
@@ -517,6 +535,32 @@ def test_generator_test_envs_passes_configured_environment(tmp_path):
     env = generator.get_env("corio", ["pytest"], path_repo / "corio" / "tests")
 
     assert env["corio"]["pass_env"] == ["PLAYWRIGHT_BROWSERS_PATH"]
+
+
+def test_generator_test_envs_refreshes_all_editables_with_tox_uv(tmp_path):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    generator = _make_test_env_generator(
+        path_repo,
+        test_envs=True,
+        dependencies={"test": ["xah[test]~=0.0.8"]},
+        editables=("xah", "corio"),
+    )
+    path_test = path_repo / "corio" / "tests" / "test_path.py"
+
+    env = generator.get_env("corio", ["xah[test]~=0.0.8"], path_test)["corio"]
+
+    assert env["install_command"] == [
+        "uv",
+        "pip",
+        "install",
+        "--refresh-package",
+        "corio",
+        "--refresh-package",
+        "xah",
+        "{opts}",
+        "{packages}",
+    ]
 
 
 def test_generator_test_envs_fall_back_to_single_env_when_test_envs_disabled(tmp_path):

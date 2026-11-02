@@ -23,6 +23,17 @@ Primary exports:
 - `PackagePaths().metadata` gives strongly-typed access to `tool.corio.metadata` from package `pyproject`.
 - WSL absolute Windows paths are auto-converted when running under WSL.
 
+## Editable packages
+
+Record editable package identifiers in `[tool.corio.metadata]`:
+
+```toml
+[tool.corio.metadata]
+editables = ["<package-name>"]
+```
+
+`PackagePaths().metadata.editables` exposes the configured identifiers.
+
 ## Examples
 
 ```python

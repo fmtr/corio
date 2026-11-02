@@ -488,6 +488,7 @@ class Metadata:
     is_dockerhub: bool = False
     test_envs: bool = False
     test_pass_env: list[str] = field(default_factory=list)
+    editables: list[str] = field(default_factory=list)
 
     @classmethod
     def read(cls, path: Path) -> Self:

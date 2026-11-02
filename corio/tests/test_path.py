@@ -180,6 +180,28 @@ def test_package_paths_is_dev_uses_repository_discovery(tmp_path):
     assert installed_paths.is_dev is False
 
 
+def test_package_metadata_reads_editables(tmp_path):
+    package = path.Path(tmp_path / "corio")
+    package.mkdir()
+    (package / "pyproject.package.toml").write_text(
+        '[tool.corio.metadata]\nversion = "1.2.3"\neditables = ["corio", "xah"]\n',
+        encoding="utf-8",
+    )
+
+    assert path.PackagePaths(package).metadata.editables == ["corio", "xah"]
+
+
+def test_package_metadata_defaults_editables_to_empty(tmp_path):
+    package = path.Path(tmp_path / "corio")
+    package.mkdir()
+    (package / "pyproject.package.toml").write_text(
+        '[tool.corio.metadata]\nversion = "1.2.3"\n',
+        encoding="utf-8",
+    )
+
+    assert path.PackagePaths(package).metadata.editables == []
+
+
 def test_package_paths_production_data_uses_hidden_home_directory(tmp_path, monkeypatch):
     import corio.path.path as path_mod
 

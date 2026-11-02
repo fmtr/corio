@@ -10,6 +10,7 @@ from corio.iterator import dedupe
 from corio.logs import logger
 from corio.path import Path, PackagePaths
 from corio.path.path import Metadata
+from corio.shell.dsl import arg, shell
 from corio.toml import ensure_table
 
 
@@ -26,30 +27,10 @@ class IncrementorPyproject(Incrementor):
 
     @cached_property
     def editables(self) -> dict[str, Metadata]:
-        data = self.path.read_toml()
-        sources = data.get("tool", {}).get("uv", {}).get("sources", {})
-
         editables = {}
-        for key, source in sources.items():
-            if not isinstance(source, dict):
-                continue
-            if not source.get("editable"):
-                continue
-
-            source_path = source.get("path")
-            if not source_path:
-                logger.warning(f'Editable source "{key}" is missing "path". Skipping.')
-                continue
-            path_repo = (self.paths.repo / str(source_path)).resolve()
-            if not path_repo.exists():
-                continue
-
-            try:
-                paths = PackagePaths(path_repo)
-            except Exception as exception:
-                logger.warning(f'Failed to resolve editable source at "{path_repo}". Skipping. {exception!r}')
-                continue
-
+        for name in self.paths.metadata.editables:
+            path_repo = (self.paths.repo / f"../{name}").resolve()
+            paths = PackagePaths(path_repo)
             metadata = paths.metadata
             if metadata.version_obj.prerelease and not self.versions.pre_current:
                 raise ValueError(
@@ -187,12 +168,40 @@ class IncrementorPyproject(Incrementor):
         extras["all"] = dedupe(list(chain.from_iterable(extras.values())))
         return install, extras
 
+    def _generate_editables(self, data):
+        editables = set(self.paths.metadata.editables)
+        sources = data.get("tool", {}).get("uv", {}).get("sources", {})
+        obsolete = [
+            name
+            for name, source in sources.items()
+            if isinstance(source, dict) and source.get("editable") and name not in editables
+        ]
+        if not editables and not obsolete:
+            return
+
+        sources = ensure_table(data, ("tool", "uv", "sources"))
+        config_settings = data.get("tool", {}).get("uv", {}).get("config-settings-package", {})
+        for name in obsolete:
+            del sources[name]
+            settings = config_settings.get(name)
+            if settings is None or settings.get("editable_mode") != "compat":
+                continue
+            del settings["editable_mode"]
+            if not settings:
+                del config_settings[name]
+
+        for name in sorted(editables):
+            sources[name] = {"path": f"../{name}", "editable": True}
+            settings = ensure_table(data, ("tool", "uv", "config-settings-package", name))
+            settings["editable_mode"] = "compat"
+
     def _enrich_toml(self, data):
         version = str(self.version)
         logger.info(f'Applying release version "{version}" to "{self.path}"...')
 
         metadata = ensure_table(data, ("tool", "corio", "metadata"))
         metadata["version"] = version
+        self._generate_editables(data)
 
         project = ensure_table(data, ("project",))
         project["name"] = self.paths.name
@@ -325,6 +334,13 @@ class GeneratorTestEnvs:
             deps=deps,
             commands=[["python", "-m", "pytest", "-q", f"{{posargs:{path}}}"]],
         )
+        if self.paths.metadata.editables:
+            install_command = shell.uv.pip.install(
+                *(--arg.refresh_package + name for name in sorted(self.paths.metadata.editables)),
+                "{opts}",
+                "{packages}",
+            )
+            env["install_command"] = install_command.tokens()
         if self.paths.metadata.test_pass_env:
             env["pass_env"] = self.paths.metadata.test_pass_env
 
