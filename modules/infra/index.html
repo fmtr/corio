@@ -322,6 +322,8 @@
       
         
       
+        
+      
     
     
     
@@ -825,6 +827,34 @@
     
   
     2.17.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.1
   
 
     
@@ -3020,11 +3050,14 @@
 <h2 id="release-flow-high-level">Release Flow (high-level)</h2>
 <p><code>releaser.run(...)</code> orchestrates:</p>
 <ol>
-<li>version increment + git/tag flow</li>
+<li>version increment and release metadata updates</li>
+<li>editable dependency availability checks and configured tox tests</li>
+<li>commit, tag, and push</li>
 <li>optional container build/push</li>
 <li>package build/upload</li>
 <li>docs deploy</li>
 </ol>
+<p>Before tox starts, the release checks each configured <code>[tool.corio.metadata].editables</code> entry (<a href="../path/#editable-packages">editable packages</a>), in order, using its pinned sibling-repository version. It polls PyPI for up to 10 minutes; if a version does not appear, the release stops without starting tests.</p>
 <p>When a current pre-release version has no matching Git tag, the release flow stops rather than assuming that version can be safely reused. Resolve the release state or pin the intended stable base explicitly before retrying.</p>
 
 
