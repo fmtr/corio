@@ -191,15 +191,19 @@ def test_package_metadata_reads_editables(tmp_path):
     assert path.PackagePaths(package).metadata.editables == ["corio", "xah"]
 
 
-def test_package_metadata_reads_container_cli(tmp_path):
+def test_package_metadata_reads_container_cli_and_host(tmp_path):
     package = path.Path(tmp_path / "corio")
     package.mkdir()
     (package / "pyproject.package.toml").write_text(
-        '[tool.corio.metadata]\nversion = "1.2.3"\ncontainer_cli = "docker"\n',
+        '[tool.corio.metadata]\nversion = "1.2.3"\ncontainer_cli = "docker"\n'
+        'container_host = "ssh://ed@ai.ia.fmtr.dev"\n',
         encoding="utf-8",
     )
 
-    assert path.PackagePaths(package).metadata.container_cli == "docker"
+    metadata = path.PackagePaths(package).metadata
+
+    assert metadata.container_cli == "docker"
+    assert metadata.container_host == "ssh://ed@ai.ia.fmtr.dev"
 
 
 def test_package_metadata_defaults_editables_to_empty(tmp_path):
@@ -214,6 +218,7 @@ def test_package_metadata_defaults_editables_to_empty(tmp_path):
 
     assert metadata.editables == []
     assert metadata.container_cli == "podman"
+    assert metadata.container_host is None
 
 
 def test_package_paths_production_data_uses_hidden_home_directory(tmp_path, monkeypatch):

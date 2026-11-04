@@ -304,7 +304,7 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
 
         @staticmethod
         def run(**kwargs):
-            assert kwargs == {"build": True, "release": True}
+            assert kwargs == {"release": True}
             raise failure
 
     monkeypatch.setattr("corio.infra.api.Project", DummyProject)
@@ -312,7 +312,7 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
     endpoint = Release(SimpleNamespace())
 
     with pytest.raises(RuntimeError, match="package build failed") as caught:
-        asyncio.run(endpoint.run("demo", pinned="1.2.3", build=True))
+        asyncio.run(endpoint.run("demo", pinned="1.2.3"))
 
     assert caught.value is failure
 
@@ -823,7 +823,7 @@ def test_releaser_run_commits_only_after_tests_pass(monkeypatch):
 
     releaser = Releaser(SimpleNamespace(
         name="corio",
-        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
+        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
     ))
     releaser.repo = _Repo()
     releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or True)
@@ -831,7 +831,7 @@ def test_releaser_run_commits_only_after_tests_pass(monkeypatch):
     monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
     monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
 
-    releaser.run(build=False, release=False)
+    releaser.run(release=False)
 
     assert events == ["fetch", "increment", "tests", "commit", "push", "fetch"]
 
@@ -850,7 +850,7 @@ def test_releaser_run_continues_when_pre_tests_fail(monkeypatch):
         name="corio",
         version=version.parse("1.2.3-rc.1"),
         versions=SimpleNamespace(pre_current=True),
-        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False)),
+        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
     ))
     releaser.repo = _Repo()
     releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or False)
@@ -858,7 +858,7 @@ def test_releaser_run_continues_when_pre_tests_fail(monkeypatch):
     monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
     monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
 
-    releaser.run(build=False, release=False)
+    releaser.run(release=False)
 
     assert events == ["fetch", "increment", "tests", "commit", "push", "fetch"]
 

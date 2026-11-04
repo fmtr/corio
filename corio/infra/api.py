@@ -39,7 +39,6 @@ class Release(api.endpoint.API):
             name: ProjectName,
             pinned: str = None,
             pre: bool | None = False,
-            build: bool = False,
             release: bool = True,
     ):
         """
@@ -48,7 +47,7 @@ class Release(api.endpoint.API):
 
         """
         project = Project(name, pinned=pinned, pre=pre)
-        project.releaser.run(build=build, release=release)
+        project.releaser.run(release=release)
 
 
 class DocumentationRelease(api.endpoint.API):

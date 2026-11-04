@@ -17,7 +17,10 @@ class Stack(Inherit[Project]):
 
     @cached_property
     def client(self):
-        return DockerClient(client_call=[self.paths.metadata.container_cli])
+        return DockerClient(
+            client_call=[self.paths.metadata.container_cli],
+            host=self.paths.metadata.container_host,
+        )
 
 
 class Production(Stack):

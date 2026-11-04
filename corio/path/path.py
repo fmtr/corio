@@ -471,6 +471,7 @@ class Metadata:
     entrypoint: str | None = None
     base: str = 'python'
     container_cli: str = 'podman'
+    container_host: str | None = None
     description: str | None = None
 
     org_singleton: str | None = None

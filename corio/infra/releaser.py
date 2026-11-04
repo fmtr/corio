@@ -53,7 +53,7 @@ class Releaser(Inherit[Project]):
     """
 
     @logger.instrument("Releasing {self.paths.name}...")
-    def run(self, build: bool = False, release: bool = True):
+    def run(self, release: bool = True):
 
         from corio.infra.stack import Production
 
@@ -73,7 +73,7 @@ class Releaser(Inherit[Project]):
         self.repo.push()
         self.repo.fetch()
 
-        should_build_image = build or self.paths.metadata.is_dockerhub
+        should_build_image = self.paths.metadata.container_host is not None or self.paths.metadata.is_dockerhub
         if release or should_build_image:
             self.package()
 

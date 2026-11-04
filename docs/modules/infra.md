@@ -13,12 +13,15 @@ Core objects:
 
 Production images built by `Stack` run their entrypoint as the unprivileged `user` account (UID 1000). Files accessed by the process must be readable or writable by that UID as needed.
 
-The production container CLI defaults to `podman`. Select Docker for a project in its metadata when the build should use a Docker Engine or Docker remote context:
+The production container CLI defaults to `podman`. Select Docker for a project in its metadata when the build should use Docker:
 
 ```toml
 [tool.corio.metadata]
 container_cli = "docker"
+container_host = "ssh://user@host"
 ```
+
+A non-null `container_host` also enables production image builds during the release flow. The host is passed directly to the container client, so SSH endpoints target a remote Docker Engine without requiring a Docker context.
 
 Install:
 
