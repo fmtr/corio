@@ -72,7 +72,7 @@ async def test_embedder_client_calls_api_with_vectors_from_embedder():
 
     async def embed_api_call(url, *, json, timeout):
         assert url == "https://embed.example/embed"
-        assert timeout == 120
+        assert timeout == 600
         assert json["is_multi"] is False
         assert json["max_length"] == 128
         vectors = embedder.embed(json["texts"])

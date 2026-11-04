@@ -100,7 +100,7 @@ class EmbedderClient:
     Vectors = Vectors
     BATCH_SIZE_BASE = 1_500
     BATCH_SIZE_MULTI_FACTOR = 32 / BATCH_SIZE_BASE
-    TIMEOUT = 120
+    TIMEOUT = 600
 
     def __init__(
             self,
