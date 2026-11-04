@@ -90,7 +90,7 @@ class Release(dm.Base):
         project.releaser.run(release=self.release)
 
 
-class Infra(dm.Base):
+class Infra(sets.SubCommand):
     api: CliSubCommand[InfraApi]
     release: CliSubCommand[Release]
 

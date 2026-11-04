@@ -114,6 +114,11 @@ def test_pin_editables_resolves_metadata_editable_sibling(tmp_path):
     assert incrementor._pin_editable("corio") == "corio~=1.2.3"
 
 
+def test_infra_dispatches_cli_subcommands():
+    assert issubclass(entrypoint.Infra, entrypoint.sets.SubCommand)
+    assert entrypoint.Infra.run is entrypoint.sets.SubCommand.run
+
+
 def test_generate_editable_uv_sources_and_compat_from_metadata(tmp_path):
     path_main_repo = Path(tmp_path / "app")
     path_main_repo.mkdir(parents=True)
