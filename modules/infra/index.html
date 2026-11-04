@@ -328,6 +328,8 @@
       
         
       
+        
+      
     
     
     
@@ -915,6 +917,34 @@
     
   
     2.17.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.4
   
 
     
@@ -3099,6 +3129,9 @@
 
 <span class="n">project</span> <span class="o">=</span> <span class="n">infra</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s2">"corio"</span><span class="p">)</span>
 <span class="n">project</span><span class="o">.</span><span class="n">releaser</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">build</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>The same release flow is available from the command line:</p>
+<div class="language-bash highlight"><pre><span></span><code>corio<span class="w"> </span>infra<span class="w"> </span>release<span class="w"> </span>--name<span class="w"> </span>corio
 </code></pre></div>
 <h2 id="api-usage">API Usage</h2>
 <p><code>infra.Api</code> exposes release/build/recreate endpoints and is used by infra wrapper repos:</p>
