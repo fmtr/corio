@@ -326,6 +326,8 @@
       
         
       
+        
+      
     
     
     
@@ -885,6 +887,34 @@
     
   
     2.17.2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.3
   
 
     
@@ -3055,10 +3085,12 @@
 <li><code>infrastructure.api.Api</code>: FastAPI surface for release/build/recreate operations</li>
 </ul>
 <p>Production images built by <code>Stack</code> run their entrypoint as the unprivileged <code>user</code> account (UID 1000). Files accessed by the process must be readable or writable by that UID as needed.</p>
-<p>The production container CLI defaults to <code>podman</code>. Select Docker for a project in its metadata when the build should use a Docker Engine or Docker remote context:</p>
+<p>The production container CLI defaults to <code>podman</code>. Select Docker for a project in its metadata when the build should use Docker:</p>
 <div class="language-toml highlight"><pre><span></span><code><span class="k">[tool.corio.metadata]</span>
 <span class="n">container_cli</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"docker"</span>
+<span class="n">container_host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ssh://user@host"</span>
 </code></pre></div>
+<p>A non-null <code>container_host</code> also enables production image builds during the release flow. The host is passed directly to the container client, so SSH endpoints target a remote Docker Engine without requiring a Docker context.</p>
 <p>Install:</p>
 <div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"corio[infra]"</span><span class="w"> </span>--upgrade
 </code></pre></div>
