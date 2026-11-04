@@ -82,24 +82,24 @@ def test_pin_editables_and_flatten_dependencies(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(tmp_path / "haco")
-    path_haco_repo.mkdir(parents=True)
-    _write_editable_repo(path_haco_repo, name="haco", version="1.2.3")
+    path_editable_b_repo = Path(tmp_path / "editable_b")
+    path_editable_b_repo.mkdir(parents=True)
+    _write_editable_repo(path_editable_b_repo, name="editable_b", version="1.2.3")
 
-    incrementor = _make_incrementor(path_main_repo, editables=("haco",))
+    incrementor = _make_incrementor(path_main_repo, editables=("editable_b",))
 
-    assert incrementor._pin_editable("haco") == "haco~=1.2.3"
+    assert incrementor._pin_editable("editable_b") == "editable_b~=1.2.3"
     assert incrementor._pin_editable("requests") == "requests"
 
     install, extras = incrementor._flatten_dependencies(
         {
-            "install": ["haco", "requests"],
-            "dev": ["haco"],
+            "install": ["editable_b", "requests"],
+            "dev": ["editable_b"],
         }
     )
 
-    assert install == ["haco", "requests"]
-    assert extras == {"dev": ["haco"], "all": ["haco"]}
+    assert install == ["editable_b", "requests"]
+    assert extras == {"dev": ["editable_b"], "all": ["editable_b"]}
 
 
 def test_pin_editables_resolves_metadata_editable_sibling(tmp_path):
@@ -117,7 +117,7 @@ def test_pin_editables_resolves_metadata_editable_sibling(tmp_path):
 def test_generate_editable_uv_sources_and_compat_from_metadata(tmp_path):
     path_main_repo = Path(tmp_path / "app")
     path_main_repo.mkdir(parents=True)
-    incrementor = _make_incrementor(path_main_repo, editables=("corio", "xah"))
+    incrementor = _make_incrementor(path_main_repo, editables=("corio", "editable_a"))
     data = {
         "tool": {
             "uv": {
@@ -139,13 +139,13 @@ def test_generate_editable_uv_sources_and_compat_from_metadata(tmp_path):
 
     assert data["tool"]["uv"]["sources"] == {
         "corio": {"path": "../corio", "editable": True},
-        "xah": {"path": "../xah", "editable": True},
+        "editable_a": {"path": "../editable_a", "editable": True},
         "remote": {"index": "private"},
     }
     assert data["tool"]["uv"]["config-settings-package"] == {
         "corio": {"editable_mode": "compat", "other": "keep"},
         "stale": {"other": "keep"},
-        "xah": {"editable_mode": "compat"},
+        "editable_a": {"editable_mode": "compat"},
         "remote": {"setting": "keep"},
     }
 
@@ -154,37 +154,37 @@ def test_pin_editables_preserves_extras_and_skips_existing_specifiers(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(tmp_path / "haco")
-    path_haco_repo.mkdir(parents=True)
-    _write_editable_repo(path_haco_repo, name="haco", version="1.2.3")
+    path_editable_b_repo = Path(tmp_path / "editable_b")
+    path_editable_b_repo.mkdir(parents=True)
+    _write_editable_repo(path_editable_b_repo, name="editable_b", version="1.2.3")
 
-    incrementor = _make_incrementor(path_main_repo, editables=("haco",))
+    incrementor = _make_incrementor(path_main_repo, editables=("editable_b",))
 
-    dep = incrementor._pin_editable("haco[version.dev,logging,sets,yaml,debug,caching,api,mqtt]")
+    dep = incrementor._pin_editable("editable_b[version.dev,logging,sets,yaml,debug,caching,api,mqtt]")
     req = Requirement(dep)
-    assert req.name == "haco"
+    assert req.name == "editable_b"
     assert req.extras == {"version.dev", "logging", "sets", "yaml", "debug", "caching", "api", "mqtt"}
     assert str(req.specifier) == "~=1.2.3"
 
-    assert incrementor._pin_editable("haco==1.0.0") == "haco==1.0.0"
-    assert incrementor._pin_editable("haco~=1.0.0") == "haco~=1.2.3"
-    assert incrementor._pin_editable("haco>=1.0.0") == "haco>=1.0.0"
+    assert incrementor._pin_editable("editable_b==1.0.0") == "editable_b==1.0.0"
+    assert incrementor._pin_editable("editable_b~=1.0.0") == "editable_b~=1.2.3"
+    assert incrementor._pin_editable("editable_b>=1.0.0") == "editable_b>=1.0.0"
 
 
 def test_pin_editables_raises_on_prerelease_when_current_is_release(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(tmp_path / "haco")
-    path_haco_repo.mkdir(parents=True)
-    _write_editable_repo(path_haco_repo, name="haco", version="1.2.3-rc.1")
+    path_editable_b_repo = Path(tmp_path / "editable_b")
+    path_editable_b_repo.mkdir(parents=True)
+    _write_editable_repo(path_editable_b_repo, name="editable_b", version="1.2.3-rc.1")
 
-    incrementor = _make_incrementor(path_main_repo, pre_current=False, editables=("haco",))
+    incrementor = _make_incrementor(path_main_repo, pre_current=False, editables=("editable_b",))
 
     try:
         _ = incrementor.editables
     except ValueError as exception:
-        assert 'Editable dependency "haco" is pre-release' in str(exception)
+        assert 'Editable dependency "editable_b" is pre-release' in str(exception)
     else:
         raise AssertionError("Expected ValueError for prerelease editable dependency")
 
@@ -193,13 +193,13 @@ def test_pin_editables_allows_prerelease_when_current_pre_currentrelease(tmp_pat
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(tmp_path / "haco")
-    path_haco_repo.mkdir(parents=True)
-    _write_editable_repo(path_haco_repo, name="haco", version="1.2.3-rc.1")
+    path_editable_b_repo = Path(tmp_path / "editable_b")
+    path_editable_b_repo.mkdir(parents=True)
+    _write_editable_repo(path_editable_b_repo, name="editable_b", version="1.2.3-rc.1")
 
-    incrementor = _make_incrementor(path_main_repo, pre_current=True, editables=("haco",))
+    incrementor = _make_incrementor(path_main_repo, pre_current=True, editables=("editable_b",))
 
-    assert incrementor._pin_editable("haco") == "haco~=1.2.3-rc.1"
+    assert incrementor._pin_editable("editable_b") == "editable_b~=1.2.3-rc.1"
 
 
 def test_versions_next_pre_uses_alpha_dot_zero():
@@ -368,17 +368,17 @@ def test_process_deps_pins_project_dependencies(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
 
-    path_haco_repo = Path(tmp_path / "haco")
-    path_haco_repo.mkdir(parents=True)
-    _write_editable_repo(path_haco_repo, name="haco", version="1.2.3")
+    path_editable_b_repo = Path(tmp_path / "editable_b")
+    path_editable_b_repo.mkdir(parents=True)
+    _write_editable_repo(path_editable_b_repo, name="editable_b", version="1.2.3")
 
-    incrementor = _make_incrementor(path_main_repo, editables=("haco",))
+    incrementor = _make_incrementor(path_main_repo, editables=("editable_b",))
 
-    dependencies = ["haco", "requests>=2"]
-    optional_dev = ["haco[logging]", "pytest"]
+    dependencies = ["editable_b", "requests>=2"]
+    optional_dev = ["editable_b[logging]", "pytest"]
 
-    assert incrementor._process_deps(dependencies) == ["haco~=1.2.3", "requests>=2"]
-    assert incrementor._process_deps(optional_dev) == ["haco[logging]~=1.2.3", "pytest"]
+    assert incrementor._process_deps(dependencies) == ["editable_b~=1.2.3", "requests>=2"]
+    assert incrementor._process_deps(optional_dev) == ["editable_b[logging]~=1.2.3", "pytest"]
 
 
 def test_pyproject_cli_endpoint_returns_success_exit_code(monkeypatch):
@@ -547,12 +547,12 @@ def test_generator_test_envs_refreshes_all_editables_with_tox_uv(tmp_path):
     generator = _make_test_env_generator(
         path_repo,
         test_envs=True,
-        dependencies={"test": ["xah[test]~=0.0.8"]},
-        editables=("xah", "corio"),
+        dependencies={"test": ["editable_a[test]~=0.0.8"]},
+        editables=("editable_a", "corio"),
     )
     path_test = path_repo / "corio" / "tests" / "test_path.py"
 
-    env = generator.get_env("corio", ["xah[test]~=0.0.8"], path_test)["corio"]
+    env = generator.get_env("corio", ["editable_a[test]~=0.0.8"], path_test)["corio"]
 
     assert env["install_command"] == [
         "uv",
@@ -561,7 +561,7 @@ def test_generator_test_envs_refreshes_all_editables_with_tox_uv(tmp_path):
         "--refresh-package",
         "corio",
         "--refresh-package",
-        "xah",
+        "editable_a",
         "{opts}",
         "{packages}",
     ]
@@ -614,65 +614,64 @@ def test_tester_run_skips_when_no_tox_envs_found(tmp_path):
     assert tester.run() is True
 
 
-def test_tester_checks_editables_in_configured_order_before_tests(tmp_path, monkeypatch):
+def test_tester_checks_editables_with_uv_before_tests(tmp_path, monkeypatch):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
     (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
-    tester.paths.metadata.editables = ["xah", "haco"]
+    tester.paths.metadata.editables = ["editable_a", "editable_b"]
     tester.inherit_parent.incrementors.cls[IncrementorPyproject].editables = {
-        "xah": SimpleNamespace(version="1.2.3"),
-        "haco": SimpleNamespace(version="4.5.6"),
+        "editable_a": SimpleNamespace(version="1.2.3"),
+        "editable_b": SimpleNamespace(version="4.5.6"),
     }
     events = []
-    responses = iter([404, 200, 200])
+    responses = iter([1, 0, 0])
 
-    def get(url, *, timeout):
-        events.append((url, timeout))
-        return SimpleNamespace(status_code=next(responses))
+    def run(command, *, cwd, input, capture_output, text, timeout, check, shell):
+        events.append((command, cwd, input))
+        return SimpleNamespace(returncode=next(responses))
 
-    monkeypatch.setattr("corio.infra.releaser.https.client.get", get)
+    monkeypatch.setattr("corio.shell.dsl.subprocess.run", run)
     monkeypatch.setattr("corio.infra.releaser.time.sleep", lambda interval: events.append(("wait", interval)))
     monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: events.append("tests") or 0)
 
     assert tester.run() is True
     assert [event[0] if isinstance(event, tuple) else event for event in events] == [
-        "https://pypi.org/pypi/xah/1.2.3/json",
-        "https://pypi.org/pypi/haco/4.5.6/json",
+        ["uv", "pip", "compile", "-", "--no-header", "--refresh-package", "editable_a"],
+        ["uv", "pip", "compile", "-", "--no-header", "--refresh-package", "editable_b"],
         "wait",
-        "https://pypi.org/pypi/xah/1.2.3/json",
+        ["uv", "pip", "compile", "-", "--no-header", "--refresh-package", "editable_a"],
         "tests",
     ]
-    request_timeouts = [
-        event[1]
-        for event in events
-        if isinstance(event, tuple) and event[0].startswith("https:")
+    assert [event[2] for event in events if isinstance(event, tuple) and event[0][0] == "uv"] == [
+        "editable_a==1.2.3\n",
+        "editable_b==4.5.6\n",
+        "editable_a==1.2.3\n",
     ]
-    assert request_timeouts == [10, 10, 10]
 
 
-def test_tester_does_not_start_tests_when_editable_is_missing_from_pypi(tmp_path, monkeypatch):
+def test_tester_does_not_start_tests_when_editable_is_missing_from_uv(tmp_path, monkeypatch):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
     (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
-    tester.paths.metadata.editables = ["xah"]
+    tester.paths.metadata.editables = ["editable_a"]
     tester.inherit_parent.incrementors.cls[IncrementorPyproject].editables = {
-        "xah": SimpleNamespace(version="1.2.3"),
+        "editable_a": SimpleNamespace(version="1.2.3"),
     }
     monkeypatch.setattr(
-        "corio.infra.releaser.https.client.get",
-        lambda url, *, timeout: SimpleNamespace(status_code=404),
+        "corio.shell.dsl.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(returncode=1),
     )
     monotonic_values = iter([0, 0, 601])
     monkeypatch.setattr("corio.infra.releaser.time.monotonic", lambda: next(monotonic_values))
     monkeypatch.setattr(
         ReleaserTester,
         "run_subprocess",
-        lambda self: pytest.fail("Tests must not start when an editable is missing from PyPI."),
+        lambda self: pytest.fail("Tests must not start when an editable is missing from uv."),
     )
 
-    with pytest.raises(RuntimeError, match="xah==1.2.3"):
+    with pytest.raises(RuntimeError, match="editable_a==1.2.3"):
         tester.run()
 
 

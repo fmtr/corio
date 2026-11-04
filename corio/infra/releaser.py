@@ -20,6 +20,7 @@ from corio.infra.project import Project
 from corio.inherit import Inherit
 from corio.logs import logger, sanitize
 from corio.path import Path
+from corio.shell.dsl import arg, shell, val
 
 
 class ReleaseTestsFailed(RuntimeError):
@@ -698,13 +699,25 @@ class Tester(Inherit[Releaser]):
                     continue
 
                 version = editables[name].version
-                url = f"https://pypi.org/pypi/{name}/{version}/json"
-                response = https.client.get(url, timeout=min(https.ClientBase.TIMEOUT, remaining))
-                if response.status_code != 200:
+                expression = shell.uv.pip.compile(
+                    "-",
+                    --arg.no_header,
+                    --arg.refresh_package + name,
+                )
+                requirement = f"{name}=={version}\n"
+                result = expression.run(
+                    check=False,
+                    cwd=self.paths.repo,
+                    input=requirement,
+                    capture_output=True,
+                    text=True,
+                    timeout=remaining,
+                )
+                if result.returncode:
                     unavailable.append(name)
                     continue
 
-                logger.info(f'Editable dependency "{name}=={version}" is available on PyPI.')
+                logger.info(f'Editable dependency "{name}=={version}" is available to uv.')
 
             pending = unavailable
             if not pending:
@@ -720,39 +733,29 @@ class Tester(Inherit[Releaser]):
             time.sleep(min(self.EDITABLE_CHECK_INTERVAL, remaining))
 
     def run_subprocess(self) -> int:
-        command = [
-            "uvx",
-            "--with",
-            "tox-uv",
-            "tox",
-            "-c",
-            str(self.paths.pyproject_repo),
-            "--root",
-            str(self.paths.repo),
-            "--workdir",
-            str(self.paths.repo / ".tox"),
-            "run",
-        ]
-
-        process = subprocess.Popen(
-            command,
+        expression = shell.uvx(
+            --arg.with_ + val.tox_uv,
+            val.tox,
+            -arg.c + str(self.paths.pyproject_repo),
+            --arg.root + str(self.paths.repo),
+            --arg.workdir + str(self.paths.repo / ".tox"),
+            val.run,
+        )
+        result = expression.run(
+            check=False,
             cwd=self.paths.repo,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1,
         )
 
-        assert process.stdout is not None
-        output = []
-        for line in process.stdout:
-            output.append(line)
+        output = result.stdout
+        for line in output.splitlines():
             logger.info(sanitize(line))
 
-        code = process.wait()
-        if code:
-            raise ReleaseTestsFailed(code, sanitize("".join(output)))
-        return code
+        if result.returncode:
+            raise ReleaseTestsFailed(result.returncode, sanitize(output))
+        return result.returncode
 
     @logger.instrument('Running test suite for "{self.paths.name}"...')
     def run(self) -> bool:

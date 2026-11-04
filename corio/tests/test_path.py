@@ -184,11 +184,11 @@ def test_package_metadata_reads_editables(tmp_path):
     package = path.Path(tmp_path / "corio")
     package.mkdir()
     (package / "pyproject.package.toml").write_text(
-        '[tool.corio.metadata]\nversion = "1.2.3"\neditables = ["corio", "xah"]\n',
+        '[tool.corio.metadata]\nversion = "1.2.3"\neditables = ["corio", "editable_a"]\n',
         encoding="utf-8",
     )
 
-    assert path.PackagePaths(package).metadata.editables == ["corio", "xah"]
+    assert path.PackagePaths(package).metadata.editables == ["corio", "editable_a"]
 
 
 def test_package_metadata_reads_container_cli_and_host(tmp_path):
