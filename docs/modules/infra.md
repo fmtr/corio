@@ -13,6 +13,13 @@ Core objects:
 
 Production images built by `Stack` run their entrypoint as the unprivileged `user` account (UID 1000). Files accessed by the process must be readable or writable by that UID as needed.
 
+The production container CLI defaults to `podman`. Select Docker for a project in its metadata when the build should use a Docker Engine or Docker remote context:
+
+```toml
+[tool.corio.metadata]
+container_cli = "docker"
+```
+
 Install:
 
 ```bash

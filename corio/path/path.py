@@ -470,6 +470,7 @@ class Metadata:
     port: int | None = None
     entrypoint: str | None = None
     base: str = 'python'
+    container_cli: str = 'podman'
     description: str | None = None
 
     org_singleton: str | None = None
