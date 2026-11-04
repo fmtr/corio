@@ -70,11 +70,29 @@ class CacheHfh(dm.Base):
         return corio.hfh.main()
 
 
-class Infra(dm.Base):
+class InfraApi(dm.Base):
     def run(self):
         from corio.infra.api import Api
 
         return Api.launch_async()
+
+
+class Release(dm.Base):
+    name: str
+    pinned: str | None = None
+    pre: bool | None = None
+    release: bool = True
+
+    def run(self):
+        from corio.infra.project import Project
+
+        project = Project(self.name, pinned=self.pinned, pre=self.pre)
+        project.releaser.run(release=self.release)
+
+
+class Infra(dm.Base):
+    api: CliSubCommand[InfraApi]
+    release: CliSubCommand[Release]
 
 
 class InstallYamlscript(dm.Base):

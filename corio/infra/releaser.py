@@ -384,6 +384,9 @@ class Packager(Inherit[Releaser]):
         builder = build.ProjectBuilder(str(self.paths.repo))
         with logger.span(f'Building {self.TYPE} distribution...'):
             path = builder.build(self.TYPE, str(self.path))
+            if self.TYPE == 'wheel':
+                # Release processes may use a restrictive umask; container builds run as a different user.
+                path.chmod(0o644)
             logger.info(f'Build complete: {path}')
 
         self.cleanup()

@@ -38,6 +38,12 @@ project = infra.Project("corio")
 project.releaser.run(build=False, release=True, cache=True)
 ```
 
+The same release flow is available from the command line:
+
+```bash
+corio infra release --name corio
+```
+
 ## API Usage
 
 `infra.Api` exposes release/build/recreate endpoints and is used by infra wrapper repos:
