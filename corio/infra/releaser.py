@@ -1,10 +1,12 @@
 import build
+import glob
 import pygit2 as vcs
 import shutil
 import subprocess
 import time
 import twine.settings
 from functools import cached_property
+from itertools import chain
 from mkdocs.__main__ import cli
 from twine.commands.upload import upload as twine_upload
 
@@ -53,6 +55,15 @@ class Releaser(Inherit[Project]):
 
     """
 
+    CLEANUP_GLOBS = (
+        "{repo}/.tox",
+        "{repo}/site",
+        "{repo}/.pytest_cache",
+        "{repo}/.coverage*",
+        "{repo}/__pycache__",
+        "{package}/**/__pycache__",
+    )
+
     @logger.instrument("Releasing {self.paths.name}...")
     def run(self, release: bool = True):
 
@@ -86,9 +97,26 @@ class Releaser(Inherit[Project]):
 
         if release:
             self.release()
+            self.cleanup()
 
         if test_failure:
             raise test_failure
+
+    def cleanup(self):
+        patterns = (
+            glob.iglob(
+                pattern.format(repo=self.paths.repo, package=self.paths.path),
+                recursive=True,
+            )
+            for pattern in self.CLEANUP_GLOBS
+        )
+        paths = chain.from_iterable(patterns)
+        for match in paths:
+            path = Path(match)
+            if path.is_dir():
+                path.rmtree()
+                continue
+            path.unlink()
 
     @property
     def message(self):

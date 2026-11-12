@@ -815,6 +815,68 @@ def test_incrementor_version_raises_when_pinned_tag_exists():
         raise AssertionError("Expected RuntimeError when pinned tag already exists.")
 
 
+def test_releaser_cleanup_removes_release_artifacts(tmp_path):
+    path_repo = Path(tmp_path)
+    path_package = path_repo / "package"
+    paths_to_create = [
+        path_repo / ".tox",
+        path_repo / "site",
+        path_repo / ".pytest_cache",
+        path_repo / "__pycache__",
+        path_package / "module" / "__pycache__",
+        path_package / "tests" / "__pycache__",
+        path_repo / ".venv" / "lib" / "__pycache__",
+    ]
+    for path in paths_to_create:
+        path.mkdir(parents=True)
+    (path_repo / ".coverage").write_text("coverage", encoding="utf-8")
+    (path_repo / ".coverage.worker").write_text("coverage", encoding="utf-8")
+
+    releaser = Releaser(SimpleNamespace(
+        paths=SimpleNamespace(repo=path_repo, path=path_package),
+    ))
+
+    releaser.cleanup()
+
+    assert not (path_repo / ".tox").exists()
+    assert not (path_repo / "site").exists()
+    assert not (path_repo / ".pytest_cache").exists()
+    assert not (path_repo / "__pycache__").exists()
+    assert not (path_repo / ".coverage").exists()
+    assert not (path_repo / ".coverage.worker").exists()
+    assert not (path_package / "module" / "__pycache__").exists()
+    assert not (path_package / "tests" / "__pycache__").exists()
+    assert (path_repo / ".venv" / "lib" / "__pycache__").exists()
+
+
+def test_releaser_run_cleans_up_after_successful_release(monkeypatch):
+    events = []
+
+    class _Repo:
+        def fetch(self):
+            events.append("fetch")
+
+        def push(self):
+            events.append("push")
+
+    releaser = Releaser(SimpleNamespace(
+        name="corio",
+        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
+    ))
+    releaser.repo = _Repo()
+    releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or True)
+
+    monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
+    monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
+    monkeypatch.setattr(Releaser, "package", lambda self: events.append("package"))
+    monkeypatch.setattr(Releaser, "release", lambda self: events.append("release"))
+    monkeypatch.setattr(Releaser, "cleanup", lambda self: events.append("cleanup"))
+
+    releaser.run()
+
+    assert events == ["fetch", "increment", "tests", "commit", "push", "fetch", "package", "release", "cleanup"]
+
+
 def test_releaser_run_commits_only_after_tests_pass(monkeypatch):
     events = []
 
