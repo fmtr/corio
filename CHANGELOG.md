@@ -1,1 +1,1 @@
-docs/changelog/2.17.6.md
+docs/changelog/2.17.7.md
