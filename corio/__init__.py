@@ -40,4 +40,4 @@ def get_version():
 
     """
     from corio.paths import paths
-    return paths.metadata.version
+    return paths.metadata.version_dev

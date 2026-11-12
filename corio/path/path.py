@@ -6,7 +6,7 @@ import os
 import shutil
 import typing
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from tempfile import gettempdir
 from typing import Any, Callable, Self
@@ -464,7 +464,8 @@ class FromCallerMixin:
 class Metadata:
     TABLE_PATH = ("tool", "corio", "metadata")
 
-    path: Path = field(init=False)
+    path: Path
+    paths: InitVar["PackagePaths"]
 
     version: str
     port: int | None = None
@@ -493,9 +494,10 @@ class Metadata:
     editables: list[str] = field(default_factory=list)
 
     @classmethod
-    def read(cls, path: Path) -> Self:
+    def read(cls, paths: "PackagePaths") -> Self:
         from corio.toml import get_table
 
+        path = paths.pyproject
         data = path.read_data()
         metadata = get_table(data, cls.TABLE_PATH)
         if metadata is None:
@@ -503,9 +505,30 @@ class Metadata:
                 f"Missing metadata table in {path}: {'.'.join(cls.TABLE_PATH)}"
             )
 
-        self = cls(**metadata)
-        self.path = path
+        self = cls(**metadata, path=path, paths=paths)
         return self
+
+    def __post_init__(self, paths: "PackagePaths") -> None:
+        self.paths = paths
+
+    @cached_property
+    def version_dev(self) -> str:
+        """
+
+        Return the development version for a repository checkout.
+
+        """
+        if not self.paths.is_dev:
+            return self.version
+
+        from datetime import datetime, timezone
+
+        timestamp = datetime.now(timezone.utc).strftime(
+            Constants.DATETIME_SEMVER_BUILD_FORMAT
+        )
+        version = self.version_obj.bump_patch()
+        version = version.replace(prerelease=Constants.DEVELOPMENT, build=timestamp)
+        return str(version)
 
     @property
     def version_obj(self):
@@ -551,7 +574,7 @@ class PackagePaths(FromCallerMixin):
         Package metadata
 
         """
-        return Metadata.read(self.pyproject)
+        return Metadata.read(self)
 
     @property
     def pyproject(self) -> Path:

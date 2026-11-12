@@ -56,7 +56,7 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
 
     if not version:
         from corio.paths import paths
-        version = paths.metadata.version
+        version = paths.metadata.version_dev
 
     lev_name_otel = get_otel_level_name(level)
 

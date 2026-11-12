@@ -165,10 +165,10 @@ def test_pin_editables_preserves_extras_and_skips_existing_specifiers(tmp_path):
 
     incrementor = _make_incrementor(path_main_repo, editables=("editable_b",))
 
-    dep = incrementor._pin_editable("editable_b[version.dev,logging,sets,yaml,debug,caching,api,mqtt]")
+    dep = incrementor._pin_editable("editable_b[dev,logging,sets,yaml,debug,caching,api,mqtt]")
     req = Requirement(dep)
     assert req.name == "editable_b"
-    assert req.extras == {"version.dev", "logging", "sets", "yaml", "debug", "caching", "api", "mqtt"}
+    assert req.extras == {"dev", "logging", "sets", "yaml", "debug", "caching", "api", "mqtt"}
     assert str(req.specifier) == "~=1.2.3"
 
     assert incrementor._pin_editable("editable_b==1.0.0") == "editable_b==1.0.0"
