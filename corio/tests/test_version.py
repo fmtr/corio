@@ -1,10 +1,10 @@
-import re
 from dataclasses import asdict
+from datetime import datetime, timezone
 
 import corio
 import corio.paths as paths_module
 import pytest
-from corio import path
+from corio import Constants, path
 
 
 @pytest.fixture(params=[True, False])
@@ -29,14 +29,13 @@ def package_paths(request, tmp_path):
 
 
 def test_metadata_version_dev_uses_package_development_status(package_paths):
+    timestamp = package_paths.timestamp
     metadata = package_paths.metadata
     actual = metadata.version_dev
 
     if package_paths.is_dev:
-        assert re.fullmatch(
-            r"1\.2\.4-development\+\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}",
-            actual,
-        )
+        timestamp_text = timestamp.strftime(Constants.DATETIME_SEMVER_BUILD_FORMAT)
+        assert actual == f"1.2.4-development+{timestamp_text}"
         return
 
     assert actual == "1.2.3"
@@ -47,6 +46,11 @@ def test_metadata_context_is_hidden_from_serialization(package_paths):
 
     assert metadata.paths is package_paths
     assert "paths" not in asdict(metadata)
+
+
+def test_package_paths_timestamp_is_a_utc_datetime(package_paths):
+    assert isinstance(package_paths.timestamp, datetime)
+    assert package_paths.timestamp.tzinfo == timezone.utc
 
 
 def test_metadata_version_dev_is_cached(package_paths):

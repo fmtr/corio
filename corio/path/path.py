@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 import os
@@ -15,7 +16,6 @@ from corio.constants import Constants
 from corio.strings import join_natural
 
 if typing.TYPE_CHECKING:
-    from datetime import datetime, timezone
     from corio.path.search import Searchers
 
 
@@ -521,13 +521,14 @@ class Metadata:
         if not self.paths.is_dev:
             return self.version
 
-        from datetime import datetime, timezone
-
-        timestamp = datetime.now(timezone.utc).strftime(
+        timestamp = self.paths.timestamp.strftime(
             Constants.DATETIME_SEMVER_BUILD_FORMAT
         )
         version = self.version_obj.bump_patch()
-        version = version.replace(prerelease=Constants.DEVELOPMENT, build=timestamp)
+        version = version.replace(
+            prerelease=Constants.DEVELOPMENT,
+            build=timestamp,
+        )
         return str(version)
 
     @property
@@ -561,6 +562,7 @@ class PackagePaths(FromCallerMixin):
 
         """
 
+        self.timestamp: datetime = datetime.now(timezone.utc)
         data = PathsSearchData.from_caller(path or self.from_caller())
 
         self.path = data.path
