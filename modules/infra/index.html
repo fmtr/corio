@@ -338,6 +338,8 @@
       
         
       
+        
+      
     
     
     
@@ -1065,6 +1067,34 @@
     
   
     2.17.8
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.9/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.9
   
 
     
@@ -3275,6 +3305,7 @@
 <li>optional container build/push</li>
 <li>package build/upload</li>
 <li>docs deploy</li>
+<li>remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved</li>
 </ol>
 <p>Before tox starts, the release checks each configured <code>[tool.corio.metadata].editables</code> entry (<a href="../path/#editable-packages">editable packages</a>), in order, using its pinned sibling-repository version. It polls PyPI for up to 10 minutes; if a version does not appear, the release stops without starting tests.</p>
 <p>When a current pre-release version has no matching Git tag, the release flow stops rather than assuming that version can be safely reused. Resolve the release state or pin the intended stable base explicitly before retrying.</p>
