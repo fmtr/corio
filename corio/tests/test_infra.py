@@ -619,65 +619,95 @@ def test_tester_run_skips_when_no_tox_envs_found(tmp_path):
     assert tester.run() is True
 
 
-def test_tester_checks_editables_with_uv_before_tests(tmp_path, monkeypatch):
+def test_tester_run_retries_dependency_resolution_failure(tmp_path, monkeypatch):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
     (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
-    tester.paths.metadata.editables = ["editable_a", "editable_b"]
-    tester.inherit_parent.incrementors.cls[IncrementorPyproject].editables = {
-        "editable_a": SimpleNamespace(version="1.2.3"),
-        "editable_b": SimpleNamespace(version="4.5.6"),
-    }
-    events = []
-    responses = iter([1, 0, 0])
+    tester.RESOLUTION_RETRY_TIMEOUT = 30
+    tester.RESOLUTION_RETRY_INTERVAL = 5
+    failure = ReleaseTestsFailed(
+        1,
+        "No solution found when resolving dependencies: "
+        "Because only example<=1.0 is available and you require example>=2.0.",
+    )
+    attempts = []
+    waits = []
 
-    def run(command, *, cwd, input, capture_output, text, timeout, check, shell):
-        events.append((command, cwd, input))
-        return SimpleNamespace(returncode=next(responses))
+    def run_subprocess(self):
+        attempts.append("tox")
+        if len(attempts) == 1:
+            raise failure
+        return 0
 
-    monkeypatch.setattr("corio.shell.dsl.subprocess.run", run)
-    monkeypatch.setattr("corio.infra.releaser.time.sleep", lambda interval: events.append(("wait", interval)))
-    monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: events.append("tests") or 0)
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", run_subprocess)
+    monkeypatch.setattr("corio.infra.releaser.time.monotonic", lambda: 0)
+    monkeypatch.setattr("corio.infra.releaser.time.sleep", waits.append)
 
     assert tester.run() is True
-    assert [event[0] if isinstance(event, tuple) else event for event in events] == [
-        ["uv", "pip", "compile", "-", "--no-header", "--refresh-package", "editable_a"],
-        ["uv", "pip", "compile", "-", "--no-header", "--refresh-package", "editable_b"],
-        "wait",
-        ["uv", "pip", "compile", "-", "--no-header", "--refresh-package", "editable_a"],
-        "tests",
-    ]
-    assert [event[2] for event in events if isinstance(event, tuple) and event[0][0] == "uv"] == [
-        "editable_a==1.2.3\n",
-        "editable_b==4.5.6\n",
-        "editable_a==1.2.3\n",
-    ]
+    assert attempts == ["tox", "tox"]
+    assert waits == [5]
 
 
-def test_tester_does_not_start_tests_when_editable_is_missing_from_uv(tmp_path, monkeypatch):
+def test_tester_does_not_retry_other_test_failures(tmp_path, monkeypatch):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
     (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
-    tester.paths.metadata.editables = ["editable_a"]
-    tester.inherit_parent.incrementors.cls[IncrementorPyproject].editables = {
-        "editable_a": SimpleNamespace(version="1.2.3"),
-    }
+    failure = ReleaseTestsFailed(1, "pytest failed")
+    attempts = []
+
+    def run_subprocess(self):
+        attempts.append("tox")
+        raise failure
+
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", run_subprocess)
     monkeypatch.setattr(
-        "corio.shell.dsl.subprocess.run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=1),
-    )
-    monotonic_values = iter([0, 0, 601])
-    monkeypatch.setattr("corio.infra.releaser.time.monotonic", lambda: next(monotonic_values))
-    monkeypatch.setattr(
-        ReleaserTester,
-        "run_subprocess",
-        lambda self: pytest.fail("Tests must not start when an editable is missing from uv."),
+        "corio.infra.releaser.time.sleep",
+        lambda interval: pytest.fail("Non-resolution failures must not be retried."),
     )
 
-    with pytest.raises(RuntimeError, match="editable_a==1.2.3"):
+    with pytest.raises(ReleaseTestsFailed) as result:
         tester.run()
+
+    assert result.value is failure
+    assert attempts == ["tox"]
+
+
+def test_tester_stops_retrying_resolution_failure_after_timeout(tmp_path, monkeypatch):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    tester = _make_tester(path_repo, env_list=["corio"])
+    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    tester.RESOLUTION_RETRY_TIMEOUT = 1
+    tester.RESOLUTION_RETRY_INTERVAL = 1
+    failure = ReleaseTestsFailed(
+        1,
+        "No solution found when resolving dependencies: "
+        "Because only example<=1.0 is available and you require example>=2.0.",
+    )
+    now = [0]
+    attempts = []
+    waits = []
+
+    def run_subprocess(self):
+        attempts.append("tox")
+        raise failure
+
+    def sleep(interval):
+        waits.append(interval)
+        now[0] += interval
+
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", run_subprocess)
+    monkeypatch.setattr("corio.infra.releaser.time.monotonic", lambda: now[0])
+    monkeypatch.setattr("corio.infra.releaser.time.sleep", sleep)
+
+    with pytest.raises(ReleaseTestsFailed) as result:
+        tester.run()
+
+    assert result.value is failure
+    assert attempts == ["tox", "tox"]
+    assert waits == [1]
 
 
 def test_tester_run_raises_when_subprocess_fails(tmp_path, monkeypatch):

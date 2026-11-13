@@ -68,7 +68,7 @@ Docs release expects:
 `releaser.run(...)` orchestrates:
 
 1. version increment and release metadata updates
-2. editable dependency availability checks and configured tox tests
+2. configured tox tests, retrying dependency-resolution failures for up to 10 minutes
 3. commit, tag, and push
 4. optional container build/push
 5. package build/upload
@@ -77,6 +77,6 @@ Docs release expects:
 
 The release-start log message names the project and the Corio runtime version used.
 
-Before tox starts, the release checks each configured `[tool.corio.metadata].editables` entry ([editable packages](path.md#editable-packages)), in order, using its pinned sibling-repository version. It polls PyPI for up to 10 minutes; if a version does not appear, the release stops without starting tests.
+If tox fails with `No solution found when resolving dependencies`, the release retries tox every 10 seconds for up to 10 minutes. Other dependency-installation failures and test failures stop the release immediately.
 
 When a current pre-release version has no matching Git tag, the release flow stops rather than assuming that version can be safely reused. Resolve the release state or pin the intended stable base explicitly before retrying.

@@ -699,8 +699,9 @@ class ReleaseDocumentation(Release):
 class Tester(Inherit[Releaser]):
     TEST_FILENAME_PREFIX = "test_"
     TEST_FILENAME_SUFFIX = ".py"
-    EDITABLE_WAIT_TIMEOUT = 600
-    EDITABLE_CHECK_INTERVAL = 10
+    RESOLUTION_RETRY_TIMEOUT = 600
+    RESOLUTION_RETRY_INTERVAL = 10
+    RETRYABLE_RESOLUTION_MARKER = "No solution found when resolving dependencies"
 
     @cached_property
     def modules(self) -> list[str]:
@@ -718,55 +719,6 @@ class Tester(Inherit[Releaser]):
     def env_list(self) -> list[str]:
         data = self.paths.pyproject_repo.read_toml()
         return list(data.get("tool", {}).get("tox", {}).get("env_list", []))
-
-    def check_editables(self):
-        from corio.infra.incrementor_pyproject import IncrementorPyproject
-
-        editables = self.inherit_parent.incrementors.cls[IncrementorPyproject].editables
-        pending = list(self.paths.metadata.editables)
-        deadline = time.monotonic() + self.EDITABLE_WAIT_TIMEOUT
-
-        while pending:
-            unavailable = []
-            for name in pending:
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    unavailable.append(name)
-                    continue
-
-                version = editables[name].version
-                expression = shell.uv.pip.compile(
-                    "-",
-                    --arg.no_header,
-                    --arg.refresh_package + name,
-                )
-                requirement = f"{name}=={version}\n"
-                result = expression.run(
-                    check=False,
-                    cwd=self.paths.repo,
-                    input=requirement,
-                    capture_output=True,
-                    text=True,
-                    timeout=remaining,
-                )
-                if result.returncode:
-                    unavailable.append(name)
-                    continue
-
-                logger.info(f'Editable dependency "{name}=={version}" is available to uv.')
-
-            pending = unavailable
-            if not pending:
-                return
-
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                missing_versions = [f"{name}=={editables[name].version}" for name in pending]
-                missing = ", ".join(missing_versions)
-                raise RuntimeError(f"Timed out waiting for editable dependencies to appear on PyPI: {missing}.")
-
-            logger.info(f"Waiting for {len(pending)} editable dependency version(s) to appear on PyPI...")
-            time.sleep(min(self.EDITABLE_CHECK_INTERVAL, remaining))
 
     def run_subprocess(self) -> int:
         expression = shell.uvx(
@@ -803,12 +755,27 @@ class Tester(Inherit[Releaser]):
             logger.warning(f'No tox envs found in "{self.paths.pyproject_repo}". Skipping.')
             return True
 
-        self.check_editables()
-        code = self.run_subprocess()
+        deadline = time.monotonic() + self.RESOLUTION_RETRY_TIMEOUT
 
-        if code == 0:
-            logger.info("All test environments passed.")
-            return True
+        while True:
+            try:
+                code = self.run_subprocess()
+            except ReleaseTestsFailed as failure:
+                if self.RETRYABLE_RESOLUTION_MARKER not in failure.output:
+                    raise
 
-        logger.error(f"Test suite failed with exit code {code}.")
-        raise ReleaseTestsFailed(code, "")
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise
+
+                wait = min(self.RESOLUTION_RETRY_INTERVAL, remaining)
+                logger.warning(f"Retrying tox after a dependency-resolution failure in {wait:g}s.")
+                time.sleep(wait)
+                continue
+
+            if code == 0:
+                logger.info("All test environments passed.")
+                return True
+
+            logger.error(f"Test suite failed with exit code {code}.")
+            raise ReleaseTestsFailed(code, "")
