@@ -5,6 +5,7 @@ from pytubefix.exceptions import RegexMatchError
 from typing import AsyncIterator, Iterator
 from urllib.error import HTTPError
 
+from corio import strings
 from corio.path.path import Path
 
 Stream = Stream
@@ -88,7 +89,9 @@ class AudioStreamDownloader:
         stream = audio_streams.last()
         yield AudioStreamData(f'Found highest-bitrate audio stream: {stream.audio_codec}/{stream.subtype}@{stream.abr}')
 
-        self.path = Path.temp() / stream.default_filename
+        default_filename = stream.default_filename
+        filename = f'{strings.sanitize(stream.title)}{Path(default_filename).suffix}'
+        self.path = Path.temp() / filename
         if self.path.exists():
             self.path.unlink()
 
