@@ -75,6 +75,8 @@ Docs release expects:
 6. docs deploy
 7. remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved
 
+The release-start log message names the project and the Corio runtime version used.
+
 Before tox starts, the release checks each configured `[tool.corio.metadata].editables` entry ([editable packages](path.md#editable-packages)), in order, using its pinned sibling-repository version. It polls PyPI for up to 10 minutes; if a version does not appear, the release stops without starting tests.
 
 When a current pre-release version has no matching Git tag, the release flow stops rather than assuming that version can be safely reused. Resolve the release state or pin the intended stable base explicitly before retrying.

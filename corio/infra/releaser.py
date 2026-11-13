@@ -1,4 +1,5 @@
 import build
+import corio
 import glob
 import pygit2 as vcs
 import shutil
@@ -65,7 +66,11 @@ class Releaser(Inherit[Project]):
         "{package}/**/__pycache__",
     )
 
-    @logger.instrument("Releasing {self.paths.name}...")
+    @property
+    def corio_version(self):
+        return corio.get_version()
+
+    @logger.instrument("Releasing {self.paths.name} using corio v{self.corio_version}...")
     def run(self, release: bool = True):
 
         from corio.infra.stack import Production
