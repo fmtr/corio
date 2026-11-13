@@ -59,7 +59,8 @@ class Releaser(Inherit[Project]):
         "{repo}/.tox",
         "{repo}/site",
         "{repo}/.pytest_cache",
-        "{repo}/.coverage*",
+        "{repo}/.coverage",
+        "{repo}/.coverage.*",
         "{repo}/__pycache__",
         "{package}/**/__pycache__",
     )
@@ -102,6 +103,7 @@ class Releaser(Inherit[Project]):
         if test_failure:
             raise test_failure
 
+    @logger.instrument("Cleaning workspace after release...")
     def cleanup(self):
         patterns = (
             glob.iglob(
@@ -113,6 +115,7 @@ class Releaser(Inherit[Project]):
         paths = chain.from_iterable(patterns)
         for match in paths:
             path = Path(match)
+            logger.info(f"Removing release artifact: {path}")
             if path.is_dir():
                 path.rmtree()
                 continue

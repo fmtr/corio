@@ -73,6 +73,7 @@ Docs release expects:
 4. optional container build/push
 5. package build/upload
 6. docs deploy
+7. remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved
 
 Before tox starts, the release checks each configured `[tool.corio.metadata].editables` entry ([editable packages](path.md#editable-packages)), in order, using its pinned sibling-repository version. It polls PyPI for up to 10 minutes; if a version does not appear, the release stops without starting tests.
 

@@ -831,6 +831,7 @@ def test_releaser_cleanup_removes_release_artifacts(tmp_path):
         path.mkdir(parents=True)
     (path_repo / ".coverage").write_text("coverage", encoding="utf-8")
     (path_repo / ".coverage.worker").write_text("coverage", encoding="utf-8")
+    (path_repo / ".coveragerc").write_text("[run]", encoding="utf-8")
 
     releaser = Releaser(SimpleNamespace(
         paths=SimpleNamespace(repo=path_repo, path=path_package),
@@ -844,6 +845,7 @@ def test_releaser_cleanup_removes_release_artifacts(tmp_path):
     assert not (path_repo / "__pycache__").exists()
     assert not (path_repo / ".coverage").exists()
     assert not (path_repo / ".coverage.worker").exists()
+    assert (path_repo / ".coveragerc").exists()
     assert not (path_package / "module" / "__pycache__").exists()
     assert not (path_package / "tests" / "__pycache__").exists()
     assert (path_repo / ".venv" / "lib" / "__pycache__").exists()
