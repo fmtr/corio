@@ -168,6 +168,10 @@ class IncrementorPyproject(Incrementor):
         extras["all"] = dedupe(list(chain.from_iterable(extras.values())))
         return install, extras
 
+    @cached_property
+    def _prerelease_packages(self) -> dict[str, str]:
+        return {name: "if-necessary" for name in sorted(self.paths.metadata.editables)}
+
     def _generate_editables(self, data):
         editables = set(self.paths.metadata.editables)
         sources = data.get("tool", {}).get("uv", {}).get("sources", {})
@@ -176,6 +180,14 @@ class IncrementorPyproject(Incrementor):
             for name, source in sources.items()
             if isinstance(source, dict) and source.get("editable") and name not in editables
         ]
+        if self.versions.pre_current:
+            uv = ensure_table(data, ("tool", "uv"))
+            uv["prerelease"] = "disallow"
+            uv["prerelease-package"] = self._prerelease_packages
+        else:
+            uv = data.get("tool", {}).get("uv", {})
+            uv.pop("prerelease", None)
+            uv.pop("prerelease-package", None)
         if not editables and not obsolete:
             return
 

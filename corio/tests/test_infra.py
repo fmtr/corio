@@ -155,6 +155,55 @@ def test_generate_editable_uv_sources_and_compat_from_metadata(tmp_path):
     }
 
 
+def test_generate_prerelease_uv_policies_for_editables(tmp_path):
+    path_main_repo = Path(tmp_path / "app")
+    path_main_repo.mkdir(parents=True)
+    incrementor = _make_incrementor(
+        path_main_repo,
+        pre_current=True,
+        editables=("corio", "editable_a"),
+    )
+    data = {"tool": {"uv": {"prerelease-package": {"external": "allow"}}}}
+
+    incrementor._generate_editables(data)
+
+    assert data["tool"]["uv"]["prerelease"] == "disallow"
+    assert data["tool"]["uv"]["prerelease-package"] == {
+        "corio": "if-necessary",
+        "editable_a": "if-necessary",
+    }
+
+
+def test_generate_prerelease_uv_policies_are_removed_for_stable_versions(tmp_path):
+    path_main_repo = Path(tmp_path / "app")
+    path_main_repo.mkdir(parents=True)
+    incrementor = _make_incrementor(path_main_repo, editables=("corio",))
+    data = {
+        "tool": {
+            "uv": {
+                "prerelease": "disallow",
+                "prerelease-package": {
+                    "corio": "if-necessary",
+                    "obsolete": "if-necessary",
+                    "external": "allow",
+                },
+                "sources": {
+                    "corio": {"path": "../corio", "editable": True},
+                    "obsolete": {"path": "../obsolete", "editable": True},
+                },
+            }
+        }
+    }
+
+    incrementor._generate_editables(data)
+
+    assert "prerelease" not in data["tool"]["uv"]
+    assert "prerelease-package" not in data["tool"]["uv"]
+    assert data["tool"]["uv"]["sources"] == {
+        "corio": {"path": "../corio", "editable": True},
+    }
+
+
 def test_pin_editables_preserves_extras_and_skips_existing_specifiers(tmp_path):
     path_main_repo = Path(tmp_path / "corio")
     path_main_repo.mkdir(parents=True)
