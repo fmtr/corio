@@ -32,7 +32,7 @@ Record editable package identifiers in `[tool.corio.metadata]`:
 editables = ["<package-name>"]
 ```
 
-`PackagePaths().metadata.editables` exposes the configured identifiers. When `corio pyproject` generates a pre-release project's configuration, it disallows prereleases globally and uses `if-necessary` for each editable package. For stable projects, it removes those generated prerelease settings.
+`PackagePaths().metadata.editables` exposes the configured identifiers. When `corio pyproject` generates a pre-release project's configuration, it sets uv's prerelease policy to `if-necessary` globally and for each editable package. This prefers stable dependencies while allowing prereleases where required. For stable projects, it removes those generated prerelease settings.
 
 ## Examples
 

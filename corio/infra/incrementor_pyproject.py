@@ -182,7 +182,7 @@ class IncrementorPyproject(Incrementor):
         ]
         if self.versions.pre_current:
             uv = ensure_table(data, ("tool", "uv"))
-            uv["prerelease"] = "disallow"
+            uv["prerelease"] = "if-necessary"
             uv["prerelease-package"] = self._prerelease_packages
         else:
             uv = data.get("tool", {}).get("uv", {})

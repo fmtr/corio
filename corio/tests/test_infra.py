@@ -167,7 +167,7 @@ def test_generate_prerelease_uv_policies_for_editables(tmp_path):
 
     incrementor._generate_editables(data)
 
-    assert data["tool"]["uv"]["prerelease"] == "disallow"
+    assert data["tool"]["uv"]["prerelease"] == "if-necessary"
     assert data["tool"]["uv"]["prerelease-package"] == {
         "corio": "if-necessary",
         "editable_a": "if-necessary",
@@ -181,7 +181,7 @@ def test_generate_prerelease_uv_policies_are_removed_for_stable_versions(tmp_pat
     data = {
         "tool": {
             "uv": {
-                "prerelease": "disallow",
+                "prerelease": "if-necessary",
                 "prerelease-package": {
                     "corio": "if-necessary",
                     "obsolete": "if-necessary",
