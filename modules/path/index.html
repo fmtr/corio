@@ -346,6 +346,8 @@
       
         
       
+        
+      
     
     
     
@@ -961,6 +963,34 @@
     
   
     2.17.12
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.13/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.13
   
 
     
@@ -3371,7 +3401,7 @@
 <div class="language-toml highlight"><pre><span></span><code><span class="k">[tool.corio.metadata]</span>
 <span class="n">editables</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"&lt;package-name&gt;"</span><span class="p">]</span>
 </code></pre></div>
-<p><code>PackagePaths().metadata.editables</code> exposes the configured identifiers. When <code>corio pyproject</code> generates a pre-release project's configuration, it disallows prereleases globally and uses <code>if-necessary</code> for each editable package. For stable projects, it removes those generated prerelease settings.</p>
+<p><code>PackagePaths().metadata.editables</code> exposes the configured identifiers. When <code>corio pyproject</code> generates a pre-release project's configuration, it sets uv's prerelease policy to <code>if-necessary</code> globally and for each editable package. This prefers stable dependencies while allowing prereleases where required. For stable projects, it removes those generated prerelease settings.</p>
 <h2 id="examples">Examples</h2>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
