@@ -67,13 +67,16 @@ Docs release expects:
 
 `releaser.run(...)` orchestrates:
 
-1. version increment and release metadata updates
-2. configured tox tests, retrying dependency-resolution failures for up to 10 minutes
-3. commit, tag, and push
-4. optional container build/push
-5. package build/upload
-6. docs deploy
-7. remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved
+1. increment the version and generate `pyproject.toml` release metadata used by tests
+2. run configured tox tests, retrying dependency-resolution failures for up to 10 minutes
+3. after tests pass, update add-on and changelog release metadata
+4. commit, tag, and push
+5. optional container build/push
+6. package build/upload
+7. docs deploy
+8. remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved
+
+Test failures block both stable and pre-releases. On failure, the generated `pyproject.toml` is restored; add-on and changelog updates have not yet run. The release changes are staged only after all incrementors succeed.
 
 The release-start log message names the project and the Corio runtime version used.
 

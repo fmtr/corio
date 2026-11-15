@@ -21,6 +21,10 @@ class IncrementorPyproject(Incrementor):
     ENTRYPOINT_FUNC_NAME = "main"
     DEPENDENCIES_SECTION_PATH = ("tool", "corio", "dependencies")
 
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._original: bytes | None = None
+
     @cached_property
     def path(self) -> Path:
         return self.paths.pyproject_repo
@@ -92,6 +96,7 @@ class IncrementorPyproject(Incrementor):
             logger.info(f'pyproject.toml not found: "{self.path}". Skipping.')
             return None
 
+        self._original = self.path.read_bytes()
         data = self.path.read_toml()
 
         data = self._enrich_toml(data)
@@ -100,6 +105,13 @@ class IncrementorPyproject(Incrementor):
 
         self.path.write_toml(data)
         return self.path
+
+    def rollback(self) -> None:
+        if self._original is None:
+            return
+
+        self.path.write_bytes(self._original)
+        self._original = None
 
     @property
     def _author(self) -> str:

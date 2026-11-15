@@ -77,16 +77,6 @@ class Releaser(Inherit[Project]):
 
         self.repo.fetch()
         self.increment()
-
-        test_failure = None
-        try:
-            self.tester.run()
-        except ReleaseTestsFailed as exception:
-            if not self.versions.pre_current:
-                raise
-            logger.warning(f"Tests failed, but release is pre-release ({self.version.prerelease}). Continuing.")
-            test_failure = exception
-
         self.commit()
         self.repo.push()
         self.repo.fetch()
@@ -104,9 +94,6 @@ class Releaser(Inherit[Project]):
         if release:
             self.release()
             self.cleanup()
-
-        if test_failure:
-            raise test_failure
 
     @logger.instrument("Cleaning workspace after release...")
     def cleanup(self):
@@ -149,22 +136,41 @@ class Releaser(Inherit[Project]):
     def increment(self):
         """
 
-        Apply incrementors and stage changed files.
+        Apply incrementors, then stage their outputs if all succeed.
 
         """
-        # Apply incrementors (they edit files in the working tree), then stage results.
-        for incrementor in self.incrementors:
-            paths = incrementor.apply()
-            if not paths:
-                continue
-            if not isinstance(paths, list):
-                paths = [paths]
+        applied: list[Incrementor] = []
+        paths: list[Path] = []
+
+        try:
+            for incrementor in self.incrementors:
+                applied.append(incrementor)
+                incrementor_paths = incrementor.apply()
+                if not incrementor_paths:
+                    continue
+                if not isinstance(incrementor_paths, list):
+                    incrementor_paths = [incrementor_paths]
+                paths.extend(incrementor_paths)
 
             for path in paths:
-                rel = str(Path(path).relative_to(self.paths.repo))
-                self.index.add(rel)
+                path = Path(path)
+                rel = str(path.relative_to(self.paths.repo))
+                if path.exists():
+                    self.index.add(rel)
+                    continue
+                self.index.remove(rel)
 
-        self.index.write()
+            self.index.write()
+        except BaseException:
+            self.rollback(applied)
+            raise
+
+    def rollback(self, incrementors: list[Incrementor]) -> None:
+        for incrementor in reversed(incrementors):
+            try:
+                incrementor.rollback()
+            except BaseException as exception:
+                logger.error(f"Failed to roll back {incrementor.cls.__name__}: {exception}")
 
     @logger.instrument("Committing release changes {self.repo.origin.url}...")
     def commit(self):
@@ -222,6 +228,7 @@ class Releaser(Inherit[Project]):
             [
                 IncrementorVersion(self),
                 IncrementorPyproject(self),
+                Tester(self),
                 IncrementorHomeAssistantAddon(self),
                 IncrementorChangelog(self),
             ]
@@ -274,6 +281,9 @@ class Incrementor(Inherit[Releaser]):
 
     def apply(self) -> Path | list[Path] | None:
         raise NotImplementedError
+
+    def rollback(self) -> None:
+        pass
 
 
 class IncrementorVersion(Incrementor):
@@ -405,7 +415,7 @@ class IncrementorChangelog(IncrementorChangelogSymlink):
         logger.info(f"Version tagging Changelog: {path} {Constants.ARROW_RIGHT} {self.dest}")
         path.rename(self.dest)
 
-        paths = [self.dest, super().apply()]
+        paths = [path, self.dest, super().apply()]
         return paths
 
 
@@ -696,12 +706,15 @@ class ReleaseDocumentation(Release):
             self.deploy()
 
 
-class Tester(Inherit[Releaser]):
+class Tester(Incrementor):
     TEST_FILENAME_PREFIX = "test_"
     TEST_FILENAME_SUFFIX = ".py"
     RESOLUTION_RETRY_TIMEOUT = 600
     RESOLUTION_RETRY_INTERVAL = 10
     RETRYABLE_RESOLUTION_MARKER = "No solution found when resolving dependencies"
+
+    def apply(self) -> None:
+        self.run()
 
     @cached_property
     def modules(self) -> list[str]:

@@ -1,16 +1,21 @@
 import asyncio
-import pytest
-from packaging.requirements import Requirement
 from types import SimpleNamespace
 from typing import get_args, get_type_hints
 
+import pygit2 as vcs
+import pytest
+from packaging.requirements import Requirement
+
 from corio import entrypoint
+from corio import strings
 from corio import version
 from corio.infra.api import DocumentationRelease, PreVersion, ProjectName, Release
 from corio.infra.incrementor_pyproject import IncrementorPyproject, GeneratorTestEnvs
 from corio.infra.project import InvalidPinnedVersion, Versions
 from corio.infra.releaser import (
+    Incrementor,
     IncrementorChangelog,
+    IncrementorHomeAssistantAddon,
     IncrementorVersion,
     ReleaseGithub,
     Releaser,
@@ -20,6 +25,7 @@ from corio.infra.releaser import (
 from corio.infra.repository import Repository
 from corio.path import Path
 from corio.paths import paths
+from corio.tests.release_fixture import ReleaseRepoFixture
 
 
 def _write_editable_repo(path_repo: Path, name: str, version: str) -> None:
@@ -30,6 +36,14 @@ def _write_editable_repo(path_repo: Path, name: str, version: str) -> None:
         f'[tool.corio.metadata]\nversion = "{version}"\n',
         encoding="utf-8",
     )
+
+
+@pytest.fixture
+def release_repo_factory(tmp_path):
+    def make(**options):
+        return ReleaseRepoFixture.create(Path(tmp_path), **options)
+
+    return make
 
 
 def _make_incrementor(
@@ -58,6 +72,39 @@ def _make_incrementor(
         versions=SimpleNamespace(pre_current=pre_current),
     )
     return IncrementorPyproject(parent)
+
+
+def test_pyproject_is_restored_when_tester_incrementor_fails(tmp_path, monkeypatch):
+    path_repo = Path(tmp_path)
+    path_pyproject = path_repo / "pyproject.toml"
+    original = b"# preserved formatting\n[project]\nname = 'sample'\n"
+    path_pyproject.write_bytes(original)
+    pyproject_incrementor = IncrementorPyproject(SimpleNamespace(
+        paths=SimpleNamespace(pyproject_repo=path_pyproject),
+    ))
+    failure = ReleaseTestsFailed(1, "synthetic test failure")
+
+    def fail_tests(self):
+        raise failure
+
+    monkeypatch.setattr(
+        IncrementorPyproject,
+        "_enrich_toml",
+        lambda self, data: {"generated": True},
+    )
+    monkeypatch.setattr(ReleaserTester, "run", fail_tests)
+
+    releaser = Releaser(SimpleNamespace(
+        paths=SimpleNamespace(repo=path_repo),
+        repo=SimpleNamespace(origin=SimpleNamespace(url="https://example.invalid/repo")),
+    ))
+    releaser.incrementors = [pyproject_incrementor, ReleaserTester(releaser)]
+
+    with pytest.raises(ReleaseTestsFailed) as result:
+        releaser.increment()
+
+    assert result.value is failure
+    assert path_pyproject.read_bytes() == original
 
 
 def test_release_github_body_without_previous_version(tmp_path):
@@ -117,6 +164,244 @@ def test_pin_editables_resolves_metadata_editable_sibling(tmp_path):
 def test_infra_dispatches_cli_subcommands():
     assert issubclass(entrypoint.Infra, entrypoint.sets.SubCommand)
     assert entrypoint.Infra.run is entrypoint.sets.SubCommand.run
+
+
+def test_releaser_executes_tester_before_release_metadata(tmp_path, monkeypatch):
+    events = []
+
+    class _Index:
+        def write(self):
+            pass
+
+    incrementor_events = [
+        (IncrementorVersion, "version"),
+        (IncrementorPyproject, "pyproject"),
+        (ReleaserTester, "tests"),
+        (IncrementorHomeAssistantAddon, "addon"),
+        (IncrementorChangelog, "changelog"),
+    ]
+    for incrementor, event in incrementor_events:
+        monkeypatch.setattr(
+            incrementor,
+            "apply",
+            lambda self, event=event: events.append(event),
+        )
+
+    releaser = Releaser(SimpleNamespace(
+        paths=SimpleNamespace(repo=Path(tmp_path)),
+        repo=SimpleNamespace(origin=SimpleNamespace(url="https://example.invalid/repo")),
+    ))
+    monkeypatch.setattr(Releaser, "index", property(lambda self: _Index()))
+
+    releaser.increment()
+
+    assert issubclass(ReleaserTester, Incrementor)
+    assert events == ["version", "pyproject", "tests", "addon", "changelog"]
+
+
+@pytest.mark.parametrize(
+    ("with_changelog", "with_addon"),
+    [(True, True), (True, False), (False, True), (False, False)],
+)
+@pytest.mark.parametrize(
+    ("current_version", "pre", "expected_version", "is_prerelease"),
+    [
+        ("8.3.1", False, "8.3.2", False),
+        ("8.3.1", True, "8.3.2-alpha.0", True),
+        ("8.3.2-alpha.0", True, "8.3.2-alpha.1", True),
+        ("8.3.2-alpha.0", False, "8.3.2", False),
+    ],
+)
+def test_release_updates_real_repo_history_and_files(
+    release_repo_factory,
+    monkeypatch,
+    current_version,
+    pre,
+    expected_version,
+    is_prerelease,
+    with_changelog,
+    with_addon,
+):
+    scenario = release_repo_factory(
+        current_version=current_version,
+        pre=pre,
+        with_changelog=with_changelog,
+        with_addon=with_addon,
+    )
+    test_runs = []
+
+    def pass_tests(self):
+        test_runs.append(self.paths.repo)
+        return 0
+
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", pass_tests)
+    path_draft = scenario.path_repo / "docs" / "changelog" / "changelog.md"
+    draft_before = path_draft.read_bytes() if path_draft.exists() else None
+
+    scenario.project.releaser.run(release=False)
+
+    data = (scenario.path_repo / "pyproject.toml").read_toml()
+    assert data["project"]["version"] == expected_version
+    assert data["tool"]["corio"]["metadata"]["version"] == expected_version
+    assert data["project"]["dependencies"] == ["editable_support~=2.6.4"]
+    assert data["tool"]["tox"]["env_list"] == ["release_target"]
+    assert data["tool"]["uv"]["sources"]["editable_support"] == {
+        "path": "../editable_support",
+        "editable": True,
+    }
+    if is_prerelease:
+        assert data["tool"]["uv"]["prerelease"] == "if-necessary"
+        assert data["tool"]["uv"]["prerelease-package"] == {"editable_support": "if-necessary"}
+    else:
+        assert "prerelease" not in data["tool"]["uv"]
+
+    assert test_runs == [scenario.path_repo]
+    path_addon = scenario.path_repo / "ha" / "addon" / "config.yaml"
+    if with_addon and not is_prerelease:
+        assert path_addon.read_yaml()["version"] == expected_version
+    elif with_addon:
+        assert path_addon.read_yaml()["version"] == current_version
+    else:
+        assert not path_addon.exists()
+
+    path_latest = scenario.path_repo / "CHANGELOG.md"
+    path_versioned = scenario.path_repo / "docs" / "changelog" / f"{expected_version}.md"
+    if not with_changelog:
+        assert not path_latest.exists()
+        assert not path_draft.exists()
+    elif is_prerelease:
+        assert path_draft.read_bytes() == draft_before
+        assert not path_versioned.exists()
+        assert str(path_latest.readlink()) == f"docs/changelog/{current_version}.md"
+    else:
+        assert not path_draft.exists()
+        assert path_versioned.read_bytes() == draft_before
+        assert str(path_latest.readlink()) == f"docs/changelog/{expected_version}.md"
+
+    repository = scenario.project.repo
+    main_commit = repository.lookup_reference("refs/heads/main").peel(vcs.Commit)
+    release_commit = repository.lookup_reference("refs/heads/release").peel(vcs.Commit)
+    assert str(main_commit.parent_ids[0]) == scenario.main_head
+    assert release_commit.id == main_commit.id
+    assert repository.merge_base(main_commit.id, vcs.Oid(hex=scenario.release_head)) == vcs.Oid(
+        hex=scenario.release_head
+    )
+    assert repository.tags.all == scenario.tags | {f"v{expected_version}"}
+    assert repository.status() == {}
+
+    remote = vcs.Repository(str(scenario.path_remote))
+    assert remote.lookup_reference("refs/heads/main").target == main_commit.id
+    assert remote.lookup_reference("refs/heads/release").target == main_commit.id
+    remote_tag = remote.lookup_reference(f"refs/tags/v{expected_version}").peel(vcs.Commit)
+    assert remote_tag.id == main_commit.id
+
+
+@pytest.mark.parametrize("pre", [False, True])
+def test_release_test_failure_restores_pyproject_and_does_not_publish(
+    release_repo_factory,
+    monkeypatch,
+    pre,
+):
+    scenario = release_repo_factory(pre=pre)
+    failure = ReleaseTestsFailed(1, "synthetic test failure")
+    path_pyproject = scenario.path_repo / "pyproject.toml"
+    pyproject_before = path_pyproject.read_bytes()
+    path_addon = scenario.path_repo / "ha" / "addon" / "config.yaml"
+    addon_before = path_addon.read_bytes()
+    path_draft = scenario.path_repo / "docs" / "changelog" / "changelog.md"
+    draft_before = path_draft.read_bytes()
+    path_latest = scenario.path_repo / "CHANGELOG.md"
+    latest_target = str(path_latest.readlink())
+    failed_version = "8.3.2-alpha.0" if pre else "8.3.2"
+
+    def fail_tests(self):
+        raise failure
+
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", fail_tests)
+
+    with pytest.raises(ReleaseTestsFailed) as result:
+        scenario.project.releaser.run(release=False)
+
+    repository = scenario.project.repo
+    remote = vcs.Repository(str(scenario.path_remote))
+    assert result.value is failure
+    assert path_pyproject.read_bytes() == pyproject_before
+    assert path_addon.read_bytes() == addon_before
+    assert path_draft.read_bytes() == draft_before
+    assert str(path_latest.readlink()) == latest_target
+    assert not (scenario.path_repo / "docs" / "changelog" / f"{failed_version}.md").exists()
+    assert str(repository.lookup_reference("refs/heads/main").target) == scenario.main_head
+    assert str(repository.lookup_reference("refs/heads/release").target) == scenario.release_head
+    assert repository.tags.all == scenario.tags
+    assert str(remote.lookup_reference("refs/heads/main").target) == scenario.main_head
+    assert str(remote.lookup_reference("refs/heads/release").target) == scenario.release_head
+    remote_tags = {
+        reference.removeprefix("refs/tags/")
+        for reference in remote.references
+        if reference.startswith("refs/tags/")
+    }
+    assert remote_tags == scenario.tags
+    assert repository.status() == {}
+
+
+def test_release_rejects_prerelease_editable_dependency_without_changes(
+    release_repo_factory,
+):
+    scenario = release_repo_factory(editable_version="2.6.5-alpha.1")
+    path_pyproject = scenario.path_repo / "pyproject.toml"
+    pyproject_before = path_pyproject.read_bytes()
+
+    with pytest.raises(ValueError):
+        scenario.project.releaser.run(release=False)
+
+    assert path_pyproject.read_bytes() == pyproject_before
+    assert scenario.project.repo.status() == {}
+    assert str(scenario.project.repo.lookup_reference("refs/heads/main").target) == scenario.main_head
+    assert scenario.project.repo.tags.all == scenario.tags
+    editable = vcs.Repository(str(scenario.path_editable))
+    assert "v2.6.5-alpha.1" in {reference.removeprefix("refs/tags/") for reference in editable.references}
+
+
+def test_prerelease_requires_a_tag_for_the_current_version(release_repo_factory):
+    scenario = release_repo_factory(pre=True, tag_current=False)
+    path_pyproject = scenario.path_repo / "pyproject.toml"
+    pyproject_before = path_pyproject.read_bytes()
+
+    with pytest.raises(RuntimeError):
+        scenario.project.releaser.run(release=False)
+
+    assert path_pyproject.read_bytes() == pyproject_before
+    assert scenario.project.repo.status() == {}
+    assert str(scenario.project.repo.lookup_reference("refs/heads/main").target) == scenario.main_head
+    assert scenario.project.repo.tags.all == scenario.tags
+
+
+def test_release_rejects_an_existing_pinned_tag_without_changes(release_repo_factory):
+    scenario = release_repo_factory(pinned="8.3.2", tag_next=True)
+    path_pyproject = scenario.path_repo / "pyproject.toml"
+    pyproject_before = path_pyproject.read_bytes()
+
+    with pytest.raises(RuntimeError):
+        scenario.project.releaser.run(release=False)
+
+    assert path_pyproject.read_bytes() == pyproject_before
+    assert scenario.project.repo.status() == {}
+    assert str(scenario.project.repo.lookup_reference("refs/heads/main").target) == scenario.main_head
+    assert scenario.project.repo.tags.all == scenario.tags
+
+
+def test_release_without_tests_skips_tox_and_still_releases(release_repo_factory, monkeypatch):
+    scenario = release_repo_factory(with_tests=False)
+    monkeypatch.setattr(
+        ReleaserTester,
+        "run_subprocess",
+        lambda self: pytest.fail("No test modules should invoke tox."),
+    )
+
+    scenario.project.releaser.run(release=False)
+
+    assert (scenario.path_repo / "pyproject.toml").read_toml()["project"]["version"] == "8.3.2"
+    assert scenario.project.repo.tags.all == scenario.tags | {"v8.3.2"}
 
 
 def test_generate_editable_uv_sources_and_compat_from_metadata(tmp_path):
@@ -930,6 +1215,94 @@ def test_releaser_cleanup_removes_release_artifacts(tmp_path):
     assert (path_repo / ".venv" / "lib" / "__pycache__").exists()
 
 
+def test_releaser_stages_incrementor_outputs_after_all_succeed(tmp_path, monkeypatch):
+    events = []
+
+    class _Index:
+        def add(self, path):
+            events.append(("stage", path))
+
+        def remove(self, path):
+            events.append(("remove", path))
+
+        def write(self):
+            events.append(("write",))
+
+    class _Incrementor:
+        def __init__(self, name, path):
+            self.name = name
+            self.path = path
+
+        def apply(self):
+            events.append(("apply", self.name))
+            return self.path
+
+        def rollback(self):
+            events.append(("rollback", self.name))
+
+    root = Path(tmp_path)
+    paths = [root / "first.toml", root / "second.yaml"]
+    for path in paths:
+        path.write_text("synthetic output", encoding="utf-8")
+    index = _Index()
+    releaser = Releaser(SimpleNamespace(
+        paths=SimpleNamespace(repo=root),
+        repo=SimpleNamespace(origin=SimpleNamespace(url="https://example.invalid/repo")),
+    ))
+    releaser.incrementors = [
+        _Incrementor("first", paths[0]),
+        _Incrementor("second", paths[1]),
+    ]
+    monkeypatch.setattr(Releaser, "index", property(lambda self: index))
+
+    releaser.increment()
+
+    assert events == [
+        ("apply", "first"),
+        ("apply", "second"),
+        ("stage", "first.toml"),
+        ("stage", "second.yaml"),
+        ("write",),
+    ]
+
+
+def test_releaser_rolls_back_incrementors_and_reraises_failure(tmp_path):
+    events = []
+    failure = RuntimeError("synthetic incrementor failure")
+
+    class _Incrementor:
+        def __init__(self, name, fails=False):
+            self.name = name
+            self.fails = fails
+
+        def apply(self):
+            events.append(("apply", self.name))
+            if self.fails:
+                raise failure
+            return None
+
+        def rollback(self):
+            events.append(("rollback", self.name))
+
+    root = Path(tmp_path)
+    releaser = Releaser(SimpleNamespace(
+        paths=SimpleNamespace(repo=root),
+        repo=SimpleNamespace(origin=SimpleNamespace(url="https://example.invalid/repo")),
+    ))
+    releaser.incrementors = [_Incrementor("first"), _Incrementor("second", fails=True)]
+
+    with pytest.raises(RuntimeError) as result:
+        releaser.increment()
+
+    assert result.value is failure
+    assert events == [
+        ("apply", "first"),
+        ("apply", "second"),
+        ("rollback", "second"),
+        ("rollback", "first"),
+    ]
+
+
 def test_releaser_run_cleans_up_after_successful_release(monkeypatch):
     events = []
 
@@ -945,7 +1318,6 @@ def test_releaser_run_cleans_up_after_successful_release(monkeypatch):
         paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
     ))
     releaser.repo = _Repo()
-    releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or True)
 
     monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
     monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
@@ -955,10 +1327,10 @@ def test_releaser_run_cleans_up_after_successful_release(monkeypatch):
 
     releaser.run()
 
-    assert events == ["fetch", "increment", "tests", "commit", "push", "fetch", "package", "release", "cleanup"]
+    assert events == ["fetch", "increment", "commit", "push", "fetch", "package", "release", "cleanup"]
 
 
-def test_releaser_run_commits_only_after_tests_pass(monkeypatch):
+def test_releaser_run_commits_only_after_incrementors_succeed(monkeypatch):
     events = []
 
     class _Repo:
@@ -973,18 +1345,18 @@ def test_releaser_run_commits_only_after_tests_pass(monkeypatch):
         paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
     ))
     releaser.repo = _Repo()
-    releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or True)
 
     monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
     monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
 
     releaser.run(release=False)
 
-    assert events == ["fetch", "increment", "tests", "commit", "push", "fetch"]
+    assert events == ["fetch", "increment", "commit", "push", "fetch"]
 
 
-def test_releaser_run_continues_when_pre_tests_fail(monkeypatch):
+def test_releaser_run_stops_on_prerelease_test_failure(monkeypatch):
     events = []
+    failure = ReleaseTestsFailed(1, "synthetic test failure")
 
     class _Repo:
         def fetch(self):
@@ -994,20 +1366,24 @@ def test_releaser_run_continues_when_pre_tests_fail(monkeypatch):
             events.append("push")
 
     releaser = Releaser(SimpleNamespace(
-        name="corio",
-        version=version.parse("1.2.3-rc.1"),
+        name="sample",
         versions=SimpleNamespace(pre_current=True),
-        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
+        paths=SimpleNamespace(name="sample", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
     ))
     releaser.repo = _Repo()
-    releaser.tester = SimpleNamespace(run=lambda: events.append("tests") or False)
 
-    monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
+    def fail_increment(self):
+        events.append("increment")
+        raise failure
+
+    monkeypatch.setattr(Releaser, "increment", fail_increment)
     monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
 
-    releaser.run(release=False)
+    with pytest.raises(ReleaseTestsFailed) as result:
+        releaser.run(release=False)
 
-    assert events == ["fetch", "increment", "tests", "commit", "push", "fetch"]
+    assert result.value is failure
+    assert events == ["fetch", "increment"]
 
 
 # def test_intentional_failure_for_testing():
