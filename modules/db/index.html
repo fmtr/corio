@@ -348,6 +348,8 @@
       
         
       
+        
+      
     
     
     
@@ -991,6 +993,34 @@
     
   
     2.17.13
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.14/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.14
   
 
     
@@ -1717,6 +1747,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    db
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1733,6 +1781,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#search-chunk-retrieval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search chunk retrieval
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -3222,6 +3300,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#search-chunk-retrieval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search chunk retrieval
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -3247,6 +3344,8 @@
 <li>Base namespace uses <code>db</code>.</li>
 <li>Document-model integrations use <code>db.document</code>.</li>
 </ul>
+<h2 id="search-chunk-retrieval">Search chunk retrieval</h2>
+<p><code>corio.db.search.document.Document.get_chunks</code> accepts an optional Qdrant <code>Filter</code> as <code>runtime_filter</code>. Corio ANDs it with the document ID and chunk-index conditions. Use it when several logical collections share one physical Qdrant collection; filtering by the logical collection ID keeps chunk retrieval scoped to the requested collection.</p>
 
 
 
