@@ -50,6 +50,74 @@ def test_indexed_subclass_fields_are_mapped_from_python_types():
 
 
 @pytest.mark.asyncio
+async def test_get_chunks_preserves_document_and_chunk_filters_without_runtime_filter():
+    client = AsyncMock()
+    client.scroll.return_value = ([], None)
+
+    chunks = await Document.get_chunks(
+        client=client,
+        id="document-1",
+        chunks=[1],
+    )
+
+    assert chunks == []
+    assert client.scroll.await_args.kwargs["scroll_filter"] == models.Filter(
+        must=[
+            models.FieldCondition(
+                key="id",
+                match=models.MatchValue(value="document-1"),
+            ),
+            models.FieldCondition(
+                key="chunk_idx",
+                match=models.MatchAny(any=[1]),
+            ),
+        ]
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_chunks_includes_runtime_filter_with_document_and_chunk_filters():
+    client = AsyncMock()
+    client.scroll.return_value = ([], None)
+    runtime_filter = models.Filter(
+        must=[
+            models.FieldCondition(
+                key="collection_id",
+                match=models.MatchValue(value="research-1"),
+            ),
+        ]
+    )
+
+    chunks = await Document.get_chunks(
+        client=client,
+        id="document-1",
+        chunks=[0, 2],
+        runtime_filter=runtime_filter,
+    )
+
+    assert chunks == []
+    client.scroll.assert_awaited_once_with(
+        collection_name=Document.name,
+        scroll_filter=models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="id",
+                    match=models.MatchValue(value="document-1"),
+                ),
+                models.FieldCondition(
+                    key="chunk_idx",
+                    match=models.MatchAny(any=[0, 2]),
+                ),
+                runtime_filter,
+            ]
+        ),
+        with_payload=True,
+        with_vectors=False,
+        limit=2,
+    )
+
+
+@pytest.mark.asyncio
 async def test_embedder_client_calls_api_with_vectors_from_embedder():
     m3 = Mock()
     m3.encode.side_effect = lambda texts, **kwargs: dict(

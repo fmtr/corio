@@ -185,21 +185,30 @@ class Document(dm.Base):
         return cls.model_validate(point.payload)
 
     @classmethod
-    async def get_chunks(cls, client: Client, id: str, chunks: list[int]):
+    async def get_chunks(
+        cls,
+        client: Client,
+        id: str,
+        chunks: list[int],
+        *,
+        runtime_filter: models.Filter | None = None,
+    ):
+        conditions = [
+            models.FieldCondition(
+                key="id",
+                match=models.MatchValue(value=id),
+            ),
+            models.FieldCondition(
+                key="chunk_idx",
+                match=models.MatchAny(any=chunks),
+            ),
+        ]
+        if runtime_filter is not None:
+            conditions.append(runtime_filter)
+
         points, _ = await client.scroll(
             collection_name=cls.name,
-            scroll_filter=models.Filter(
-                must=[
-                    models.FieldCondition(
-                        key="id",
-                        match=models.MatchValue(value=id),
-                    ),
-                    models.FieldCondition(
-                        key="chunk_idx",
-                        match=models.MatchAny(any=chunks),
-                    ),
-                ]
-            ),
+            scroll_filter=models.Filter(must=conditions),
             with_payload=True,
             with_vectors=False,
             limit=len(chunks),
