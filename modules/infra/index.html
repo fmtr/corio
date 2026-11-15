@@ -350,6 +350,8 @@
       
         
       
+        
+      
     
     
     
@@ -1021,6 +1023,34 @@
     
   
     2.17.14
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.15/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.15
   
 
     
@@ -3449,14 +3479,16 @@
 <h2 id="release-flow-high-level">Release Flow (high-level)</h2>
 <p><code>releaser.run(...)</code> orchestrates:</p>
 <ol>
-<li>version increment and release metadata updates</li>
-<li>configured tox tests, retrying dependency-resolution failures for up to 10 minutes</li>
+<li>increment the version and generate <code>pyproject.toml</code> release metadata used by tests</li>
+<li>run configured tox tests, retrying dependency-resolution failures for up to 10 minutes</li>
+<li>after tests pass, update add-on and changelog release metadata</li>
 <li>commit, tag, and push</li>
 <li>optional container build/push</li>
 <li>package build/upload</li>
 <li>docs deploy</li>
 <li>remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved</li>
 </ol>
+<p>Test failures block both stable and pre-releases. On failure, the generated <code>pyproject.toml</code> is restored; add-on and changelog updates have not yet run. The release changes are staged only after all incrementors succeed.</p>
 <p>The release-start log message names the project and the Corio runtime version used.</p>
 <p>If tox fails with <code>No solution found when resolving dependencies</code>, the release retries tox every 10 seconds for up to 10 minutes. Other dependency-installation failures and test failures stop the release immediately.</p>
 <p>When a current pre-release version has no matching Git tag, the release flow stops rather than assuming that version can be safely reused. Resolve the release state or pin the intended stable base explicitly before retrying.</p>
