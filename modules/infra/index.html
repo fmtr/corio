@@ -354,6 +354,8 @@
       
         
       
+        
+      
     
     
     
@@ -1081,6 +1083,34 @@
     
   
     2.17.16
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.17/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.17
   
 
     
@@ -3475,24 +3505,25 @@
 <li><code>infrastructure.api.Api</code>: FastAPI surface for release/build/recreate operations</li>
 </ul>
 <p>Production images built by <code>Stack</code> run their entrypoint as the unprivileged <code>user</code> account (UID 1000). Files accessed by the process must be readable or writable by that UID as needed.</p>
-<p>The production container CLI defaults to <code>podman</code>. Select Docker for a project in its metadata when the build should use Docker:</p>
+<p>The production container CLI defaults to <code>podman</code>. Set <code>container_cli</code> when a project needs a different compatible CLI. A configured <code>container_host</code> enables production image builds during the release flow and identifies the remote container host:</p>
 <div class="language-toml highlight"><pre><span></span><code><span class="k">[tool.corio.metadata]</span>
-<span class="n">container_cli</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"docker"</span>
+<span class="n">container_cli</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"podman"</span>
 <span class="n">container_host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ssh://user@host"</span>
 </code></pre></div>
-<p>A non-null <code>container_host</code> also enables production image builds during the release flow. The host is passed directly to the container client, so SSH endpoints target a remote Docker Engine without requiring a Docker context.</p>
+<p>The host is passed directly to the configured container client, so an SSH endpoint can be used without a CLI context. The build log reports the configured container target.</p>
 <p>Install:</p>
 <div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"corio[infra]"</span><span class="w"> </span>--upgrade
 </code></pre></div>
 <h2 id="typical-usage">Typical Usage</h2>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">infra</span>
 
-<span class="n">project</span> <span class="o">=</span> <span class="n">infra</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s2">"corio"</span><span class="p">)</span>
-<span class="n">project</span><span class="o">.</span><span class="n">releaser</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">build</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">project</span> <span class="o">=</span> <span class="n">infra</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s2">"corio"</span><span class="p">,</span> <span class="n">syncs</span><span class="o">=</span><span class="p">[</span><span class="s2">"dependent_project"</span><span class="p">])</span>
+<span class="n">project</span><span class="o">.</span><span class="n">releaser</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">release</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
-<p>The same release flow is available from the command line:</p>
-<div class="language-bash highlight"><pre><span></span><code>corio<span class="w"> </span>infra<span class="w"> </span>release<span class="w"> </span>--name<span class="w"> </span>corio
+<p>The same release flow is available from the command line. Use <code>syncs</code> (or repeat <code>--syncs</code>) to name dependent projects that should be updated after the release:</p>
+<div class="language-bash highlight"><pre><span></span><code>corio<span class="w"> </span>infra<span class="w"> </span>release<span class="w"> </span>--name<span class="w"> </span>corio<span class="w"> </span>--syncs<span class="w"> </span>dependent_project
 </code></pre></div>
+<p>After release cleanup, Corio updates each named project's <code>pyproject.toml</code> in its worktree without staging the changes. The release API accepts the same <code>syncs</code> list.</p>
 <h2 id="api-usage">API Usage</h2>
 <p><code>infra.Api</code> exposes release/build/recreate endpoints and is used by infra wrapper repos:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">infra</span>
@@ -3517,6 +3548,7 @@
 <li>package build/upload</li>
 <li>docs deploy</li>
 <li>remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved</li>
+<li>update each requested dependent project's <code>pyproject.toml</code> in its worktree</li>
 </ol>
 <p>Test failures block both stable and pre-releases. On failure, the generated <code>pyproject.toml</code> is restored; add-on and changelog updates have not yet run. The release changes are staged only after all incrementors succeed.</p>
 <p>The release-start log message names the project and the Corio runtime version used.</p>
