@@ -296,6 +296,26 @@ def test_release_updates_real_repo_history_and_files(
     assert remote_tag.id == main_commit.id
 
 
+def test_stable_release_indexes_changelog_created_after_main_commit(
+    release_repo_factory,
+    monkeypatch,
+):
+    scenario = release_repo_factory(with_changelog=False)
+    path_draft = scenario.path_repo / "docs" / "changelog" / "changelog.md"
+    path_draft.parent.mkdir(parents=True)
+    changelog = "- Added a synthetic release note.\n"
+    path_draft.write_text(changelog, encoding="utf-8")
+
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: 0)
+
+    scenario.project.releaser.run(release=False)
+
+    path_versioned = scenario.path_repo / "docs" / "changelog" / "8.3.2.md"
+    assert path_versioned.read_text(encoding="utf-8") == changelog
+    assert not path_draft.exists()
+    assert str((scenario.path_repo / "CHANGELOG.md").readlink()) == "docs/changelog/8.3.2.md"
+
+
 @pytest.mark.parametrize("pre", [False, True])
 def test_release_test_failure_restores_pyproject_and_does_not_publish(
     release_repo_factory,

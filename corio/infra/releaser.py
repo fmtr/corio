@@ -158,7 +158,8 @@ class Releaser(Inherit[Project]):
                 if path.exists():
                     self.index.add(rel)
                     continue
-                self.index.remove(rel)
+                if rel in self.index:
+                    self.index.remove(rel)
 
             self.index.write()
         except BaseException:
