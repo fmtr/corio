@@ -655,10 +655,11 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
     failure = RuntimeError("package build failed")
 
     class DummyProject:
-        def __init__(self, name, pinned=None, pre=False):
+        def __init__(self, name, pinned=None, pre=False, syncs=None):
             assert name == "demo"
             assert pinned == "1.2.3"
             assert pre is False
+            assert syncs == ["synthetic_dependency"]
             self.releaser = SimpleNamespace(run=self.run)
 
         @staticmethod
@@ -671,9 +672,40 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
     endpoint = Release(SimpleNamespace())
 
     with pytest.raises(RuntimeError, match="package build failed") as caught:
-        asyncio.run(endpoint.run("demo", pinned="1.2.3"))
+        asyncio.run(endpoint.run("demo", pinned="1.2.3", syncs=["synthetic_dependency"]))
 
     assert caught.value is failure
+
+
+def test_infra_release_cli_passes_sync_names(monkeypatch):
+    events = []
+
+    class _Project:
+        def __init__(self, name, pinned=None, pre=None, syncs=None):
+            events.append(("project", name, syncs))
+            self.releaser = SimpleNamespace(run=lambda **kwargs: events.append(("run", kwargs)))
+
+    monkeypatch.setattr("corio.infra.project.Project", _Project)
+    command = entrypoint.Release(name="synthetic_target", syncs=["synthetic_dependency"])
+
+    command.run()
+
+    assert events == [
+        ("project", "synthetic_target", ["synthetic_dependency"]),
+        ("run", {"release": True}),
+    ]
+
+
+def test_project_stores_sync_names(monkeypatch):
+    from corio.infra.project import Project
+
+    metadata = SimpleNamespace(services=[], scripts=[], base="python", port=None, entrypoint=None)
+    paths = SimpleNamespace(name="synthetic_target", metadata=metadata)
+    monkeypatch.setattr("corio.infra.project.PackagePaths", lambda path: paths)
+
+    project = Project("synthetic_target", path=Path("/synthetic_target"), syncs=["synthetic_dependency"])
+
+    assert project.syncs == ["synthetic_dependency"]
 
 
 def test_infra_endpoint_project_names_are_repo_directory_literals():
@@ -1334,8 +1366,9 @@ def test_releaser_run_cleans_up_after_successful_release(monkeypatch):
             events.append("push")
 
     releaser = Releaser(SimpleNamespace(
-        name="corio",
-        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
+        name="synthetic_project",
+        syncs=[],
+        paths=SimpleNamespace(name="synthetic_project", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
     ))
     releaser.repo = _Repo()
 
@@ -1350,6 +1383,71 @@ def test_releaser_run_cleans_up_after_successful_release(monkeypatch):
     assert events == ["fetch", "increment", "commit", "push", "fetch", "package", "release", "cleanup"]
 
 
+def test_releaser_syncs_dependents_after_cleanup(monkeypatch):
+    events = []
+
+    class _Repo:
+        def fetch(self):
+            events.append("fetch")
+
+        def push(self):
+            events.append("push")
+
+    class _Project:
+        def __init__(self, name):
+            events.append(("project", name))
+            self.releaser = f"releaser:{name}"
+
+    class _IncrementorPyproject:
+        def __init__(self, parent):
+            events.append(("incrementor", parent))
+
+        def apply(self):
+            events.append("apply")
+
+    releaser = Releaser(SimpleNamespace(
+        name="synthetic_target",
+        syncs=["synthetic_dependent"],
+        paths=SimpleNamespace(
+            name="synthetic_target",
+            metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None),
+        ),
+    ))
+    releaser.repo = _Repo()
+
+    monkeypatch.setattr(Releaser, "increment", lambda self: events.append("increment"))
+    monkeypatch.setattr(Releaser, "commit", lambda self: events.append("commit"))
+    monkeypatch.setattr(Releaser, "package", lambda self: events.append("package"))
+    monkeypatch.setattr(Releaser, "release", lambda self: events.append("release"))
+    monkeypatch.setattr(Releaser, "cleanup", lambda self: events.append("cleanup"))
+    monkeypatch.setattr("corio.infra.releaser.Project", _Project)
+    monkeypatch.setattr("corio.infra.incrementor_pyproject.IncrementorPyproject", _IncrementorPyproject)
+
+    releaser.run()
+
+    assert events[-4:] == [
+        "cleanup",
+        ("project", "synthetic_dependent"),
+        ("incrementor", "releaser:synthetic_dependent"),
+        "apply",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("container_host", "expected"),
+    [("ssh://builder.invalid", "ssh://builder.invalid"), (None, "local")],
+)
+def test_production_build_target_identifies_container_destination(container_host, expected):
+    from corio.infra.stack import Production
+
+    stack = Production(SimpleNamespace(
+        name="synthetic_project",
+        paths=SimpleNamespace(metadata=SimpleNamespace(container_host=container_host)),
+    ))
+
+    assert stack.build_target == expected
+
+
 def test_releaser_run_commits_only_after_incrementors_succeed(monkeypatch):
     events = []
 
@@ -1361,8 +1459,9 @@ def test_releaser_run_commits_only_after_incrementors_succeed(monkeypatch):
             events.append("push")
 
     releaser = Releaser(SimpleNamespace(
-        name="corio",
-        paths=SimpleNamespace(name="corio", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
+        name="synthetic_project",
+        syncs=[],
+        paths=SimpleNamespace(name="synthetic_project", metadata=SimpleNamespace(is_dockerhub=False, is_pypi=False, container_host=None)),
     ))
     releaser.repo = _Repo()
 

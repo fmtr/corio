@@ -18,8 +18,19 @@ class Project:
 
     """
 
-    def __init__(self, name=None, context='gex', channel='dev', extras=None, pinned=None, pre=False, path=None):
+    def __init__(
+        self,
+        name=None,
+        context='gex',
+        channel='dev',
+        extras=None,
+        pinned=None,
+        pre=False,
+        path=None,
+        syncs: list[str] | None = None,
+    ):
         self.paths = PackagePaths(path or PackagePaths.dev_repo / name)
+        self.syncs = syncs or []
 
         # project settings:
         self.services = self.paths.metadata.services

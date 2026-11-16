@@ -62,7 +62,11 @@ class Production(Stack):
             tags.extend(self.tags_public)
         return tags
 
-    @logger.instrument("Building production image for project {self.name}...")
+    @cached_property
+    def build_target(self):
+        return self.paths.metadata.container_host or "local"
+
+    @logger.instrument("Building production image for project {self.name} (container target: {self.build_target})...")
     def build(self):
         build_args = {
             "WHEEL": self.path_wheel.name,

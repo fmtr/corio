@@ -82,11 +82,12 @@ class Release(dm.Base):
     pinned: str | None = None
     pre: bool | None = None
     release: bool = True
+    syncs: list[str] = []
 
     def run(self):
         from corio.infra.project import Project
 
-        project = Project(self.name, pinned=self.pinned, pre=self.pre)
+        project = Project(self.name, pinned=self.pinned, pre=self.pre, syncs=self.syncs)
         project.releaser.run(release=self.release)
 
 

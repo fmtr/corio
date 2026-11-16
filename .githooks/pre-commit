@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+if git diff --cached --binary -- . ':(exclude).githooks/pre-commit' | LC_ALL=C grep -ai bonce >/dev/null; then
+    printf '%s\n' 'Commit blocked: bonce in code.' >&2
+    exit 1
+fi
