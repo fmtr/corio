@@ -1,1 +1,0 @@
-- Fix stable releases when the draft changelog is not staged.
