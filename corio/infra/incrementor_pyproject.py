@@ -285,6 +285,9 @@ class IncrementorPyproject(Incrementor):
         package_data = ensure_table(setuptools, ("package-data",))
         package_data[self.paths.name] = self._package_data[self.paths.name]
 
+        pytest = ensure_table(data, ("tool", "pytest", "ini_options"))
+        pytest["asyncio_default_fixture_loop_scope"] = "function"
+
         if self._scripts:
             setuptools["script-files"] = self._scripts
         elif "script-files" in setuptools:

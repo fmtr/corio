@@ -246,6 +246,8 @@ def test_release_updates_real_repo_history_and_files(
     assert data["project"]["dependencies"] == ["editable_support[core]~=2.6.4"]
     assert data["tool"]["tox"]["env_list"] == ["prod"]
     assert data["tool"]["corio"]["test-envs"]["dev"] == ["dev"]
+    assert data["tool"]["pytest"]["ini_options"]["asyncio_default_fixture_loop_scope"] == "function"
+    assert data["tool"]["setuptools"]["packages"]["find"]["namespaces"] is False
     dev_env = data["tool"]["tox"]["env"]["dev"]
     prod_env = data["tool"]["tox"]["env"]["prod"]
     assert dev_env["skip_install"] is True

@@ -172,6 +172,9 @@ cli = ["sets", "logging"]
 [tool.corio.test-envs]
 dev = ["api.dev", "caching.dev", "datatype.dev", "db.dev", "dhcp.dev", "dm.dev", "dns.dev", "dt.dev", "encrypt.dev", "enums.dev", "env.dev", "hash.dev", "hook.dev", "infra.dev", "inherit.dev", "iterator.dev", "jsn.dev", "name.dev", "path.dev", "patterns.dev", "rand.dev", "sec.dev", "sets.dev", "shell.dev", "strings.dev", "tasmota.dev", "toml.dev", "tools.dev", "version.dev", "yml.dev", "youtube.dev"]
 
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+
 [tool.uv.config-settings]
 editable_mode = "compat"
 
