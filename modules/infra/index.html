@@ -356,6 +356,8 @@
       
         
       
+        
+      
     
     
     
@@ -1111,6 +1113,34 @@
     
   
     2.17.17
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.18/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.18
   
 
     
@@ -2341,6 +2371,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#generated-test-environments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Test Environments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#release-flow-high-level" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3463,6 +3504,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#generated-test-environments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated Test Environments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#release-flow-high-level" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3537,6 +3589,12 @@
 <li><code>tool.corio.metadata.docs.nav</code> in <code>pyproject.toml</code></li>
 </ul>
 <p><code>ReleaseDocumentation</code> builds MkDocs configuration dynamically from project metadata, so nav structure in <code>pyproject</code> is part of the release contract.</p>
+<h2 id="generated-test-environments">Generated Test Environments</h2>
+<p>Before running tests, the release workflow generates tox environments from the package's test files and dependency metadata. By default, it creates one development environment (<code>dev</code>) and one production environment (<code>prod</code>) for the full test suite. Set <code>test_envs = true</code> under <code>[tool.corio.metadata]</code> to generate environments for each package module with a matching <code>tests/test_&lt;module&gt;.py</code> file instead:</p>
+<div class="language-toml highlight"><pre><span></span><code><span class="k">[tool.corio.metadata]</span>
+<span class="n">test_envs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</code></pre></div>
+<p>Per-module environments are named <code>&lt;module&gt;.dev</code> and <code>&lt;module&gt;.prod</code>. Development environments use the source checkout and local editable dependencies; production environments install the package. The generated production environments make up tox's default <code>env_list</code>, which is what the release workflow runs. Development environment names are recorded in <code>[tool.corio.test-envs].dev</code> for source-tree testing.</p>
 <h2 id="release-flow-high-level">Release Flow (high-level)</h2>
 <p><code>releaser.run(...)</code> orchestrates:</p>
 <ol>
