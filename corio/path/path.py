@@ -596,6 +596,18 @@ class PackagePaths(FromCallerMixin):
         """
         return self.repo / Constants.FILENAME_PYPROJECT
 
+    @cached_property
+    def tox_workdir(self) -> Path:
+        """
+
+        Return a temporary work directory unique to this checkout.
+
+        """
+        from corio import hash
+
+        repo_id = hash.get_hash_int(str(self.repo.resolve()))
+        return Path.temp() / "corio" / "tox" / self.name / f"{repo_id:016x}"
+
     @property
     def is_dev(self) -> bool:
         """

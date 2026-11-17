@@ -291,12 +291,25 @@ class IncrementorPyproject(Incrementor):
             del setuptools["script-files"]
 
         dependencies = project.get("optional-dependencies", {})
-        gen = GeneratorTestEnvs(paths=self.paths, optionals=dependencies)
+        project_dependencies = project.get("dependencies", [])
+        gen_dev = GeneratorTestEnvsDev(
+            paths=self.paths,
+            optionals=dependencies,
+            project_dependencies=project_dependencies,
+        )
+        gen_prod = GeneratorTestEnvsProd(
+            paths=self.paths,
+            optionals=dependencies,
+            project_dependencies=project_dependencies,
+        )
 
         tox = ensure_table(data, ("tool", "tox"))
-        tox["requires"] = gen.TOX_REQUIRES
-        tox["env_list"] = list(gen.envs.keys())
-        tox["env"] = gen.envs
+        tox["requires"] = gen_prod.TOX_REQUIRES
+        tox["env_list"] = list(gen_prod.envs)
+        tox["env"] = gen_dev.envs | gen_prod.envs
+
+        test_envs = ensure_table(data, ("tool", "corio", "test-envs"))
+        test_envs["dev"] = list(gen_dev.envs)
 
         return data
 
@@ -305,9 +318,16 @@ class GeneratorTestEnvs:
     TEST_FILENAME_SUFFIX = ".py"
     TOX_REQUIRES = ["tox>=4.22", "tox-uv>=1"]
 
-    def __init__(self, *, paths, optionals: dict[str, list[str]]):
+    def __init__(
+        self,
+        *,
+        paths,
+        optionals: dict[str, list[str]],
+        project_dependencies: list[str],
+    ):
         self.paths = paths
         self.optionals = optionals
+        self.project_dependencies = project_dependencies
 
     @cached_property
     def _tests_modules(self) -> list[str]:
@@ -332,6 +352,14 @@ class GeneratorTestEnvs:
         return dedupe(sorted(modules))
 
     @property
+    def environment_suffix(self) -> str:
+        return ""
+
+    @property
+    def skip_install(self) -> bool:
+        return False
+
+    @property
     def deps_test(self):
         return sorted(self.optionals['test'])
 
@@ -351,12 +379,21 @@ class GeneratorTestEnvs:
     def get_path_test(self, module: str) -> Path:
         return self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
 
+    def get_env_deps(self, deps: list[str]) -> list[str]:
+        return deps
+
     def get_env(self, name, deps, path):
         path = path.relative_to(self.paths.repo)
+        env_name = f"{name}{self.environment_suffix}"
+        command = shell.python(
+            -arg.m + "pytest",
+            -arg.q,
+            f"{{posargs:{path}}}",
+        )
         env = dict(
             description=f"Run {name} tests.",
-            deps=deps,
-            commands=[["python", "-m", "pytest", "-q", f"{{posargs:{path}}}"]],
+            deps=self.get_env_deps(deps),
+            commands=[command.tokens()],
         )
         if self.paths.metadata.editables:
             install_command = shell.uv.pip.install(
@@ -367,8 +404,10 @@ class GeneratorTestEnvs:
             env["install_command"] = install_command.tokens()
         if self.paths.metadata.test_pass_env:
             env["pass_env"] = self.paths.metadata.test_pass_env
+        if self.skip_install:
+            env["skip_install"] = True
 
-        return {name: env}
+        return {env_name: env}
 
     @cached_property
     def env(self):
@@ -393,3 +432,42 @@ class GeneratorTestEnvs:
             path_test = self.get_path_test(module)
             envs |= self.get_env(module, self.get_deps(module), path_test)
         return envs
+
+
+class GeneratorTestEnvsDev(GeneratorTestEnvs):
+    @property
+    def environment_suffix(self) -> str:
+        return ".dev"
+
+    @property
+    def skip_install(self) -> bool:
+        return True
+
+    def get_env_deps(self, deps: list[str]) -> list[str]:
+        deps = [*self.project_dependencies, *deps]
+        editable_names = {
+            canonicalize_name(name): name
+            for name in self.paths.metadata.editables
+        }
+        extras: dict[str, set[str]] = {name: set() for name in editable_names.values()}
+        index_deps = []
+        for dep in deps:
+            requirement = Requirement(dep)
+            name = editable_names.get(canonicalize_name(requirement.name))
+            if name is None or requirement.url:
+                index_deps.append(dep)
+                continue
+            extras[name].update(requirement.extras)
+
+        local_deps = []
+        for name, package_extras in extras.items():
+            extras_text = f"[{','.join(sorted(package_extras))}]" if package_extras else ""
+            local_deps.append(f"-e ../{name}{extras_text}")
+
+        return sorted(dedupe([*index_deps, *local_deps]))
+
+
+class GeneratorTestEnvsProd(GeneratorTestEnvs):
+    @property
+    def environment_suffix(self) -> str:
+        return ".prod"

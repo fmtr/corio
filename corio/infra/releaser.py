@@ -756,7 +756,7 @@ class Tester(Incrementor):
             val.tox,
             -arg.c + str(self.paths.pyproject_repo),
             --arg.root + str(self.paths.repo),
-            --arg.workdir + str(self.paths.repo / ".tox"),
+            --arg.workdir + self.paths.tox_workdir,
             val.run,
         )
         result = expression.run(

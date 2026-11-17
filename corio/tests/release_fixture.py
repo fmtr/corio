@@ -28,6 +28,7 @@ class ReleaseRepoFixture:
         with_tests: bool = True,
         with_changelog: bool = True,
         with_addon: bool = True,
+        test_envs: bool = False,
         pre: bool | None = False,
         pinned: str | None = None,
         tag_current: bool = True,
@@ -41,7 +42,7 @@ class ReleaseRepoFixture:
 
         signature = vcs.Signature("Fixture Author", "fixture@example.invalid")
         repository = cls._init_repository(path_repo)
-        cls._write_target(path_repo, "8.3.0", with_tests, with_changelog, with_addon)
+        cls._write_target(path_repo, "8.3.0", with_tests, with_changelog, with_addon, test_envs)
         base_release = cls._commit(repository, signature, "Initial package release", None)
         cls._tag(repository, signature, "v8.3.0", base_release)
 
@@ -51,7 +52,7 @@ class ReleaseRepoFixture:
         )
         first_history = cls._commit(repository, signature, "Add service behavior", base_release)
 
-        cls._write_target(path_repo, current_version, with_tests, with_changelog, with_addon)
+        cls._write_target(path_repo, current_version, with_tests, with_changelog, with_addon, test_envs)
         latest_release = cls._commit(
             repository,
             signature,
@@ -147,6 +148,7 @@ class ReleaseRepoFixture:
         with_tests: bool,
         with_changelog: bool,
         with_addon: bool,
+        test_envs: bool,
     ) -> None:
         package = root / "release_target"
         package.mkdir(parents=True, exist_ok=True)
@@ -172,24 +174,36 @@ class ReleaseRepoFixture:
                 description = "Synthetic release fixture"
                 keywords = ["synthetic"]
                 editables = ["editable_support"]
-                test_envs = false
+                test_envs = {str(test_envs).lower()}
 
                 [tool.corio.dependencies]
-                install = ["editable_support"]
+                install = ["editable_support[core]"]
                 test = ["pytest"]
+                api = ["editable_support[api]", "httpx"]
+                service = ["editable_support[service]", "sqlalchemy"]
             """),
             encoding="utf-8",
         )
-        if with_tests:
-            tests = package / "tests"
-            tests.mkdir(exist_ok=True)
-            (tests / "test_probe.py").write_text(
+        if test_envs:
+            (package / "api.py").write_text(
                 strings.trim("""
-                    def test_probe():
-                        assert True
+                    value = 'synthetic api'
                 """),
                 encoding="utf-8",
             )
+        if with_tests:
+            tests = package / "tests"
+            tests.mkdir(exist_ok=True)
+            test_modules = ["api", "service"] if test_envs else ["probe"]
+            for module in test_modules:
+                test_source = strings.trim(f"""
+                    def test_{module}():
+                        assert True
+                """)
+                (tests / f"test_{module}.py").write_text(
+                    test_source,
+                    encoding="utf-8",
+                )
         if with_changelog:
             cls._write_changelog_release(root, version)
         if with_addon:
@@ -242,6 +256,11 @@ class ReleaseRepoFixture:
                 version = "{version}"
                 description = "Synthetic editable dependency"
                 readme = "README.md"
+
+                [project.optional-dependencies]
+                core = []
+                api = ["httpx"]
+                service = ["sqlalchemy"]
 
                 [tool.corio.metadata]
                 version = "{version}"

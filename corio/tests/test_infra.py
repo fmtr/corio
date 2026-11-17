@@ -243,8 +243,16 @@ def test_release_updates_real_repo_history_and_files(
     data = (scenario.path_repo / "pyproject.toml").read_toml()
     assert data["project"]["version"] == expected_version
     assert data["tool"]["corio"]["metadata"]["version"] == expected_version
-    assert data["project"]["dependencies"] == ["editable_support~=2.6.4"]
-    assert data["tool"]["tox"]["env_list"] == ["release_target"]
+    assert data["project"]["dependencies"] == ["editable_support[core]~=2.6.4"]
+    assert data["tool"]["tox"]["env_list"] == ["release_target.prod"]
+    assert data["tool"]["corio"]["test-envs"]["dev"] == ["release_target.dev"]
+    dev_env = data["tool"]["tox"]["env"]["release_target.dev"]
+    prod_env = data["tool"]["tox"]["env"]["release_target.prod"]
+    assert dev_env["skip_install"] is True
+    assert dev_env["deps"] == ["-e ../editable_support[core]", "pytest"]
+    assert "editable_support~=2.6.4" not in dev_env["deps"]
+    assert prod_env["deps"] == ["pytest"]
+    assert "skip_install" not in prod_env
     assert data["tool"]["uv"]["sources"]["editable_support"] == {
         "path": "../editable_support",
         "editable": True,
@@ -294,6 +302,59 @@ def test_release_updates_real_repo_history_and_files(
     assert remote.lookup_reference("refs/heads/release").target == main_commit.id
     remote_tag = remote.lookup_reference(f"refs/tags/v{expected_version}").peel(vcs.Commit)
     assert remote_tag.id == main_commit.id
+
+
+def test_release_generates_dev_and_prod_envs_for_each_test_module(
+    release_repo_factory,
+    monkeypatch,
+):
+    scenario = release_repo_factory(
+        with_changelog=False,
+        with_addon=False,
+        test_envs=True,
+    )
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: 0)
+
+    scenario.project.releaser.run(release=False)
+
+    data = (scenario.path_repo / "pyproject.toml").read_toml()
+    assert data["tool"]["corio"]["test-envs"]["dev"] == ["api.dev", "service.dev"]
+    assert data["tool"]["tox"]["env_list"] == ["api.prod", "service.prod"]
+    envs = data["tool"]["tox"]["env"]
+    assert set(envs) == {"api.dev", "api.prod", "service.dev", "service.prod"}
+
+    api_dev = envs["api.dev"]
+    assert api_dev["skip_install"] is True
+    assert api_dev["deps"] == ["-e ../editable_support[api,core]", "httpx", "pytest"]
+    assert api_dev["commands"] == [[
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "{posargs:release_target/tests/test_api.py}",
+    ]]
+    assert api_dev["install_command"] == [
+        "uv",
+        "pip",
+        "install",
+        "--refresh-package",
+        "editable_support",
+        "{opts}",
+        "{packages}",
+    ]
+
+    service_prod = envs["service.prod"]
+    assert service_prod["deps"] == ["editable_support[service]~=2.6.4", "pytest", "sqlalchemy"]
+    assert "skip_install" not in service_prod
+    assert service_prod["install_command"] == [
+        "uv",
+        "pip",
+        "install",
+        "--refresh-package",
+        "editable_support",
+        "{opts}",
+        "{packages}",
+    ]
 
 
 def test_stable_release_indexes_changelog_created_after_main_commit(
@@ -821,7 +882,11 @@ def _make_test_env_generator(
     editables: tuple[str, ...] = (),
 ) -> GeneratorTestEnvs:
     incrementor = _make_incrementor(path_repo, test_envs=test_envs, editables=editables)
-    return GeneratorTestEnvs(paths=incrementor.paths, optionals=dependencies)
+    return GeneratorTestEnvs(
+        paths=incrementor.paths,
+        optionals=dependencies,
+        project_dependencies=[],
+    )
 
 
 def _make_tester(path_repo: Path, *, env_list: list[str] | None = None) -> ReleaserTester:

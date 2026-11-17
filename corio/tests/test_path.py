@@ -180,6 +180,28 @@ def test_package_paths_is_dev_uses_repository_discovery(tmp_path):
     assert installed_paths.is_dev is False
 
 
+def test_tox_workdir_is_temp_and_unique_to_the_repository_checkout(tmp_path):
+    repo_a = path.Path(tmp_path / "checkout-a")
+    package_a = repo_a / "sample"
+    package_a.mkdir(parents=True)
+    (repo_a / "pyproject.toml").write_text("[project]\nname = 'sample'\n", encoding="utf-8")
+    (package_a / "pyproject.package.toml").symlink_to(repo_a / "pyproject.toml")
+
+    repo_b = path.Path(tmp_path / "checkout-b")
+    package_b = repo_b / "sample"
+    package_b.mkdir(parents=True)
+    (repo_b / "pyproject.toml").write_text("[project]\nname = 'sample'\n", encoding="utf-8")
+    (package_b / "pyproject.package.toml").symlink_to(repo_b / "pyproject.toml")
+
+    paths_a = path.PackagePaths(package_a)
+    paths_b = path.PackagePaths(package_b)
+
+    assert paths_a.tox_workdir.is_relative_to(path.Path.temp())
+    assert not paths_a.tox_workdir.is_relative_to(repo_a)
+    assert paths_a.tox_workdir == path.PackagePaths(package_a).tox_workdir
+    assert paths_a.tox_workdir != paths_b.tox_workdir
+
+
 def test_package_metadata_reads_editables(tmp_path):
     package = path.Path(tmp_path / "corio")
     package.mkdir()

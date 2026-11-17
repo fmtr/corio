@@ -92,18 +92,19 @@ def test_shell_generates_uvx_tox_command_string():
     paths = SimpleNamespace(
         repo="/repo",
         pyproject_repo="/repo/pyproject.toml",
+        tox_workdir="/tmp/corio/tox",
     )
 
     command = shell.uvx(
         --arg.with_ + val.tox_uv + val.tox + "two words",
         -arg.c + str(paths.pyproject_repo),
         --arg.root + str(paths.repo),
-        --arg.workdir + str(f"{paths.repo}/.tox"),
+        --arg.workdir + paths.tox_workdir,
     ).run_
 
     assert str(command) == (
         "uvx --with tox-uv tox 'two words' -c /repo/pyproject.toml "
-        "--root /repo --workdir /repo/.tox run"
+        "--root /repo --workdir /tmp/corio/tox run"
     )
     assert command.tokens() == [
         "uvx",
@@ -116,7 +117,7 @@ def test_shell_generates_uvx_tox_command_string():
         "--root",
         "/repo",
         "--workdir",
-        "/repo/.tox",
+        "/tmp/corio/tox",
         "run",
     ]
 
