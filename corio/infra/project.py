@@ -27,10 +27,8 @@ class Project:
         pinned=None,
         pre=False,
         path=None,
-        syncs: list[str] | None = None,
     ):
         self.paths = PackagePaths(path or PackagePaths.dev_repo / name)
-        self.syncs = syncs or []
 
         # project settings:
         self.services = self.paths.metadata.services

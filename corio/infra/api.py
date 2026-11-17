@@ -40,14 +40,13 @@ class Release(api.endpoint.API):
             pinned: str = None,
             pre: bool | None = False,
             release: bool = True,
-            syncs: list[str] | None = None,
     ):
         """
 
         Run a project's release workflow.
 
         """
-        project = Project(name, pinned=pinned, pre=pre, syncs=syncs)
+        project = Project(name, pinned=pinned, pre=pre)
         project.releaser.run(release=release)
 
 

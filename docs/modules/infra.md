@@ -34,17 +34,15 @@ pip install "corio[infra]" --upgrade
 ```python
 from corio import infra
 
-project = infra.Project("corio", syncs=["dependent_project"])
+project = infra.Project("corio")
 project.releaser.run(release=True)
 ```
 
-The same release flow is available from the command line. Use `syncs` (or repeat `--syncs`) to name dependent projects that should be updated after the release:
+The same release flow is available from the command line:
 
 ```bash
-corio infra release --name corio --syncs dependent_project
+corio infra release --name corio
 ```
-
-After release cleanup, Corio updates each named project's `pyproject.toml` in its worktree without staging the changes. The release API accepts the same `syncs` list.
 
 ## API Usage
 
@@ -88,7 +86,6 @@ Per-module environments are named `<module>.dev` and `<module>.prod`. Developmen
 6. package build/upload
 7. docs deploy
 8. remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved
-9. update each requested dependent project's `pyproject.toml` in its worktree
 
 Test failures block both stable and pre-releases. On failure, the generated `pyproject.toml` is restored; add-on and changelog updates have not yet run. The release changes are staged only after all incrementors succeed.
 

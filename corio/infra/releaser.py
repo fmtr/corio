@@ -17,7 +17,6 @@ gh_deploy = cli.commands["gh-deploy"].callback
 serve = cli.commands["serve"].callback
 
 from corio import env as env
-from corio import strings
 from corio import https as https
 from corio.constants import Constants
 from corio.infra.project import Project
@@ -95,21 +94,6 @@ class Releaser(Inherit[Project]):
         if release:
             self.release()
             self.cleanup()
-
-        if release and self.syncs:
-            self.sync()
-
-    @cached_property
-    def syncs_text(self):
-        return strings.join_natural(self.syncs)
-
-    @logger.instrument("Syncing dependent projects {self.syncs_text}...")
-    def sync(self):
-        from corio.infra.incrementor_pyproject import IncrementorPyproject
-
-        for name in self.syncs:
-            project = Project(name)
-            IncrementorPyproject(project.releaser).apply()
 
     @logger.instrument("Cleaning workspace after release...")
     def cleanup(self):
