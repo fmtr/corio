@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
       
 
@@ -283,6 +283,8 @@
   
     
     
+      
+        
       
         
       
@@ -1141,6 +1143,34 @@
     
   
     2.17.18
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.19/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.19
   
 
     
@@ -3569,13 +3599,12 @@
 <h2 id="typical-usage">Typical Usage</h2>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">infra</span>
 
-<span class="n">project</span> <span class="o">=</span> <span class="n">infra</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s2">"corio"</span><span class="p">,</span> <span class="n">syncs</span><span class="o">=</span><span class="p">[</span><span class="s2">"dependent_project"</span><span class="p">])</span>
+<span class="n">project</span> <span class="o">=</span> <span class="n">infra</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s2">"corio"</span><span class="p">)</span>
 <span class="n">project</span><span class="o">.</span><span class="n">releaser</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">release</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
-<p>The same release flow is available from the command line. Use <code>syncs</code> (or repeat <code>--syncs</code>) to name dependent projects that should be updated after the release:</p>
-<div class="language-bash highlight"><pre><span></span><code>corio<span class="w"> </span>infra<span class="w"> </span>release<span class="w"> </span>--name<span class="w"> </span>corio<span class="w"> </span>--syncs<span class="w"> </span>dependent_project
+<p>The same release flow is available from the command line:</p>
+<div class="language-bash highlight"><pre><span></span><code>corio<span class="w"> </span>infra<span class="w"> </span>release<span class="w"> </span>--name<span class="w"> </span>corio
 </code></pre></div>
-<p>After release cleanup, Corio updates each named project's <code>pyproject.toml</code> in its worktree without staging the changes. The release API accepts the same <code>syncs</code> list.</p>
 <h2 id="api-usage">API Usage</h2>
 <p><code>infra.Api</code> exposes release/build/recreate endpoints and is used by infra wrapper repos:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">infra</span>
@@ -3606,7 +3635,6 @@
 <li>package build/upload</li>
 <li>docs deploy</li>
 <li>remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved</li>
-<li>update each requested dependent project's <code>pyproject.toml</code> in its worktree</li>
 </ol>
 <p>Test failures block both stable and pre-releases. On failure, the generated <code>pyproject.toml</code> is restored; add-on and changelog updates have not yet run. The release changes are staged only after all incrementors succeed.</p>
 <p>The release-start log message names the project and the Corio runtime version used.</p>
@@ -3661,10 +3689,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
