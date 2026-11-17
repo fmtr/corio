@@ -352,8 +352,8 @@ class GeneratorTestEnvs:
         return dedupe(sorted(modules))
 
     @property
-    def environment_suffix(self) -> str:
-        return ""
+    def environment_type(self) -> str | None:
+        return None
 
     @property
     def skip_install(self) -> bool:
@@ -382,9 +382,15 @@ class GeneratorTestEnvs:
     def get_env_deps(self, deps: list[str]) -> list[str]:
         return deps
 
-    def get_env(self, name, deps, path):
+    def get_env(self, name, deps, path, *, singleton=False):
         path = path.relative_to(self.paths.repo)
-        env_name = f"{name}{self.environment_suffix}"
+        environment_type = self.environment_type
+        if not environment_type:
+            env_name = name
+        elif singleton:
+            env_name = environment_type
+        else:
+            env_name = f"{name}.{environment_type}"
         command = shell.python(
             -arg.m + "pytest",
             -arg.q,
@@ -413,7 +419,7 @@ class GeneratorTestEnvs:
     def env(self):
         name = self.paths.name
         path_tests = self.paths.tests
-        return self.get_env(name, self.deps_test, path_tests)
+        return self.get_env(name, self.deps_test, path_tests, singleton=True)
 
     @cached_property
     def envs(self) -> dict[str, dict]:
@@ -436,8 +442,8 @@ class GeneratorTestEnvs:
 
 class GeneratorTestEnvsDev(GeneratorTestEnvs):
     @property
-    def environment_suffix(self) -> str:
-        return ".dev"
+    def environment_type(self) -> str:
+        return "dev"
 
     @property
     def skip_install(self) -> bool:
@@ -469,5 +475,5 @@ class GeneratorTestEnvsDev(GeneratorTestEnvs):
 
 class GeneratorTestEnvsProd(GeneratorTestEnvs):
     @property
-    def environment_suffix(self) -> str:
-        return ".prod"
+    def environment_type(self) -> str:
+        return "prod"

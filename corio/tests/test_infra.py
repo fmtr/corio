@@ -244,10 +244,10 @@ def test_release_updates_real_repo_history_and_files(
     assert data["project"]["version"] == expected_version
     assert data["tool"]["corio"]["metadata"]["version"] == expected_version
     assert data["project"]["dependencies"] == ["editable_support[core]~=2.6.4"]
-    assert data["tool"]["tox"]["env_list"] == ["release_target.prod"]
-    assert data["tool"]["corio"]["test-envs"]["dev"] == ["release_target.dev"]
-    dev_env = data["tool"]["tox"]["env"]["release_target.dev"]
-    prod_env = data["tool"]["tox"]["env"]["release_target.prod"]
+    assert data["tool"]["tox"]["env_list"] == ["prod"]
+    assert data["tool"]["corio"]["test-envs"]["dev"] == ["dev"]
+    dev_env = data["tool"]["tox"]["env"]["dev"]
+    prod_env = data["tool"]["tox"]["env"]["prod"]
     assert dev_env["skip_install"] is True
     assert dev_env["deps"] == ["-e ../editable_support[core]", "pytest"]
     assert "editable_support~=2.6.4" not in dev_env["deps"]
