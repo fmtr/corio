@@ -1,8 +1,5 @@
 import flet as ft
 from dataclasses import dataclass
-from flet.core.gesture_detector import TapEvent
-from flet.core.page import Page
-from flet.core.types import ColorValue, IconValue
 from functools import cached_property
 from typing import Optional
 
@@ -81,7 +78,7 @@ class Cell(ft.DataCell):
         """
         return ft.GestureDetector(content=self.text, on_tap=self.click_tap, on_double_tap=self.click_double_tap)
 
-    async def click_tap(self, event: TapEvent):
+    async def click_tap(self, event: ft.TapEvent):
         """
 
         Default cell click behavior — override in subclass if needed
@@ -91,7 +88,7 @@ class Cell(ft.DataCell):
         event.page.update()
         return value
 
-    async def click(self, event: Optional[TapEvent] = None):
+    async def click(self, event: Optional[ft.TapEvent] = None):
         """
 
         Default cell click behavior — override in subclass if needed
@@ -99,7 +96,7 @@ class Cell(ft.DataCell):
         """
         logger.info(f"Clicked {self.column=} {self.series.name=} {self.value=}")
 
-    async def click_double_tap(self, event: TapEvent):
+    async def click_double_tap(self, event: ft.TapEvent):
         """
 
         Default cell click behavior — override in subclass if needed
@@ -109,7 +106,7 @@ class Cell(ft.DataCell):
         event.page.update()
         return value
 
-    async def double_click(self, event: Optional[TapEvent] = None):
+    async def double_click(self, event: Optional[ft.TapEvent] = None):
         """
 
         Default cell double click behavior — override in subclass if needed
@@ -303,8 +300,8 @@ class NotificationDatum:
     Color and icon for notification bar
 
     """
-    color: ColorValue
-    icon: IconValue
+    color: ft.ColorValue
+    icon: ft.IconData
 
 
 class NotificationBar(ft.SnackBar):
@@ -345,10 +342,10 @@ class NotificationBar(ft.SnackBar):
         """
         return self.DATA[self.method]
 
-    def show(self, page: Page):
+    def show(self, page: ft.Page):
         """
 
         Show the notification on the relevant page.
 
         """
-        page.open(self)
+        page.show_dialog(self)

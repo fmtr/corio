@@ -12,7 +12,7 @@ keywords = []
 [project.optional-dependencies]
 "path.search" = ["ripgrep-rs"]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
-dev = ["logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "ripgrep-rs"]
+dev = ["logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]
 test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript>=0.2.20", "pyyaml"]
 yaml = ["yamlscript>=0.2.20", "pyyaml"]
@@ -37,7 +37,7 @@ semantic = ["sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", 
 metrics = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
 html = ["html2text"]
-interface = ["flet[all] <0.80.0", "flet-video", "flet-webview"]
+interface = ["flet[all]>=1.1.0", "flet-video", "flet-webview"]
 "google.api" = ["google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client"]
 caching = ["diskcache", "cachetools"]
 pdf = ["pymupdf", "pydantic", "pydantic-extra-types", "pycountry", "pymupdf4llm"]
@@ -73,7 +73,7 @@ encrypt = ["pyrage"]
 secrets = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 sec = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "logfire"]
-all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "html2text", "flet[all] <0.80.0", "flet-video", "flet-webview", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "qdrant-client[fastembed]", "flagembedding", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "flet[all]>=1.1.0", "flet-video", "flet-webview", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "html2text", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "qdrant-client[fastembed]", "flagembedding", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -107,7 +107,7 @@ test_envs = true
 install = ["cached-classproperty", "certifi>=2026.10.23", "semver"]
 "path.search" = ["ripgrep-rs"]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
-dev = ["logging", "debug", "sets", "yaml", "db.document", "infra", "db.search", "path.search"]
+dev = ["logging", "debug", "sets", "yaml", "db.document", "infra", "db.search", "path.search", "interface"]
 test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript>=0.2.20", "pyyaml"]
 yaml = ["yml"]
@@ -132,7 +132,7 @@ semantic = ["sentence_transformers", "metrics"]
 metrics = ["tabular", "ranx"]
 tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
 html = ["html2text"]
-interface = ["flet[all] <0.80.0", "flet-video", "flet-webview"]
+interface = ["flet[all]>=1.1.0", "flet-video", "flet-webview"]
 "google.api" = ["google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client"]
 caching = ["diskcache", "cachetools"]
 pdf = ["pymupdf", "dm", "pymupdf4llm"]
@@ -170,7 +170,7 @@ sec = ["secrets"]
 cli = ["sets", "logging"]
 
 [tool.corio.test-envs]
-dev = ["api.dev", "caching.dev", "datatype.dev", "db.dev", "dhcp.dev", "dm.dev", "dns.dev", "dt.dev", "encrypt.dev", "enums.dev", "env.dev", "hash.dev", "hook.dev", "infra.dev", "inherit.dev", "iterator.dev", "jsn.dev", "name.dev", "path.dev", "patterns.dev", "rand.dev", "sec.dev", "sets.dev", "shell.dev", "strings.dev", "tasmota.dev", "toml.dev", "tools.dev", "version.dev", "yml.dev", "youtube.dev"]
+dev = ["api.dev", "caching.dev", "datatype.dev", "db.dev", "dhcp.dev", "dm.dev", "dns.dev", "dt.dev", "encrypt.dev", "enums.dev", "env.dev", "hash.dev", "hook.dev", "infra.dev", "inherit.dev", "interface.dev", "iterator.dev", "jsn.dev", "name.dev", "path.dev", "patterns.dev", "rand.dev", "sec.dev", "sets.dev", "shell.dev", "strings.dev", "tasmota.dev", "toml.dev", "tools.dev", "version.dev", "yml.dev", "youtube.dev"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
@@ -191,7 +191,7 @@ corio = ["pyproject.package.toml", "assets/**"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api.prod", "caching.prod", "datatype.prod", "db.prod", "dhcp.prod", "dm.prod", "dns.prod", "dt.prod", "encrypt.prod", "enums.prod", "env.prod", "hash.prod", "hook.prod", "infra.prod", "inherit.prod", "iterator.prod", "jsn.prod", "name.prod", "path.prod", "patterns.prod", "rand.prod", "sec.prod", "sets.prod", "shell.prod", "strings.prod", "tasmota.prod", "toml.prod", "tools.prod", "version.prod", "yml.prod", "youtube.prod"]
+env_list = ["api.prod", "caching.prod", "datatype.prod", "db.prod", "dhcp.prod", "dm.prod", "dns.prod", "dt.prod", "encrypt.prod", "enums.prod", "env.prod", "hash.prod", "hook.prod", "infra.prod", "inherit.prod", "interface.prod", "iterator.prod", "jsn.prod", "name.prod", "path.prod", "patterns.prod", "rand.prod", "sec.prod", "sets.prod", "shell.prod", "strings.prod", "tasmota.prod", "toml.prod", "tools.prod", "version.prod", "yml.prod", "youtube.prod"]
 
 [tool.tox.env."api.dev"]
 description = "Run api tests."
@@ -281,6 +281,12 @@ skip_install = true
 description = "Run inherit tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_inherit.py}"]]
+skip_install = true
+
+[tool.tox.env."interface.dev"]
+description = "Run interface tests."
+deps = ["cached-classproperty", "certifi>=2026.10.23", "flet-video", "flet-webview", "flet[all]>=1.1.0", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_interface.py}"]]
 skip_install = true
 
 [tool.tox.env."iterator.dev"]
@@ -454,6 +460,11 @@ description = "Run inherit tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_inherit.py}"]]
 
+[tool.tox.env."interface.prod"]
+description = "Run interface tests."
+deps = ["flet-video", "flet-webview", "flet[all]>=1.1.0", "pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_interface.py}"]]
+
 [tool.tox.env."iterator.prod"]
 description = "Run iterator tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
@@ -539,4 +550,4 @@ requires = ["setuptools>=82", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = ["logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "ripgrep-rs"]
+dev = ["logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]

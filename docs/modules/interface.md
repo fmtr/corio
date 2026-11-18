@@ -37,7 +37,7 @@ App.launch()
 
 - Override `async def new(cls, page)` for async setup (database/session/bootstrap).
 - Configure `PATH_ASSETS` and `PATH_UPLOADS` for static/upload handling.
-- Use tabs/views and route hooks (`route`, `pop`) for multi-view apps.
+- Use tabs/views and route hooks (`route`, `pop`) for multi-view apps. Handlers receive Flet events: `route(event: ft.RouteChangeEvent)` and `pop(event: ft.ViewPopEvent)`; view-pop details are available on `event.route`, `event.view`, and `event.page`.
 - `Base` auto-manages `FLET_SECRET_KEY` when missing.
 
 ```python

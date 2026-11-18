@@ -1,8 +1,5 @@
 import flet as ft
 import os
-from flet.core.control_event import ControlEvent
-from flet.core.types import AppView
-from flet.core.view import View
 from typing import TypeVar, Generic, Type
 
 from corio import env
@@ -62,7 +59,7 @@ class Base(Generic[T], ft.Column):
     HOST = '0.0.0.0'
     PORT = 8000
     URL = Constants.FMTR_DEV_INTERFACE_URL if env.IS_DEV else None
-    APPVIEW = AppView.WEB_BROWSER
+    APPVIEW = ft.AppView.WEB_BROWSER
     PATH_ASSETS = None
     PATH_UPLOADS = None
     SCROLL = ft.ScrollMode.AUTO
@@ -108,16 +105,16 @@ class Base(Generic[T], ft.Column):
         logger.debug(f'Route change: {event=}')
 
     @classmethod
-    def pop(cls, view: View, page: ft.Page):
+    def pop(cls, event: ft.ViewPopEvent):
         """
 
         Overridable view pop.
 
         """
-        logger.debug(f'View popped: {page.route=} {len(page.views)=} {view=}')
+        logger.debug(f'View popped: {event.route=} {len(event.page.views)=} {event.view=}')
 
     @classmethod
-    def on_connect(cls, event: ControlEvent):
+    def on_connect(cls, event: ft.ControlEvent):
         """
 
         Log connections
@@ -127,7 +124,7 @@ class Base(Generic[T], ft.Column):
         logger.warning(f'Connect: {page.client_user_agent=} {page.platform.name=}')
 
     @classmethod
-    def on_disconnect(cls, event: ControlEvent):
+    def on_disconnect(cls, event: ft.ControlEvent):
         """
 
         Log disconnections
@@ -167,7 +164,7 @@ class Base(Generic[T], ft.Column):
             os.environ["FLET_SECRET_KEY"] = os.urandom(12).hex()
 
         logger.info(f"Launching {cls.TITLE} at {url}")
-        ft.app(cls.new, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS, upload_dir=cls.PATH_UPLOADS)
+        ft.run(cls.new, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS, upload_dir=cls.PATH_UPLOADS)
 
 
 class Test(Base[Context]):

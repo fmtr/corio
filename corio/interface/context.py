@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from flet.core.page import Page
+import flet as ft
 
 
 @dataclass
@@ -10,4 +10,4 @@ class Context:
     Base context class
 
     """
-    page: Page
+    page: ft.Page
