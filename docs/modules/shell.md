@@ -32,8 +32,8 @@ workflow = ex.prepare() & (ex.verify() | ex.recover())
 print(str(workflow))  # prepare && (verify || recover)
 ```
 
-Operator expressions render shell syntax. Command expressions can run locally with `.run()`, which invokes the command using its token list without asking a shell to interpret syntax. A leading `+` on a command expression is shorthand for `.run()`. To run a command expression through a shell, pass `shell=True`; to run a composed operator expression on systems with `sh`, pass its rendered form to the shell:
+Operator expressions render shell syntax. Command expressions can run locally with `.run()`, which invokes the command using its token list without asking a shell to interpret syntax. A leading `+` on a command expression is shorthand for `.run()`. To run a command expression through a shell, pass `shell=True`; to run a composed operator expression on systems with `sh`, pass the expression directly as the `-c` argument:
 
 ```python
-ex.sh("-c", str(workflow)).run()
+ex.sh(-arg.c, workflow).run()
 ```
