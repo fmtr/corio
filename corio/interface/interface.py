@@ -1,15 +1,16 @@
-import flet as ft
 import os
-from typing import TypeVar, Generic, Type
+from typing import Generic, Type, TypeVar
 
-from corio import env
+import flet as ft
+
+from corio import dm, env, function, path
+from corio.paths import paths
 from corio.constants import Constants
-from corio.function import MethodDecorator
 from corio.interface.context import Context
 from corio.logs import logger
 
 
-class update(MethodDecorator):
+class update(function.MethodDecorator):
     """
 
     Update the page after the decorated function is called.
@@ -49,18 +50,50 @@ class progress(update):
 T = TypeVar('T', bound=Context)
 
 
+class ManifestIcon(dm.Base):
+    src: str
+    sizes: str
+    type: str = 'image/png'
+    purpose: str | None = None
+
+
+class Metadata(dm.Base):
+    name: str
+    short_name: str | None = None
+    start_url: str = '.'
+    display: str = 'standalone'
+    background_color: str = '#FFFFFF'
+    theme_color: str = '#FF005F'
+    description: str | None = None
+    orientation: str = 'natural'
+    prefer_related_applications: bool = False
+    icons: list[ManifestIcon] = [
+        ManifestIcon(src='icons/icon-192.png', sizes='192x192'),
+        ManifestIcon(src='icons/icon-512.png', sizes='512x512'),
+        ManifestIcon(
+            src='icons/icon-maskable-192.png',
+            sizes='192x192',
+            purpose='maskable',
+        ),
+        ManifestIcon(
+            src='icons/icon-maskable-512.png',
+            sizes='512x512',
+            purpose='maskable',
+        ),
+    ]
+
+
 class Base(Generic[T], ft.Column):
     """
 
-    Simple interface base class.
+    Simple interface base class with Flet web identity and asset defaults.
 
     """
-    TITLE = 'Base Interface'
     HOST = '0.0.0.0'
     PORT = 8000
     URL = Constants.FMTR_DEV_INTERFACE_URL if env.IS_DEV else None
     APPVIEW = ft.AppView.WEB_BROWSER
-    PATH_ASSETS = None
+    PATH_ASSETS: path.Path = paths.assets / 'interface'
     PATH_UPLOADS = None
     SCROLL = ft.ScrollMode.AUTO
 
@@ -68,6 +101,28 @@ class Base(Generic[T], ft.Column):
     ROUTE_ROOT = '/'
 
     TypeContext: Type[T] = Context
+
+    @function.ccp
+    def metadata(cls) -> Metadata:
+        """
+
+        Return the default manifest metadata for this interface.
+
+        """
+        return Metadata(name=cls.__name__)
+
+    @classmethod
+    def prep_assets(cls) -> None:
+        """
+
+        Create the configured assets directory and write its manifest.
+
+        """
+        cls.PATH_ASSETS.mkdirf()
+        manifest_path = cls.PATH_ASSETS / 'manifest.json'
+        manifest_path.write_json(
+            cls.metadata.model_dump(mode='json', exclude_none=True)
+        )
 
     @classmethod
     async def new(cls, page: ft.Page):
@@ -79,7 +134,7 @@ class Base(Generic[T], ft.Column):
 
         """
         page.scroll = cls.SCROLL
-        page.title = cls.TITLE
+        page.title = cls.metadata.name
         page.on_connect = cls.on_connect
         page.on_disconnect = cls.on_disconnect
         page.on_route_change = cls.route
@@ -135,7 +190,7 @@ class Base(Generic[T], ft.Column):
 
 
     @classmethod
-    def get_theme(self):
+    def get_theme(cls):
         """
 
         Overridable theme definition
@@ -163,8 +218,16 @@ class Base(Generic[T], ft.Column):
         if not env.get(cls.SECRET_KEY_KEY, default=None):
             os.environ["FLET_SECRET_KEY"] = os.urandom(12).hex()
 
-        logger.info(f"Launching {cls.TITLE} at {url}")
-        ft.run(cls.new, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS, upload_dir=cls.PATH_UPLOADS)
+        logger.info(f"Launching {cls.metadata.name} at {url}")
+        cls.prep_assets()
+        ft.run(
+            cls.new,
+            view=cls.APPVIEW,
+            host=cls.HOST,
+            port=cls.PORT,
+            assets_dir=str(cls.PATH_ASSETS),
+            upload_dir=cls.PATH_UPLOADS,
+        )
 
 
 class Test(Base[Context]):
@@ -175,8 +238,6 @@ class Test(Base[Context]):
     """
     TypeContext: Type[Context] = Context
 
-    TITLE = 'Test Interface'
-
     def __init__(self):
-        controls = [ft.Text(self.TITLE)]
+        controls = [ft.Text(self.metadata.name)]
         super().__init__(controls=controls)

@@ -37,7 +37,7 @@ semantic = ["sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", 
 metrics = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
 html = ["html2text"]
-interface = ["flet[all]>=1.1.0", "flet-video", "flet-webview"]
+interface = ["flet[all]>=1.1.0", "flet-video", "flet-webview", "pydantic", "pydantic-extra-types", "pycountry"]
 "google.api" = ["google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client"]
 caching = ["diskcache", "cachetools"]
 pdf = ["pymupdf", "pydantic", "pydantic-extra-types", "pycountry", "pymupdf4llm"]
@@ -132,7 +132,7 @@ semantic = ["sentence_transformers", "metrics"]
 metrics = ["tabular", "ranx"]
 tabular = ["pandas", "tabulate", "openpyxl", "odfpy", "deepdiff"]
 html = ["html2text"]
-interface = ["flet[all]>=1.1.0", "flet-video", "flet-webview"]
+interface = ["flet[all]>=1.1.0", "flet-video", "flet-webview", "dm"]
 "google.api" = ["google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client"]
 caching = ["diskcache", "cachetools"]
 pdf = ["pymupdf", "dm", "pymupdf4llm"]
@@ -285,7 +285,7 @@ skip_install = true
 
 [tool.tox.env."interface.dev"]
 description = "Run interface tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "flet-video", "flet-webview", "flet[all]>=1.1.0", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "flet-video", "flet-webview", "flet[all]>=1.1.0", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_interface.py}"]]
 skip_install = true
 
@@ -462,7 +462,7 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_inherit.
 
 [tool.tox.env."interface.prod"]
 description = "Run interface tests."
-deps = ["flet-video", "flet-webview", "flet[all]>=1.1.0", "pytest", "pytest-asyncio", "pytest-cov"]
+deps = ["flet-video", "flet-webview", "flet[all]>=1.1.0", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_interface.py}"]]
 
 [tool.tox.env."iterator.prod"]
