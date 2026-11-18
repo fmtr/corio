@@ -23,7 +23,7 @@ from corio.infra.project import Project
 from corio.inherit import Inherit
 from corio.logs import logger, sanitize
 from corio.path import Path
-from corio.shell.dsl import arg, shell, val
+from corio.shell import arg, ex, val
 
 
 class ReleaseTestsFailed(RuntimeError):
@@ -735,7 +735,7 @@ class Tester(Incrementor):
         return list(data.get("tool", {}).get("tox", {}).get("env_list", []))
 
     def run_subprocess(self) -> int:
-        expression = shell.uvx(
+        expression = ex.uvx(
             --arg.with_ + val.tox_uv,
             val.tox,
             -arg.c + str(self.paths.pyproject_repo),

@@ -6,7 +6,7 @@ import subprocess
 from dataclasses import dataclass, field
 from typing import Callable, ClassVar, NoReturn
 
-from corio import logger
+from corio import function, logger
 
 
 def _normalize(name: str) -> str:
@@ -14,42 +14,54 @@ def _normalize(name: str) -> str:
     return name.replace("__", underscore).strip("_").replace("_", "-").replace(underscore, "_")
 
 
-def _to_value(item: object) -> Value:
+def _to_value(item: object) -> Value | ExpressionBase:
     if isinstance(item, Value):
         return item
     if isinstance(item, Argument):
         return Value(name=item.name)
+    if isinstance(item, ExpressionBase):
+        return item
     return Value(name=str(item))
 
 
-def _to_subcommand_part(item: object) -> Argument:
+def _to_subcommand_part(item: object) -> Argument | ExpressionBase:
     if isinstance(item, Argument):
         return item
     if isinstance(item, Value):
         return Argument(name=item.name)
+    if isinstance(item, ExpressionBase):
+        return item
     return Argument(name=str(item))
 
 
-def _to_expression_part(item: object) -> Subcommand | Argument:
+def _to_expression_part(item: object) -> Subcommand | Argument | ExpressionBase:
     if isinstance(item, Subcommand):
         return item
     if isinstance(item, Argument):
         return item
     if isinstance(item, Value):
         return Argument(name=item.name)
+    if isinstance(item, ExpressionBase):
+        return item
     return Argument(name=str(item))
 
 
-def _to_argument_child(item: object) -> Argument | Value:
+def _to_argument_child(item: object) -> Argument | Value | ExpressionBase:
     if isinstance(item, Argument):
         return item
-    if isinstance(item, Value):
+    if isinstance(item, Value | ExpressionBase):
         return item
     return Argument(name=str(item))
 
 
-def _flatten_parts(parts: list[object]) -> list[str]:
-    return [token for part in parts for token in part.tokens()]
+def _tokens_for_part(part: Argument | Value | Subcommand | ExpressionBase) -> list[str]:
+    if isinstance(part, ExpressionBase):
+        return part.argument_tokens()
+    return part.tokens()
+
+
+def _flatten_parts(parts: list[Argument | Value | Subcommand | ExpressionBase]) -> list[str]:
+    return [token for part in parts for token in _tokens_for_part(part)]
 
 
 @dataclass
@@ -78,7 +90,7 @@ class Argument:
 
     name: str = ""
     prefixes: str = ""
-    children: list[Argument | Value] = field(default_factory=list)
+    children: list[Argument | Value | ExpressionBase] = field(default_factory=list)
     sep: str = " "
 
     def __getattr__(self, name: str) -> Argument:
@@ -124,7 +136,8 @@ class Argument:
             return [self.token]
         if self.sep != " ":
             first, rest = self.children[0], self.children[1:]
-            return [f"{self.token}{self.sep}{first.tokens()[0]}", *_flatten_parts(rest)]
+            first_token = _tokens_for_part(first)[0]
+            return [f"{self.token}{self.sep}{first_token}", *_flatten_parts(rest)]
         return [self.token, *_flatten_parts(self.children)]
 
     def __str__(self) -> str:
@@ -137,7 +150,7 @@ class Argument:
 @dataclass
 class Subcommand:
     name: str
-    children: list[Subcommand | Argument] = field(default_factory=list)
+    children: list[Subcommand | Argument | ExpressionBase] = field(default_factory=list)
     active: Subcommand = field(init=False)
 
     def __post_init__(self) -> None:
@@ -163,13 +176,82 @@ class Subcommand:
         return f"{self.__class__.__name__}('{self}')"
 
 
-@dataclass
-class Expression:
+class ExpressionBase:
     __isabstractmethod__: ClassVar[bool] = False
 
+    def __and__(self, other: ExpressionBase) -> And:
+        return And(children=[self, other])
+
+    def __or__(self, other: ExpressionBase) -> Pipe:
+        return Pipe(children=[self, other])
+
+    def __xor__(self, other: ExpressionBase) -> Or:
+        return Or(children=[self, other])
+
+    def argument_tokens(self) -> list[str]:
+        return [str(self)]
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}('{self}')"
+
+
+@dataclass(repr=False)
+class Expressions(ExpressionBase):
+    children: list[ExpressionBase] = field(default_factory=list)
+
+    op: ClassVar[str] = ""
+    precedence: ClassVar[int] = 0
+
+    def tokens(self) -> list[str]:
+        return [str(self)]
+
+    def _needs_parentheses(self, child: ExpressionBase, index: int) -> bool:
+        if not isinstance(child, Expressions):
+            return False
+        if child.precedence < self.precedence:
+            return True
+        if child.precedence > self.precedence:
+            return False
+        if index == 0:
+            return False
+        return child.op != self.op
+
+    def __str__(self) -> str:
+        parts = []
+        for index, child in enumerate(self.children):
+            child_text = str(child)
+            if self._needs_parentheses(child, index):
+                child_text = f"({child_text})"
+            parts.append(child_text)
+
+        return f" {self.op} ".join(parts)
+
+
+class And(Expressions):
+    op: ClassVar[str] = "&&"
+    precedence: ClassVar[int] = 1
+
+
+class Or(Expressions):
+    op: ClassVar[str] = "||"
+    precedence: ClassVar[int] = 1
+
+
+class Pipe(Expressions):
+    op: ClassVar[str] = "|"
+    precedence: ClassVar[int] = 2
+
+
+@dataclass(repr=False)
+class Expression(ExpressionBase):
+    __isabstractmethod__: ClassVar[bool] = False
+
+    @function.ccp
+    def build(cls) -> Stub:
+        return Stub()
+
     name: str
-    shell: Shell
-    children: list[Subcommand | Argument] = field(default_factory=list)
+    children: list[Subcommand | Argument | ExpressionBase] = field(default_factory=list)
     active: Expression | Subcommand = field(init=False)
 
     def __post_init__(self) -> None:
@@ -207,43 +289,22 @@ class Expression:
             shell: bool = False,
             **kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
-        return self.shell.run(self, *args, check=check, shell=shell, **kwargs)
+        logger.info(str(self))
+        command = str(self) if shell else self.tokens()
+        result = subprocess.run(command, *args, check=check, shell=shell, **kwargs)  # type: ignore[arg-type]
+        return result
 
     def exec(
             self,
             method: Callable[[str, list[str]], NoReturn] = os.execvp,
     ) -> NoReturn:
-        return self.shell.exec(self, method=method)
+        logger.info(str(self))
+        return method(self.name, self.tokens())
 
     def __iter__(self):
-        return self.shell.__iter__(self)
-
-    def __pos__(self):
-        return self.run()
-
-    def __str__(self) -> str:
-        return shlex.join(self.tokens())
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}('{self}')"
-
-
-@dataclass
-class Shell:
-    __isabstractmethod__: ClassVar[bool] = False
-
-    context: str = ""
-
-    def __getattr__(self, name: str | None) -> Expression:
-        return self(_normalize(name))
-
-    def __call__(self, name: str) -> Expression:
-        return Expression(name=name, shell=self)
-
-    def __iter__(self, expression: Expression):
-        logger.info(str(expression))
+        logger.info(str(self))
         process = subprocess.Popen(
-            expression.tokens(),
+            self.tokens(),
             stdout=subprocess.PIPE,
             text=True,
             bufsize=1,
@@ -253,31 +314,24 @@ class Shell:
                 yield line.rstrip("\n")
         process.wait()
 
-    def run(
-            self,
-            expression: Expression,
-            *args: object,
-            check: bool = True,
-            shell: bool = False,
-            **kwargs: object,
-    ) -> subprocess.CompletedProcess[str]:
-        logger.info(str(expression))
-        command = str(expression) if shell else expression.tokens()
-        result = subprocess.run(command, *args, check=check, shell=shell, **kwargs)  # type: ignore[arg-type]
-        return result
+    def __pos__(self):
+        return self.run()
 
-    def exec(
-            self,
-            expression: Expression,
-            method: Callable[[str, list[str]], NoReturn] = os.execvp,
-    ) -> NoReturn:
-        logger.info(str(expression))
-        return method(expression.name, expression.tokens())
+    def __str__(self) -> str:
+        return shlex.join(self.tokens())
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}('{self.context}')"
+
+class Stub:
+    __isabstractmethod__: ClassVar[bool] = False
+
+    def __getattr__(self, name: str) -> Expression:
+        return self(_normalize(name))
+
+    def __call__(self, name: str) -> Expression:
+        return Expression(name=name)
 
 
 arg = Argument()
 val = Value()
-shell = Shell()
+ex = Expression.build
+shell = ex

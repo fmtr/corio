@@ -10,7 +10,7 @@ from corio.iterator import dedupe
 from corio.logs import logger
 from corio.path import Path, PackagePaths
 from corio.path.path import Metadata
-from corio.shell.dsl import arg, shell
+from corio.shell import arg, ex
 from corio.toml import ensure_table
 
 
@@ -394,7 +394,7 @@ class GeneratorTestEnvs:
             env_name = environment_type
         else:
             env_name = f"{name}.{environment_type}"
-        command = shell.python(
+        command = ex.python(
             -arg.m + "pytest",
             -arg.q,
             f"{{posargs:{path}}}",
@@ -405,7 +405,7 @@ class GeneratorTestEnvs:
             commands=[command.tokens()],
         )
         if self.paths.metadata.editables:
-            install_command = shell.uv.pip.install(
+            install_command = ex.uv.pip.install(
                 *(--arg.refresh_package + name for name in sorted(self.paths.metadata.editables)),
                 "{opts}",
                 "{packages}",
