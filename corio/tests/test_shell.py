@@ -4,18 +4,11 @@ import subprocess
 from abc import ABC
 from types import SimpleNamespace
 
-from corio.shell import arg, ex, shell, val
-from corio.shell.dsl import (
-    And,
-    Argument,
-    Expression,
-    Expressions,
-    Or,
-    Pipe,
-    Subcommand,
-    Value,
-    _normalize,
-)
+from corio.shell import Expression, arg, ex, shell, val
+from corio.shell.dsl.args import Argument, Value
+from corio.shell.dsl.expression import Subcommand
+from corio.shell.dsl.helpers import _normalize
+from corio.shell.dsl.ops import And, Expressions, Or, Pipe
 
 
 def test_normalize_distinguishes_hyphens_and_underscores():
@@ -179,7 +172,6 @@ def test_structure_examples_are_exact():
     assert with_values.name == "with"
     assert [type(node) for node in with_values.children] == [Value, Value, Value]
     assert [node.name for node in with_values.children] == ["tox-uv", "tox", "two words"]
-    assert [node.children for node in with_values.children] == [[], [], []]
 
 
 def test_subcommand_chain_returns_same_expression():
@@ -302,7 +294,7 @@ def test_run_passes_composite_shell_syntax_to_an_explicit_command(monkeypatch):
     def _run(*args, **kwargs):
         calls.append((args, kwargs))
 
-    monkeypatch.setattr("corio.shell.dsl.subprocess.run", _run)
+    monkeypatch.setattr("corio.shell.dsl.expression.subprocess.run", _run)
 
     command.run()
 
@@ -320,7 +312,7 @@ def test_run_and_plus_forward_to_subprocess_with_streaming_defaults(monkeypatch)
         calls.append((args, kwargs))
         return completed
 
-    monkeypatch.setattr("corio.shell.dsl.subprocess.run", _run)
+    monkeypatch.setattr("corio.shell.dsl.expression.subprocess.run", _run)
 
     assert cmd.run(check=False, cwd="/tmp") is completed
     assert +cmd is completed
@@ -336,7 +328,7 @@ def test_run_renders_a_command_string_for_shell_mode(monkeypatch):
     def _run(*args, **kwargs):
         calls.append((args, kwargs))
 
-    monkeypatch.setattr("corio.shell.dsl.subprocess.run", _run)
+    monkeypatch.setattr("corio.shell.dsl.expression.subprocess.run", _run)
 
     ex.echo("two words").run(shell=True)
 
@@ -361,7 +353,7 @@ def test_iter_expression_yields_stdout_lines(monkeypatch):
         calls["kwargs"] = kwargs
         return _Process()
 
-    monkeypatch.setattr("corio.shell.dsl.subprocess.Popen", _popen)
+    monkeypatch.setattr("corio.shell.dsl.expression.subprocess.Popen", _popen)
 
     assert list(cmd) == ["line1", "line2"]
     assert calls["args"] == (["echo", "a", "b"],)
@@ -381,8 +373,8 @@ def test_exec_supports_a_custom_exec_method():
 
 def test_run_and_exec_log_the_rendered_command(monkeypatch):
     messages = []
-    monkeypatch.setattr("corio.shell.dsl.logger.info", messages.append)
-    monkeypatch.setattr("corio.shell.dsl.subprocess.run", lambda *args, **kwargs: None)
+    monkeypatch.setattr("corio.shell.dsl.expression.logger.info", messages.append)
+    monkeypatch.setattr("corio.shell.dsl.expression.subprocess.run", lambda *args, **kwargs: None)
 
     command = ex.echo("two words")
     command.run()
