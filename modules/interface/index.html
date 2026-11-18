@@ -362,6 +362,8 @@
       
         
       
+        
+      
     
     
     
@@ -1229,6 +1231,34 @@
     
   
     2.17.20
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.21/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.21
   
 
     
@@ -3568,7 +3598,7 @@
 <ul>
 <li>Override <code>async def new(cls, page)</code> for async setup (database/session/bootstrap).</li>
 <li>Configure <code>PATH_ASSETS</code> and <code>PATH_UPLOADS</code> for static/upload handling.</li>
-<li>Use tabs/views and route hooks (<code>route</code>, <code>pop</code>) for multi-view apps.</li>
+<li>Use tabs/views and route hooks (<code>route</code>, <code>pop</code>) for multi-view apps. Handlers receive Flet events: <code>route(event: ft.RouteChangeEvent)</code> and <code>pop(event: ft.ViewPopEvent)</code>; view-pop details are available on <code>event.route</code>, <code>event.view</code>, and <code>event.page</code>.</li>
 <li><code>Base</code> auto-manages <code>FLET_SECRET_KEY</code> when missing.</li>
 </ul>
 <div class="language-python highlight"><pre><span></span><code><span class="nd">@classmethod</span>
