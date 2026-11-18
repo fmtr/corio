@@ -364,6 +364,8 @@
       
         
       
+        
+      
     
     
     
@@ -1259,6 +1261,34 @@
     
   
     2.17.21
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.17.22/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.17.22
   
 
     
@@ -2495,10 +2525,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#advanced-pattern-seen-in-sibling-repos" class="md-nav__link">
+  <a href="#advanced-pattern" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Advanced Pattern (seen in sibling repos)
+        Advanced Pattern
       
     </span>
   </a>
@@ -3539,10 +3569,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#advanced-pattern-seen-in-sibling-repos" class="md-nav__link">
+  <a href="#advanced-pattern" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Advanced Pattern (seen in sibling repos)
+        Advanced Pattern
       
     </span>
   </a>
@@ -3571,11 +3601,11 @@
 
 <h1 id="interface">interface</h1>
 <p><code>from corio import interface</code></p>
-<p><code>interface</code> is a thin base for Flet UI apps with lifecycle hooks and typed context wiring.</p>
+<p><code>interface</code> is a thin base for Flet UI apps with lifecycle hooks, typed context wiring, and web-app identity defaults.</p>
 <p>Main pieces:</p>
 <ul>
 <li><code>Context</code>: typed runtime container around <code>flet.Page</code></li>
-<li><code>Base</code>: <code>ft.Column</code> subclass with async constructor (<code>new</code>), routing hooks, and launch helper</li>
+<li><code>Base</code>: <code>ft.Column</code> subclass with an async constructor (<code>new</code>), routing hooks, identity metadata, and a launch helper</li>
 <li>decorators <code>update</code> and <code>progress</code> for post-action page refresh/progress display</li>
 </ul>
 <p>Install:</p>
@@ -3583,18 +3613,73 @@
 </code></pre></div>
 <h2 id="typical-base-pattern">Typical Base Pattern</h2>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">flet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ft</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">interface</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">function</span><span class="p">,</span> <span class="n">interface</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">App</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">Base</span><span class="p">[</span><span class="n">interface</span><span class="o">.</span><span class="n">Context</span><span class="p">]):</span>
-    <span class="n">TITLE</span> <span class="o">=</span> <span class="s2">"Example Interface"</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SampleApp</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">Base</span><span class="p">[</span><span class="n">interface</span><span class="o">.</span><span class="n">Context</span><span class="p">]):</span>
+    <span class="nd">@function</span><span class="o">.</span><span class="n">ccp</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">metadata</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">interface</span><span class="o">.</span><span class="n">Metadata</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+
+<span class="sd">        Return the sample app's manifest metadata.</span>
+
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">interface</span><span class="o">.</span><span class="n">Metadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"Sample Studio"</span><span class="p">,</span>
+            <span class="n">short_name</span><span class="o">=</span><span class="s2">"Studio"</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"An example Flet web application."</span><span class="p">,</span>
+            <span class="n">theme_color</span><span class="o">=</span><span class="s2">"#224466"</span><span class="p">,</span>
+            <span class="n">background_color</span><span class="o">=</span><span class="s2">"#F0F2F4"</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">controls</span><span class="o">=</span><span class="p">[</span><span class="n">ft</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TITLE</span><span class="p">)])</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">controls</span><span class="o">=</span><span class="p">[</span><span class="n">ft</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">name</span><span class="p">)])</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">SampleApp</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
 </code></pre></div>
-<div class="language-python highlight"><pre><span></span><code><span class="n">App</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
-</code></pre></div>
-<h2 id="advanced-pattern-seen-in-sibling-repos">Advanced Pattern (seen in sibling repos)</h2>
+<p><code>Base.metadata</code> is an <code>@ccp</code> that returns a typed <code>Metadata</code> model. <code>Metadata.name</code> is required; <code>Base</code> supplies the interface class name by default. The optional <code>short_name</code> is an abbreviated label browsers may use where the full name does not fit; omit it to let the browser use <code>name</code>. See the manifest definitions of <a href="https://developer.mozilla.org/en-US/docs/Web/Manifest/name"><code>name</code></a> and <a href="https://developer.mozilla.org/en-US/docs/Web/Manifest/short_name"><code>short_name</code></a>. The model also defines Flet's manifest defaults, including icon entries and the <code>theme_color</code> and <code>background_color</code> fields. Override the property to customize the complete manifest; use <code>ManifestIcon</code> for typed icon entries, or subclass <code>Metadata</code> to add application-specific fields.</p>
+<p>Before launch, <code>Base.prep_assets()</code> creates <code>PATH_ASSETS</code> and writes <code>manifest.json</code> there through Corio's <code>Path.write_json()</code>. Its default is <code>corio.paths.paths.assets / "interface"</code>; override <code>PATH_ASSETS</code> when an application needs another directory. The method returns nothing—<code>Base.launch()</code> passes <code>PATH_ASSETS</code> directly to Flet. This model is the source of truth: a previous manifest is replaced at startup, so declare custom fields and icon lists in the <code>metadata</code> override. The directory must be writable while the app starts.</p>
+<p>Flet serves files in the assets directory over its bundled web assets. Put custom files under <code>PATH_ASSETS</code> at these exact, case-sensitive paths (relative to that directory) to replace the defaults:</p>
+<table>
+<thead>
+<tr>
+<th>Asset path</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>favicon.png</code></td>
+<td>Browser-tab favicon</td>
+</tr>
+<tr>
+<td><code>icons/loading-animation.png</code></td>
+<td>Dynamic web app loading image, shown until Flutter draws its first frame</td>
+</tr>
+<tr>
+<td><code>icons/icon-192.png</code>, <code>icons/icon-512.png</code></td>
+<td>PWA icons</td>
+</tr>
+<tr>
+<td><code>icons/icon-maskable-192.png</code>, <code>icons/icon-maskable-512.png</code></td>
+<td>Maskable Android PWA icons</td>
+</tr>
+<tr>
+<td><code>icons/apple-touch-icon-192.png</code></td>
+<td>iOS “Add to Home Screen” icon</td>
+</tr>
+</tbody>
+</table>
+<p>Flet serves a matching file as-is; supply the intended dimensions and maskable artwork yourself. The default <code>Metadata</code> model references the standard Flet icon paths. Override <code>metadata</code> to choose different paths; those files must be present under <code>PATH_ASSETS</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Loading image versus PWA splash screen</p>
+<p><code>icons/loading-animation.png</code> replaces the dynamic website's pre-first-frame loading image; it is not a full-screen splash configuration. An installed PWA's launch splash is generated by the browser/platform from its manifest, icons, and colors. For <code>flet build web</code>, Flet has a separate build-time splash-screen configuration (<code>assets/splash.png</code> or <code>assets/splash.svg</code>).</p>
+</div>
+<p><code>Base.launch()</code> targets Flet's dynamic runtime. For <code>flet build web</code>, configure build-time identity in <code>[tool.flet]</code> (<code>product</code>, <code>description</code>) and <code>[tool.flet.web]</code> (<code>pwa_short_name</code>, <code>pwa_theme_color</code>, <code>pwa_background_color</code>); build splash settings are separate from the dynamic loading image. See Flet's <a href="https://flet.dev/docs/publish/web/dynamic-website/#assets">dynamic web publishing guide</a>, <a href="https://flet.dev/docs/cookbook/assets">asset guide</a>, and <a href="https://flet.dev/docs/publish/#configuration-options">build configuration</a>.</p>
+<h2 id="advanced-pattern">Advanced Pattern</h2>
 <ul>
 <li>Override <code>async def new(cls, page)</code> for async setup (database/session/bootstrap).</li>
 <li>Configure <code>PATH_ASSETS</code> and <code>PATH_UPLOADS</code> for static/upload handling.</li>
