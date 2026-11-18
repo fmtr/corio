@@ -77,3 +77,7 @@ This table maps friendly imports from `corio.__init__` to docs pages and require
 - `from corio import Timer` -> [profiling](profiling.md)
 - `from corio import ContextProcess` -> [process](process.md)
 - `from corio import merge` -> [merging](merging.md)
+
+## Other Packages
+
+- `from corio.shell import Expression, arg, ex, shell, val` -> [shell commands](shell.md)

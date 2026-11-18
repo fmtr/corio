@@ -13,15 +13,48 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, ClassVar, NoReturn
 
 from corio import function, logger
-from corio.shell.dsl.args import Argument, Value
 from corio.shell.dsl.helpers import _flatten_parts, _normalize
-from corio.shell.dsl.ops import ExpressionBase
 
 if TYPE_CHECKING:
+    from corio.shell.dsl.args import Argument, Value
     from corio.shell.dsl.helpers import Stringable
+    from corio.shell.dsl.ops import And, Or, Pipe
+
+
+class ExpressionBase:
+    """
+
+    Provide shared behavior for commands and shell operations.
+
+    """
+
+    __isabstractmethod__: ClassVar[bool] = False
+
+    def __and__(self, other: ExpressionBase) -> And:
+        from corio.shell.dsl.ops import And
+
+        return And(children=[self, other])
+
+    def __or__(self, other: ExpressionBase) -> Pipe:
+        from corio.shell.dsl.ops import Pipe
+
+        return Pipe(children=[self, other])
+
+    def __xor__(self, other: ExpressionBase) -> Or:
+        from corio.shell.dsl.ops import Or
+
+        return Or(children=[self, other])
+
+    def argument_tokens(self) -> list[str]:
+        return [str(self)]
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}('{self}')"
 
 
 def _to_subcommand_part(item: Stringable | ExpressionBase) -> Argument | ExpressionBase:
+    from corio.shell.dsl.args import Argument, Value
+
     if isinstance(item, Argument):
         return item
     if isinstance(item, Value):
@@ -32,6 +65,8 @@ def _to_subcommand_part(item: Stringable | ExpressionBase) -> Argument | Express
 
 
 def _to_expression_part(item: Stringable | ExpressionBase) -> Subcommand | Argument | ExpressionBase:
+    from corio.shell.dsl.args import Argument, Value
+
     if isinstance(item, Subcommand):
         return item
     if isinstance(item, Argument):

@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
 from corio.shell.dsl.helpers import _flatten_parts, _normalize
-from corio.shell.dsl.ops import ExpressionBase
+from corio.shell.dsl.expression import ExpressionBase
 
 if TYPE_CHECKING:
     from corio.shell.dsl.helpers import Stringable

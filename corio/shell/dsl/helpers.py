@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from corio.shell.dsl.args import Argument, Value
     from corio.shell.dsl.expression import Subcommand
-    from corio.shell.dsl.ops import ExpressionBase
+    from corio.shell.dsl.expression import ExpressionBase
 
 
 class Stringable(Protocol):
