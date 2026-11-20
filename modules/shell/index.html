@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -3679,8 +3679,8 @@
 <div class="language-python highlight"><pre><span></span><code><span class="n">workflow</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span> <span class="o">|</span> <span class="n">ex</span><span class="o">.</span><span class="n">recover</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">workflow</span><span class="p">))</span>  <span class="c1"># prepare &amp;&amp; (verify || recover)</span>
 </code></pre></div>
-<p>Operator expressions render shell syntax. Command expressions can run locally with <code>.run()</code>, which invokes the command using its token list without asking a shell to interpret syntax. A leading <code>+</code> on a command expression is shorthand for <code>.run()</code>. To run a command expression through a shell, pass <code>shell=True</code>; to run a composed operator expression on systems with <code>sh</code>, pass its rendered form to the shell:</p>
-<div class="language-python highlight"><pre><span></span><code><span class="n">ex</span><span class="o">.</span><span class="n">sh</span><span class="p">(</span><span class="s2">"-c"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">workflow</span><span class="p">))</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<p>Operator expressions render shell syntax. Command expressions can run locally with <code>.run()</code>, which invokes the command using its token list without asking a shell to interpret syntax. A leading <code>+</code> on a command expression is shorthand for <code>.run()</code>. To run a command expression through a shell, pass <code>shell=True</code>; to run a composed operator expression on systems with <code>sh</code>, pass the expression directly as the <code>-c</code> argument:</p>
+<div class="language-python highlight"><pre><span></span><code><span class="n">ex</span><span class="o">.</span><span class="n">sh</span><span class="p">(</span><span class="o">-</span><span class="n">arg</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">workflow</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </code></pre></div>
 
 
@@ -3731,10 +3731,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

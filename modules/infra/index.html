@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -3769,10 +3769,11 @@
 </ul>
 <p><code>ReleaseDocumentation</code> builds MkDocs configuration dynamically from project metadata, so nav structure in <code>pyproject</code> is part of the release contract.</p>
 <h2 id="generated-test-environments">Generated Test Environments</h2>
-<p>Before running tests, the release workflow generates tox environments from the package's test files and dependency metadata. By default, it creates one development environment (<code>dev</code>) and one production environment (<code>prod</code>) for the full test suite. Set <code>test_envs = true</code> under <code>[tool.corio.metadata]</code> to generate environments for each package module with a matching <code>tests/test_&lt;module&gt;.py</code> file instead:</p>
+<p>Before running tests, the release workflow generates tox environments from the test package layout and dependency metadata. By default, it creates one development environment (<code>dev</code>) and one production environment (<code>prod</code>) for the full test suite. Set <code>test_envs = true</code> under <code>[tool.corio.metadata]</code> to generate environments for each package module with a matching <code>tests/&lt;module&gt;/</code> package instead:</p>
 <div class="language-toml highlight"><pre><span></span><code><span class="k">[tool.corio.metadata]</span>
 <span class="n">test_envs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 </code></pre></div>
+<p>Each <code>tests/&lt;module&gt;/</code> package can contain multiple <code>test_*.py</code> files. Pytest receives the package directory and collects its test modules recursively.</p>
 <p>Per-module environments are named <code>&lt;module&gt;.dev</code> and <code>&lt;module&gt;.prod</code>. Development environments use the source checkout and local editable dependencies; production environments install the package. The generated production environments make up tox's default <code>env_list</code>, which is what the release workflow runs. Development environment names are recorded in <code>[tool.corio.test-envs].dev</code> for source-tree testing.</p>
 <h2 id="release-flow-high-level">Release Flow (high-level)</h2>
 <p><code>releaser.run(...)</code> orchestrates:</p>
@@ -3839,10 +3840,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
