@@ -380,7 +380,7 @@ class GeneratorTestEnvs:
         return deps
 
     def get_path_test(self, module: str) -> Path:
-        return self.paths.tests / f"{self.TEST_FILENAME_PREFIX}{module}{self.TEST_FILENAME_SUFFIX}"
+        return self.paths.tests / module
 
     def get_env_deps(self, deps: list[str]) -> list[str]:
         return deps

@@ -723,10 +723,12 @@ class Tester(Incrementor):
             return []
 
         modules = []
-        for path in sorted(self.paths.tests.glob(f"{self.TEST_FILENAME_PREFIX}*{self.TEST_FILENAME_SUFFIX}")):
-            module = path.stem.removeprefix(self.TEST_FILENAME_PREFIX)
-            if module:
-                modules.append(module)
+        for path in sorted(self.paths.tests.iterdir()):
+            if not path.is_dir():
+                continue
+            if not any(path.rglob(f"{self.TEST_FILENAME_PREFIX}*{self.TEST_FILENAME_SUFFIX}")):
+                continue
+            modules.append(path.name)
         return modules
 
     @cached_property

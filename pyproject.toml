@@ -196,354 +196,354 @@ env_list = ["api.prod", "caching.prod", "datatype.prod", "db.prod", "dhcp.prod",
 [tool.tox.env."api.dev"]
 description = "Run api tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "fastapi", "fastmcp", "httpx", "logfire", "logfire[fastapi]", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver", "uvicorn[standard]"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_api.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/api}"]]
 skip_install = true
 
 [tool.tox.env."caching.dev"]
 description = "Run caching tests."
 deps = ["cached-classproperty", "cachetools", "certifi>=2026.10.23", "diskcache", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_caching.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/caching}"]]
 skip_install = true
 
 [tool.tox.env."datatype.dev"]
 description = "Run datatype tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_datatype.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/datatype}"]]
 skip_install = true
 
 [tool.tox.env."db.dev"]
 description = "Run db tests."
 deps = ["beanie", "cached-classproperty", "certifi>=2026.10.23", "deepdiff", "flagembedding", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "odfpy", "openpyxl", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client", "qdrant-client[fastembed]", "ranx", "semver", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_db.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/db}"]]
 skip_install = true
 
 [tool.tox.env."dhcp.dev"]
 description = "Run dhcp tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dhcp.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dhcp}"]]
 skip_install = true
 
 [tool.tox.env."dm.dev"]
 description = "Run dm tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dm.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dm}"]]
 skip_install = true
 
 [tool.tox.env."dns.dev"]
 description = "Run dns tests."
 deps = ["cached-classproperty", "cachetools", "certifi>=2026.10.23", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dns.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dns}"]]
 skip_install = true
 
 [tool.tox.env."dt.dev"]
 description = "Run dt tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dt.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dt}"]]
 skip_install = true
 
 [tool.tox.env."encrypt.dev"]
 description = "Run encrypt tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_encrypt.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/encrypt}"]]
 skip_install = true
 
 [tool.tox.env."enums.dev"]
 description = "Run enums tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_enums.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/enums}"]]
 skip_install = true
 
 [tool.tox.env."env.dev"]
 description = "Run env tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "dotenv", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_env.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/env}"]]
 skip_install = true
 
 [tool.tox.env."hash.dev"]
 description = "Run hash tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_hash.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/hash}"]]
 skip_install = true
 
 [tool.tox.env."hook.dev"]
 description = "Run hook tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_hook.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/hook}"]]
 skip_install = true
 
 [tool.tox.env."infra.dev"]
 description = "Run infra tests."
 deps = ["build", "cached-classproperty", "certifi>=2026.10.23", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "semver", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_infra.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/infra}"]]
 skip_install = true
 
 [tool.tox.env."inherit.dev"]
 description = "Run inherit tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_inherit.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/inherit}"]]
 skip_install = true
 
 [tool.tox.env."interface.dev"]
 description = "Run interface tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "flet-video", "flet-webview", "flet[all]>=1.1.0", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_interface.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/interface}"]]
 skip_install = true
 
 [tool.tox.env."iterator.dev"]
 description = "Run iterator tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_iterator.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/iterator}"]]
 skip_install = true
 
 [tool.tox.env."jsn.dev"]
 description = "Run jsn tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_jsn.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/jsn}"]]
 skip_install = true
 
 [tool.tox.env."name.dev"]
 description = "Run name tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_name.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/name}"]]
 skip_install = true
 
 [tool.tox.env."path.dev"]
 description = "Run path tests."
 deps = ["appdirs", "cached-classproperty", "certifi>=2026.10.23", "filetype", "pytest", "pytest-asyncio", "pytest-cov", "ripgrep-rs", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_path.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/path}"]]
 skip_install = true
 
 [tool.tox.env."patterns.dev"]
 description = "Run patterns tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "regex", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_patterns.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/patterns}"]]
 skip_install = true
 
 [tool.tox.env."rand.dev"]
 description = "Run rand tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_rand.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/rand}"]]
 skip_install = true
 
 [tool.tox.env."sec.dev"]
 description = "Run sec tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "dotenv", "logfire", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_sec.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/sec}"]]
 skip_install = true
 
 [tool.tox.env."sets.dev"]
 description = "Run sets tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_sets.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/sets}"]]
 skip_install = true
 
 [tool.tox.env."shell.dev"]
 description = "Run shell tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_shell.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/shell}"]]
 skip_install = true
 
 [tool.tox.env."strings.dev"]
 description = "Run strings tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_strings.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/strings}"]]
 skip_install = true
 
 [tool.tox.env."tasmota.dev"]
 description = "Run tasmota tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "decode-config", "esptool", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_tasmota.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/tasmota}"]]
 skip_install = true
 
 [tool.tox.env."toml.dev"]
 description = "Run toml tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver", "tomlkit"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_toml.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/toml}"]]
 skip_install = true
 
 [tool.tox.env."tools.dev"]
 description = "Run tools tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_tools.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/tools}"]]
 skip_install = true
 
 [tool.tox.env."version.dev"]
 description = "Run version tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_version.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/version}"]]
 skip_install = true
 
 [tool.tox.env."yml.dev"]
 description = "Run yml tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_yml.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/yml}"]]
 skip_install = true
 
 [tool.tox.env."youtube.dev"]
 description = "Run youtube tests."
 deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "pytubefix", "semver"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_youtube.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/youtube}"]]
 skip_install = true
 
 [tool.tox.env."api.prod"]
 description = "Run api tests."
 deps = ["fastapi", "fastmcp", "httpx", "logfire", "logfire[fastapi]", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "uvicorn[standard]"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_api.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/api}"]]
 
 [tool.tox.env."caching.prod"]
 description = "Run caching tests."
 deps = ["cachetools", "diskcache", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_caching.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/caching}"]]
 
 [tool.tox.env."datatype.prod"]
 description = "Run datatype tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_datatype.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/datatype}"]]
 
 [tool.tox.env."db.prod"]
 description = "Run db tests."
 deps = ["beanie", "deepdiff", "flagembedding", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "odfpy", "openpyxl", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client", "qdrant-client[fastembed]", "ranx", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_db.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/db}"]]
 
 [tool.tox.env."dhcp.prod"]
 description = "Run dhcp tests."
 deps = ["httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dhcp.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dhcp}"]]
 
 [tool.tox.env."dm.prod"]
 description = "Run dm tests."
 deps = ["pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dm.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dm}"]]
 
 [tool.tox.env."dns.prod"]
 description = "Run dns tests."
 deps = ["cachetools", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dns.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dns}"]]
 
 [tool.tox.env."dt.prod"]
 description = "Run dt tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_dt.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dt}"]]
 
 [tool.tox.env."encrypt.prod"]
 description = "Run encrypt tests."
 deps = ["pyrage", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_encrypt.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/encrypt}"]]
 
 [tool.tox.env."enums.prod"]
 description = "Run enums tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_enums.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/enums}"]]
 
 [tool.tox.env."env.prod"]
 description = "Run env tests."
 deps = ["dotenv", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_env.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/env}"]]
 
 [tool.tox.env."hash.prod"]
 description = "Run hash tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_hash.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/hash}"]]
 
 [tool.tox.env."hook.prod"]
 description = "Run hook tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_hook.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/hook}"]]
 
 [tool.tox.env."infra.prod"]
 description = "Run infra tests."
 deps = ["build", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_infra.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/infra}"]]
 
 [tool.tox.env."inherit.prod"]
 description = "Run inherit tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_inherit.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/inherit}"]]
 
 [tool.tox.env."interface.prod"]
 description = "Run interface tests."
 deps = ["flet-video", "flet-webview", "flet[all]>=1.1.0", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_interface.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/interface}"]]
 
 [tool.tox.env."iterator.prod"]
 description = "Run iterator tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_iterator.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/iterator}"]]
 
 [tool.tox.env."jsn.prod"]
 description = "Run jsn tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_jsn.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/jsn}"]]
 
 [tool.tox.env."name.prod"]
 description = "Run name tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_name.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/name}"]]
 
 [tool.tox.env."path.prod"]
 description = "Run path tests."
 deps = ["appdirs", "filetype", "pytest", "pytest-asyncio", "pytest-cov", "ripgrep-rs"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_path.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/path}"]]
 
 [tool.tox.env."patterns.prod"]
 description = "Run patterns tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov", "regex"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_patterns.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/patterns}"]]
 
 [tool.tox.env."rand.prod"]
 description = "Run rand tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_rand.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/rand}"]]
 
 [tool.tox.env."sec.prod"]
 description = "Run sec tests."
 deps = ["dotenv", "logfire", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "yamlscript>=0.2.20"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_sec.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/sec}"]]
 
 [tool.tox.env."sets.prod"]
 description = "Run sets tests."
 deps = ["pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "yamlscript>=0.2.20"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_sets.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/sets}"]]
 
 [tool.tox.env."shell.prod"]
 description = "Run shell tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_shell.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/shell}"]]
 
 [tool.tox.env."strings.prod"]
 description = "Run strings tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_strings.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/strings}"]]
 
 [tool.tox.env."tasmota.prod"]
 description = "Run tasmota tests."
 deps = ["decode-config", "esptool", "pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_tasmota.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/tasmota}"]]
 
 [tool.tox.env."toml.prod"]
 description = "Run toml tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov", "tomlkit"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_toml.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/toml}"]]
 
 [tool.tox.env."tools.prod"]
 description = "Run tools tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_tools.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/tools}"]]
 
 [tool.tox.env."version.prod"]
 description = "Run version tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_version.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/version}"]]
 
 [tool.tox.env."yml.prod"]
 description = "Run yml tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "yamlscript>=0.2.20"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_yml.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/yml}"]]
 
 [tool.tox.env."youtube.prod"]
 description = "Run youtube tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov", "pytubefix"]
-commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/test_youtube.py}"]]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/youtube}"]]
 
 [build-system]
 requires = ["setuptools>=82", "wheel"]

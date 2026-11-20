@@ -333,7 +333,7 @@ def test_release_generates_dev_and_prod_envs_for_each_test_module(
         "-m",
         "pytest",
         "-q",
-        "{posargs:release_target/tests/test_api.py}",
+        "{posargs:release_target/tests/api}",
     ]]
     assert api_dev["install_command"] == [
         "uv",
@@ -940,13 +940,14 @@ def test_generator_test_envs_deps_resolves_superset(tmp_path):
         "path.type": ["filetype"],
     }
     generator = _make_test_env_generator(path_repo, test_envs=True, dependencies=dependencies)
-    (generator.paths.path / "path.py").write_text("", encoding="utf-8")
-    (generator.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    path_test = generator.paths.tests / "path"
+    path_test.mkdir(parents=True)
+    (path_test / "test_path.py").write_text("", encoding="utf-8")
 
     assert generator.get_deps("path") == ["appdirs", "filetype", "pytest", "pytest-cov"]
 
 
-def test_generator_test_envs_use_file_module_name_with_test_envs(tmp_path):
+def test_generator_test_envs_uses_module_test_packages(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     dependencies = {
@@ -959,8 +960,13 @@ def test_generator_test_envs_use_file_module_name_with_test_envs(tmp_path):
     generator = _make_test_env_generator(path_repo, test_envs=True, dependencies=dependencies)
     (generator.paths.path / "path.py").write_text("", encoding="utf-8")
     (generator.paths.path / "strings.py").write_text("", encoding="utf-8")
-    (generator.paths.tests / "test_path.py").write_text("", encoding="utf-8")
-    (generator.paths.tests / "test_strings.py").write_text("", encoding="utf-8")
+    path_test = generator.paths.tests / "path"
+    path_test.mkdir(parents=True)
+    (path_test / "test_paths.py").write_text("", encoding="utf-8")
+    (path_test / "test_edges.py").write_text("", encoding="utf-8")
+    strings_test = generator.paths.tests / "strings"
+    strings_test.mkdir()
+    (strings_test / "test_strings.py").write_text("", encoding="utf-8")
     envs = generator.envs
 
     assert set(envs) == {"path", "strings"}
@@ -970,7 +976,7 @@ def test_generator_test_envs_use_file_module_name_with_test_envs(tmp_path):
         "-m",
         "pytest",
         "-q",
-        "{posargs:corio/tests/test_path.py}",
+        "{posargs:corio/tests/path}",
     ]]
     assert envs["strings"]["deps"] == ["pytest", "pytest-cov"]
 
@@ -995,7 +1001,7 @@ def test_generator_test_envs_refreshes_all_editables_with_tox_uv(tmp_path):
         dependencies={"test": ["editable_a[test]~=0.0.8"]},
         editables=("editable_a", "corio"),
     )
-    path_test = path_repo / "corio" / "tests" / "test_path.py"
+    path_test = path_repo / "corio" / "tests" / "path"
 
     env = generator.get_env("corio", ["editable_a[test]~=0.0.8"], path_test)["corio"]
 
@@ -1016,7 +1022,9 @@ def test_generator_test_envs_fall_back_to_single_env_when_test_envs_disabled(tmp
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     generator = _make_test_env_generator(path_repo, test_envs=False, dependencies={"test": ["pytest", "pytest-cov"]})
-    (generator.paths.tests / "test_unmatched.py").write_text("", encoding="utf-8")
+    unmatched_test = generator.paths.tests / "unmatched"
+    unmatched_test.mkdir(parents=True)
+    (unmatched_test / "test_case.py").write_text("", encoding="utf-8")
     envs = generator.envs
 
     assert set(envs) == {"corio"}
@@ -1036,16 +1044,30 @@ def test_generator_test_envs_resolves_dotted_extras(tmp_path):
         },
     )
     (generator.paths.path / "env.py").write_text("", encoding="utf-8")
-    (generator.paths.tests / "test_env.py").write_text("", encoding="utf-8")
+    env_test = generator.paths.tests / "env"
+    env_test.mkdir(parents=True)
+    (env_test / "test_env.py").write_text("", encoding="utf-8")
     envs = generator.envs
 
     assert envs["env"]["deps"] == ["dotenv", "pytest", "pytest-cov"]
+
+
+def test_tester_discovers_test_modules_in_packages(tmp_path):
+    path_repo = Path(tmp_path / "corio")
+    path_repo.mkdir(parents=True)
+    tester = _make_tester(path_repo, env_list=["sample"])
+    nested_tests = tester.paths.tests / "sample" / "cases"
+    nested_tests.mkdir(parents=True)
+    (nested_tests / "test_case.py").write_text("", encoding="utf-8")
+
+    assert tester.modules == ["sample"]
 
 
 def test_tester_run_skips_when_no_tests_found(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
+    (tester.paths.tests / "empty").mkdir()
 
     assert tester.run() is True
 
@@ -1054,7 +1076,9 @@ def test_tester_run_skips_when_no_tox_envs_found(tmp_path):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=[])
-    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    test_package = tester.paths.tests / "sample"
+    test_package.mkdir()
+    (test_package / "test_sample.py").write_text("", encoding="utf-8")
 
     assert tester.run() is True
 
@@ -1063,7 +1087,9 @@ def test_tester_run_retries_dependency_resolution_failure(tmp_path, monkeypatch)
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
-    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    test_package = tester.paths.tests / "sample"
+    test_package.mkdir()
+    (test_package / "test_sample.py").write_text("", encoding="utf-8")
     tester.RESOLUTION_RETRY_TIMEOUT = 30
     tester.RESOLUTION_RETRY_INTERVAL = 5
     failure = ReleaseTestsFailed(
@@ -1093,7 +1119,9 @@ def test_tester_does_not_retry_other_test_failures(tmp_path, monkeypatch):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
-    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    test_package = tester.paths.tests / "sample"
+    test_package.mkdir()
+    (test_package / "test_sample.py").write_text("", encoding="utf-8")
     failure = ReleaseTestsFailed(1, "pytest failed")
     attempts = []
 
@@ -1118,7 +1146,9 @@ def test_tester_stops_retrying_resolution_failure_after_timeout(tmp_path, monkey
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
-    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    test_package = tester.paths.tests / "sample"
+    test_package.mkdir()
+    (test_package / "test_sample.py").write_text("", encoding="utf-8")
     tester.RESOLUTION_RETRY_TIMEOUT = 1
     tester.RESOLUTION_RETRY_INTERVAL = 1
     failure = ReleaseTestsFailed(
@@ -1154,7 +1184,9 @@ def test_tester_run_raises_when_subprocess_fails(tmp_path, monkeypatch):
     path_repo = Path(tmp_path / "corio")
     path_repo.mkdir(parents=True)
     tester = _make_tester(path_repo, env_list=["corio"])
-    (tester.paths.tests / "test_path.py").write_text("", encoding="utf-8")
+    test_package = tester.paths.tests / "sample"
+    test_package.mkdir()
+    (test_package / "test_sample.py").write_text("", encoding="utf-8")
 
     monkeypatch.setattr(ReleaserTester, "run_subprocess", lambda self: 1)
 

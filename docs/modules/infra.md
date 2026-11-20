@@ -65,12 +65,14 @@ Docs release expects:
 
 ## Generated Test Environments
 
-Before running tests, the release workflow generates tox environments from the package's test files and dependency metadata. By default, it creates one development environment (`dev`) and one production environment (`prod`) for the full test suite. Set `test_envs = true` under `[tool.corio.metadata]` to generate environments for each package module with a matching `tests/test_<module>.py` file instead:
+Before running tests, the release workflow generates tox environments from the test package layout and dependency metadata. By default, it creates one development environment (`dev`) and one production environment (`prod`) for the full test suite. Set `test_envs = true` under `[tool.corio.metadata]` to generate environments for each package module with a matching `tests/<module>/` package instead:
 
 ```toml
 [tool.corio.metadata]
 test_envs = true
 ```
+
+Each `tests/<module>/` package can contain multiple `test_*.py` files. Pytest receives the package directory and collects its test modules recursively.
 
 Per-module environments are named `<module>.dev` and `<module>.prod`. Development environments use the source checkout and local editable dependencies; production environments install the package. The generated production environments make up tox's default `env_list`, which is what the release workflow runs. Development environment names are recorded in `[tool.corio.test-envs].dev` for source-tree testing.
 

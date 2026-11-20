@@ -200,7 +200,9 @@ class ReleaseRepoFixture:
                     def test_{module}():
                         assert True
                 """)
-                (tests / f"test_{module}.py").write_text(
+                test_package = tests / module
+                test_package.mkdir(exist_ok=True)
+                (test_package / f"test_{module}.py").write_text(
                     test_source,
                     encoding="utf-8",
                 )
