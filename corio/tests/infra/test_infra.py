@@ -1053,14 +1053,33 @@ def test_generator_test_envs_resolves_dotted_extras(tmp_path):
 
 
 def test_tester_discovers_test_modules_in_packages(tmp_path):
-    path_repo = Path(tmp_path / "corio")
+    path_repo = Path(tmp_path / "fixture")
     path_repo.mkdir(parents=True)
-    tester = _make_tester(path_repo, env_list=["sample"])
-    nested_tests = tester.paths.tests / "sample" / "cases"
-    nested_tests.mkdir(parents=True)
-    (nested_tests / "test_case.py").write_text("", encoding="utf-8")
+    tester = _make_tester(path_repo, env_list=["amber", "birch"])
 
-    assert tester.modules == ["sample"]
+    for package in ("amber", "birch"):
+        nested_tests = tester.paths.tests / package / "cases"
+        nested_tests.mkdir(parents=True)
+        (nested_tests / "test_case.py").write_text("", encoding="utf-8")
+
+    assert tester.modules == ["amber", "birch"]
+
+
+def test_tester_runs_with_flat_test_files(tmp_path, monkeypatch):
+    path_repo = Path(tmp_path / "fixture")
+    path_repo.mkdir(parents=True)
+    tester = _make_tester(path_repo, env_list=["application"])
+    (tester.paths.tests / "test_single.py").write_text("", encoding="utf-8")
+    calls = []
+
+    def run_subprocess(self):
+        calls.append("tox")
+        return 0
+
+    monkeypatch.setattr(ReleaserTester, "run_subprocess", run_subprocess)
+
+    assert tester.run() is True
+    assert calls == ["tox"]
 
 
 def test_tester_run_skips_when_no_tests_found(tmp_path):

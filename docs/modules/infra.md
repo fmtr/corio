@@ -65,7 +65,7 @@ Docs release expects:
 
 ## Generated Test Environments
 
-Before running tests, the release workflow generates tox environments from the test package layout and dependency metadata. By default, it creates one development environment (`dev`) and one production environment (`prod`) for the full test suite. Set `test_envs = true` under `[tool.corio.metadata]` to generate environments for each package module with a matching `tests/<module>/` package instead:
+Before running tests, the release workflow generates tox environments from the test package layout and dependency metadata. By default, it creates one development environment (`dev`) and one production environment (`prod`) for the full test suite; flat `test_*.py` files directly under `tests/` run in that single environment. Set `test_envs = true` under `[tool.corio.metadata]` to generate environments for each package module with a matching `tests/<module>/` package instead:
 
 ```toml
 [tool.corio.metadata]

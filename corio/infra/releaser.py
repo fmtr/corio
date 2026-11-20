@@ -722,14 +722,18 @@ class Tester(Incrementor):
         if not self.paths.tests.exists():
             return []
 
-        modules = []
-        for path in sorted(self.paths.tests.iterdir()):
-            if not path.is_dir():
-                continue
-            if not any(path.rglob(f"{self.TEST_FILENAME_PREFIX}*{self.TEST_FILENAME_SUFFIX}")):
-                continue
-            modules.append(path.name)
-        return modules
+        pattern = f"{self.TEST_FILENAME_PREFIX}*{self.TEST_FILENAME_SUFFIX}"
+        test_packages = [
+            path.name
+            for path in sorted(self.paths.tests.iterdir())
+            if path.is_dir() and any(path.rglob(pattern))
+        ]
+        flat_tests = [
+            path.stem.removeprefix(self.TEST_FILENAME_PREFIX)
+            for path in sorted(self.paths.tests.glob(pattern))
+            if path.is_file()
+        ]
+        return sorted([*test_packages, *flat_tests])
 
     @cached_property
     def env_list(self) -> list[str]:
