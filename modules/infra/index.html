@@ -3799,7 +3799,7 @@
 </ul>
 <p><code>ReleaseDocumentation</code> builds MkDocs configuration dynamically from project metadata, so nav structure in <code>pyproject</code> is part of the release contract.</p>
 <h2 id="generated-test-environments">Generated Test Environments</h2>
-<p>Before running tests, the release workflow generates tox environments from the test package layout and dependency metadata. By default, it creates one development environment (<code>dev</code>) and one production environment (<code>prod</code>) for the full test suite. Set <code>test_envs = true</code> under <code>[tool.corio.metadata]</code> to generate environments for each package module with a matching <code>tests/&lt;module&gt;/</code> package instead:</p>
+<p>Before running tests, the release workflow generates tox environments from the test package layout and dependency metadata. By default, it creates one development environment (<code>dev</code>) and one production environment (<code>prod</code>) for the full test suite; flat <code>test_*.py</code> files directly under <code>tests/</code> run in that single environment. Set <code>test_envs = true</code> under <code>[tool.corio.metadata]</code> to generate environments for each package module with a matching <code>tests/&lt;module&gt;/</code> package instead:</p>
 <div class="language-toml highlight"><pre><span></span><code><span class="k">[tool.corio.metadata]</span>
 <span class="n">test_envs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 </code></pre></div>
