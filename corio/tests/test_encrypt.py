@@ -1,8 +1,6 @@
-import hashlib
 import pytest
 from pyrage import x25519
 
-from corio import encrypt
 from corio.encrypt import Encryptor, EncryptorValues, EncryptorValuesSelect, Node
 from corio.path import Path
 
@@ -10,22 +8,6 @@ from corio.path import Path
 @pytest.fixture
 def key():
     return str(x25519.Identity.generate())
-
-
-@pytest.fixture(autouse=True)
-def deterministic_age(monkeypatch):
-    encrypted_values = {}
-
-    def fake_encrypt(plain_bytes, recipients):
-        ciphertext = hashlib.sha256(plain_bytes).digest()
-        encrypted_values[ciphertext] = plain_bytes
-        return ciphertext
-
-    def fake_decrypt(ciphertext, identities):
-        return encrypted_values[ciphertext]
-
-    monkeypatch.setattr(encrypt.pyrage, "encrypt", fake_encrypt)
-    monkeypatch.setattr(encrypt.pyrage, "decrypt", fake_decrypt)
 
 
 def test_encryptor_round_trip(key):
@@ -81,14 +63,12 @@ def test_encryptor_values_select_encrypts_each_capture_group(key):
     }
 
     encrypted = encryptor.encrypt(expected)
-    assert encrypted == {
-        "app": {
-            "credentials": {
-                "password": "https://user:⁂ClBQCyo0Nf50cod+si1I1HoijpRrC5kat0AqjQD2sy0=⁂@example.test&token=⁂wZgCZPwiOokK+ug8kb0tQ47yrQ2udR/eo2YMPlVrE5Y=⁂",
-            },
-            "other": "not encrypted",
-        }
-    }
+    password = encrypted["app"]["credentials"]["password"]
+
+    assert password.startswith("https://user:")
+    assert "@example.test&token=" in password
+    assert password.count(encryptor.LEFT) == 4
+    assert encrypted["app"]["other"] == "not encrypted"
     assert encryptor.decrypt(encrypted) == expected
 
 
@@ -101,7 +81,9 @@ def test_encryptor_values_select_encrypts_partial_root_scalar(key):
 
     encrypted = encryptor.encrypt(expected)
 
-    assert encrypted == "user=⁂ClBQCyo0Nf50cod+si1I1HoijpRrC5kat0AqjQD2sy0=⁂;token=⁂wZgCZPwiOokK+ug8kb0tQ47yrQ2udR/eo2YMPlVrE5Y=⁂"
+    assert encrypted.startswith("user=")
+    assert ";token=" in encrypted
+    assert encrypted.count(encryptor.LEFT) == 4
     assert encryptor.decrypt(encrypted) == expected
 
 

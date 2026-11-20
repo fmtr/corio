@@ -161,23 +161,28 @@ class Encrypt(Command):
     async def run(self):
         """
 
-        Encrypt all the files specified in the definitions
+        Encrypt files under the current directory using repo definitions
 
         """
         await self.run_subs()
 
-        with logger.span(f'Encrypting secrets in repo "{self.config.path_repo}"...'):
+        path_scope = Path.cwd()
+        with logger.span(f'Encrypting secrets under "{path_scope}"...'):
             definitions_by_path = {}
             for definition in self.config.definitions:
                 for path_red in self.get_paths(definition):
-                    if path_red.is_file():
+                    if path_red.is_file() and path_red.is_relative_to(path_scope):
                         # Later definitions explicitly override earlier ones.
                         definitions_by_path[path_red] = definition
 
-            for path_red in self.config.path_repo.glob(f'**/*{RED_SUFFIX}'):
-                if path_red.is_file() and path_red not in definitions_by_path:
-                    logger.warning(f'File not covered, all fields encrypted: {path_red}')
-                    definitions_by_path[path_red] = Definition(files=[], nodes=ALL_NODES)
+            for path_red in path_scope.glob(f'**/*{RED_SUFFIX}'):
+                if not path_red.is_file():
+                    continue
+                if path_red in definitions_by_path:
+                    continue
+
+                logger.warning(f'File not covered, all fields encrypted: {path_red}')
+                definitions_by_path[path_red] = Definition(files=[], nodes=ALL_NODES)
 
             for path_red, definition in definitions_by_path.items():
                 self.process_file(path_red, definition)

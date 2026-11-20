@@ -5,7 +5,7 @@
 
 Main model:
 
-- `Config`: reads `.secrets.yml`, definitions, and contexts
+- `Config`: reads `.secrets.yml` and its file definitions
 - `Encrypt` command: writes encrypted `<raw>.black.yml` files from `<raw>.red.yml` files
 - `Decrypt` command: writes `<raw>.red.yml` files back from `<raw>.black.yml` when allowed
 
@@ -19,9 +19,9 @@ pip install "corio[secrets]" --upgrade
 
 1. Define raw file globs and encrypted nodes in `.secrets.yml`; the `.red.yml` suffix is implicit.
 2. Run encrypt mode to produce `*.black.yml`.
-3. Run decrypt mode for selected contexts when needed.
+3. Run decrypt mode to restore the encrypted files when needed.
 
-Any `*.red.yml` file not covered by a definition is still encrypted. All of its fields are encrypted and a warning is
+Any `*.red.yml` file under the current directory not covered by a definition is still encrypted. All of its fields are encrypted and a warning is
 logged.
 
 Encryption deletes each red file by default after its black counterpart has been written or verified. Pass
@@ -32,17 +32,11 @@ current contents, and `--preserve true` to copy the black file's permissions and
 ## Minimal `.secrets.yml` shape
 
 ```yaml
-contexts:
-  - name: web
-    files:
-      - "services/web/**/*.yml"
-
 definitions:
   - files:
-      - "services/web/**/*.yml"
+      - "apps/cedar/config.yaml"
     nodes:
-      - "env/password"
-      - "env/token"
+      - "credentials/token"
 ```
 
 ## CLI
@@ -50,10 +44,22 @@ definitions:
 Entry point:
 
 ```bash
-corio secrets encrypt --context=web
-corio secrets decrypt --context=web
+corio secrets encrypt
+corio secrets decrypt
 ```
 
-For example, the definition path `services/web/config.yaml` matches
-`services/web/config.yaml.red.yml`. Encryption writes
-`services/web/config.yaml.black.yml`, and decryption restores the red file when the encrypted side is newer or changed.
+Optional flags:
+
+```bash
+corio secrets encrypt --delete false
+corio secrets decrypt --source ./encrypted --target ./restored
+corio secrets decrypt --restore true
+```
+
+Encryption loads `.secrets.yml` from the repo root, but only processes files in the current directory tree. Configured file
+patterns remain repo-root-relative. Decryption defaults `--source` and `--target` to the current directory and recursively
+processes black files under `--source`.
+
+For example, the definition path `apps/cedar/config.yaml` matches
+`apps/cedar/config.yaml.red.yml`. Encryption writes
+`apps/cedar/config.yaml.black.yml`, and decryption restores the red file when the encrypted side is newer or changed.
