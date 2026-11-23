@@ -4,13 +4,14 @@ from dataclasses import dataclass, field, fields
 from typing import ClassVar, Literal, Self
 
 import aiomqtt
+from logfire import LogfireLoggingHandler
 from paho.mqtt.client import CleanStartOption, MQTT_CLEAN_START_FIRST_ONLY
 
-from corio.logs import get_current_level, get_native_level_from_otel, logger
+from corio.logs import Configurer, logger
 
 LOGGER = logging.getLogger("mqtt")
 LOGGER.handlers.clear()
-LOGGER.addHandler(logger.LogfireLoggingHandler())
+LOGGER.addHandler(LogfireLoggingHandler(logfire_instance=logger))
 LOGGER.propagate = False
 
 
@@ -94,8 +95,8 @@ class Client(aiomqtt.Client):
         Sync log level with logfire, which might have changed since handler set.
 
         """
-        level = get_current_level(logger)
-        level_no = get_native_level_from_otel(level)
+        level = logger.config.console.min_log_level
+        level_no = Configurer.native_level_from_otel(level)
         self.LOGGER.setLevel(level_no)
 
 

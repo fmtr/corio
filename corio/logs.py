@@ -1,16 +1,221 @@
 import logging
-import os
+from dataclasses import dataclass
+from enum import StrEnum
+from functools import cached_property
+from typing import ClassVar, cast
 
-from corio import env
+import logfire
+# The OTLP HTTP log exporter currently has no public module-level export.
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk._logs import LogRecordProcessor
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk.metrics.export import MetricReader, PeriodicExportingMetricReader
+from opentelemetry.sdk.trace import SpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+from corio import env, path
 from corio.constants import Constants
+from corio.paths import paths
 
-if env.IS_DEV:
-    STREAM_DEFAULT = ENVIRONMENT_DEFAULT = Constants.DEVELOPMENT
-else:
-    STREAM_DEFAULT = None
-    ENVIRONMENT_DEFAULT = Constants.PRODUCTION
 
-LEVEL_DEFAULT = logging.DEBUG if env.IS_DEV else logging.INFO
+class Signals(StrEnum):
+    TRACES = "traces"
+    METRICS = "metrics"
+    LOGS = "logs"
+
+
+@dataclass
+class Configurer:
+    """Configure Logfire and OTLP exporters for a service."""
+
+    OTEL_TO_NATIVE: ClassVar[dict[int, int]] = {
+        1: 1,  # trace
+        3: 5,  # debug
+        5: 10,  # debug (canonical)
+        6: 13,  # warn
+        8: 17,  # error
+        9: 20,  # info
+        10: 23,  # notice
+        11: 25,  # success/loguru
+        13: 30,  # warning
+        17: 40,  # error
+        21: 50,  # fatal
+    }
+
+    name: str
+    version: str | None = None
+    host: str = Constants.FMTR_OBS_HOST
+    key: str | None = None
+    org: str = Constants.ORG_NAME
+    stream: str | None = None
+    environment: str | None = None
+    level: int | None = None
+
+    @property
+    def stream_default(self) -> str | None:
+        if env.IS_DEV:
+            return Constants.DEVELOPMENT
+        return None
+
+    @property
+    def environment_default(self) -> str:
+        if env.IS_DEV:
+            return Constants.DEVELOPMENT
+        return Constants.PRODUCTION
+
+    @property
+    def level_default(self) -> int:
+        if env.IS_DEV:
+            return logging.DEBUG
+        return logging.INFO
+
+    def __post_init__(self) -> None:
+        if self.stream is None:
+            self.stream = self.stream_default
+        if self.environment is None:
+            self.environment = self.environment_default
+        if self.level is None:
+            self.level = self.level_default
+
+    @classmethod
+    def from_paths(cls, paths: path.PackagePaths) -> logfire.Logfire:
+        configurer = cls(name=paths.name, version=paths.metadata.version_dev)
+        return configurer.logger
+
+    @cached_property
+    def service_version(self) -> str:
+        if self.version is not None:
+            return self.version
+        if self.name != paths.name:
+            raise ValueError(f"A version is required for service {self.name!r}")
+        return paths.metadata.version_dev
+
+    @cached_property
+    def api_key(self) -> str | None:
+        return self.key or env.get(Constants.FMTR_OBS_API_KEY_KEY, default=None)
+
+    @cached_property
+    def stream_name(self) -> str:
+        return self.stream or self.name
+
+    @cached_property
+    def base_url(self) -> str:
+        return f"https://{self.host}/api/{self.org}"
+
+    @cached_property
+    def endpoint_mask(self) -> str:
+        return f"{self.base_url}/v1/{{signal}}"
+
+    @cached_property
+    def headers(self) -> dict[str, str]:
+        headers = {"stream-name": self.stream_name}
+        if self.api_key:
+            headers["Authorization"] = f"Basic {self.api_key}"
+        return headers
+
+    @cached_property
+    def traces_endpoint(self) -> str:
+        return self.endpoint_mask.format(signal=Signals.TRACES)
+
+    @cached_property
+    def metrics_endpoint(self) -> str:
+        return self.endpoint_mask.format(signal=Signals.METRICS)
+
+    @cached_property
+    def logs_endpoint(self) -> str:
+        return self.endpoint_mask.format(signal=Signals.LOGS)
+
+    @cached_property
+    def span_processors(self) -> list[SpanProcessor]:
+        if not self.api_key:
+            return []
+        return [
+            BatchSpanProcessor(
+                OTLPSpanExporter(endpoint=self.traces_endpoint, headers=self.headers)
+            )
+        ]
+
+    @cached_property
+    def metric_readers(self) -> list[MetricReader]:
+        if not self.api_key:
+            return []
+        return [
+            PeriodicExportingMetricReader(
+                OTLPMetricExporter(endpoint=self.metrics_endpoint, headers=self.headers)
+            )
+        ]
+
+    @cached_property
+    def metrics_options(self) -> logfire.MetricsOptions:
+        return logfire.MetricsOptions(additional_readers=self.metric_readers)
+
+    @cached_property
+    def log_record_processors(self) -> list[LogRecordProcessor]:
+        if not self.api_key:
+            return []
+        return [
+            BatchLogRecordProcessor(
+                OTLPLogExporter(endpoint=self.logs_endpoint, headers=self.headers)
+            )
+        ]
+
+    @cached_property
+    def advanced_options(self) -> logfire.AdvancedOptions:
+        # Logfire currently exposes custom log export through an experimental processor hook.
+        return logfire.AdvancedOptions(log_record_processors=self.log_record_processors)
+
+    @cached_property
+    def otel_level_name(self) -> str:
+        from logfire._internal import constants
+
+        level = cast(int, self.level)
+        otel_level = constants.LOGGING_TO_OTEL_LEVEL_NUMBERS[level]
+        return constants.NUMBER_TO_LEVEL[otel_level]
+
+    @cached_property
+    def console_options(self) -> logfire.ConsoleOptions:
+        return logfire.ConsoleOptions(
+            colors="always",
+            include_timestamps=env.IS_DEV,
+            min_log_level=self.otel_level_name,
+        )
+
+    @staticmethod
+    def scrubber(match: logfire.ScrubMatch) -> str:
+        return match.value
+
+    @cached_property
+    def scrubbing_options(self) -> logfire.ScrubbingOptions:
+        return logfire.ScrubbingOptions(callback=self.scrubber)
+
+    @cached_property
+    def logger(self) -> logfire.Logfire:
+        configured_logger = logfire.configure(
+            service_name=self.name,
+            service_version=self.service_version,
+            environment=self.environment,
+            send_to_logfire=False,
+            console=self.console_options,
+            scrubbing=self.scrubbing_options,
+            additional_span_processors=self.span_processors,
+            metrics=self.metrics_options,
+            advanced=self.advanced_options,
+        )
+        return configured_logger
+
+    @property
+    def current_level(self) -> str:
+        return self.logger.config.console.min_log_level
+
+    @classmethod
+    def native_level_from_otel(cls, otel_name: str) -> int:
+        from logfire._internal import constants
+
+        otel_level = constants.LEVEL_NUMBERS[otel_name]
+        native_level = cls.OTEL_TO_NATIVE[otel_level]
+        return native_level
 
 
 def sanitize(message: str) -> str:
@@ -22,130 +227,14 @@ def sanitize(message: str) -> str:
     return message.rstrip().replace("{", "{{").replace("}", "}}")
 
 
-def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=Constants.ORG_NAME,
-               stream=STREAM_DEFAULT, environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
+def get_logger_names() -> list[str]:
     """
 
-    Get a pre-configured logfire logger, if dependency is present, otherwise default to native logger.
-
-    """
-
-    stream = stream or name
-
-    try:
-        import logfire
-    except ImportError:
-        logger = logging.getLogger(None)
-        logger.setLevel(level)
-        logger.warning(f'Logging dependencies not installed. Using native logger.')
-
-        return logger
-
-    logger = logfire
-
-    if key is None:
-        key = env.get(Constants.FMTR_OBS_API_KEY_KEY, default=None)
-
-    if key:
-        url = f"https://{host}/api/{org}/v1/traces"
-        headers = f"Authorization=Basic {key},stream-name={stream}"
-
-        os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = url
-        os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = headers
-        os.environ["OTEL_EXPORTER_OTLP_INSECURE"] = str(False).lower()
-
-    if not version:
-        from corio.paths import paths
-        version = paths.metadata.version_dev
-
-    lev_name_otel = get_otel_level_name(level)
-
-    console_opts = logfire.ConsoleOptions(
-        colors='always',
-        include_timestamps=env.IS_DEV,
-        min_log_level=lev_name_otel,
-    )
-
-    logfire.configure(
-        service_name=name,
-        service_version=version,
-        environment=environment,
-        send_to_logfire=False,
-        console=console_opts,
-        scrubbing=logfire.ScrubbingOptions(callback=null_scrubber)
-    )
-
-    return logger
-
-
-def null_scrubber(match):
-    """
-
-    Effectively disable scrubbing
-
-    """
-    return match.value
-
-
-def get_current_level(logger):
-    """
-
-    Get the current console log level.
-
-    """
-    level = logger.DEFAULT_LOGFIRE_INSTANCE.config.console.min_log_level
-    return level
-
-
-def get_logger_names():
-    """
-
-    Fetch current native logger names
+    Fetch current native logger names.
 
     """
     return list(logging.getLogger().manager.loggerDict.keys())
 
 
-OTEL_TO_NATIVE = {
-    1: 1,  # trace
-    3: 5,  # debug
-    5: 10,  # debug (canonical)
-    6: 13,  # warn
-    8: 17,  # error
-    9: 20,  # info
-    10: 23,  # notice
-    11: 25,  # success/loguru
-    13: 30,  # warning
-    17: 40,  # error
-    21: 50,  # fatal
-}
-
-
-def get_otel_level_name(native_level: int) -> str:
-    """
-
-    Convert a native Python logging level number to an OTEL/logfire level name.
-
-    """
-
-    from logfire._internal import constants
-
-    otel_num = constants.LOGGING_TO_OTEL_LEVEL_NUMBERS[native_level]
-    name = constants.NUMBER_TO_LEVEL[otel_num]
-    return name
-
-
-def get_native_level_from_otel(otel_name: str) -> int:
-    """
-
-    Convert an OTEL/logfire level name to a native Python logging level number.
-
-    """
-    from logfire._internal import constants
-
-    otel_num = constants.LEVEL_NUMBERS[otel_name]
-    level = OTEL_TO_NATIVE[otel_num]
-    return level
-
-
-logger = get_logger(name=Constants.LIBRARY_NAME)
+from_paths = Configurer.from_paths
+logger = from_paths(paths)

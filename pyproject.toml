@@ -4,7 +4,7 @@ version = "2.19.1"
 description = "Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
-dependencies = ["cached-classproperty", "certifi>=2026.10.23", "semver"]
+dependencies = ["cached-classproperty", "certifi>=2026.10.23", "semver", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk"]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 keywords = []
@@ -12,15 +12,15 @@ keywords = []
 [project.optional-dependencies]
 "path.search" = ["ripgrep-rs"]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
-dev = ["logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]
+dev = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]
 test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript>=0.2.20", "pyyaml"]
 yaml = ["yamlscript>=0.2.20", "pyyaml"]
-logging = ["logfire"]
+logging = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk"]
 parallel = ["dask[bag]", "distributed", "bokeh"]
 tokenization = ["tokenizers"]
 augmentation = ["faker", "sre_yield"]
-process = ["logfire"]
+process = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk"]
 profiling = ["contexttimer"]
 "docker.client" = ["python-on-whales"]
 unicode = ["Unidecode"]
@@ -28,8 +28,8 @@ spaces = ["tinynetrc"]
 netrc = ["tinynetrc"]
 hfh = ["huggingface_hub"]
 merging = ["deepmerge"]
-api = ["fastapi", "uvicorn[standard]", "logfire", "pydantic", "pydantic-extra-types", "pycountry", "logfire[fastapi]", "httpx"]
-"api.mcp" = ["fastapi", "uvicorn[standard]", "logfire", "pydantic", "pydantic-extra-types", "pycountry", "logfire[fastapi]", "httpx", "fastmcp"]
+api = ["fastapi", "uvicorn[standard]", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydantic", "pydantic-extra-types", "pycountry", "logfire[fastapi]", "httpx"]
+"api.mcp" = ["fastapi", "uvicorn[standard]", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydantic", "pydantic-extra-types", "pycountry", "logfire[fastapi]", "httpx", "fastmcp"]
 dm = ["pydantic", "pydantic-extra-types", "pycountry"]
 ai = ["peft", "transformers[sentencepiece]", "torchvision", "torchaudio", "pydantic", "pydantic-extra-types", "pycountry"]
 "openai.api" = ["openai"]
@@ -45,17 +45,17 @@ debug = ["pydevd-pycharm~=261.26222.68"]
 sets = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml"]
 "path.app" = ["appdirs"]
 "path.type" = ["filetype"]
-dns = ["dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "diskcache", "cachetools"]
-dhcp = ["httpx", "httpx_retries", "logfire", "logfire[httpx]"]
+dns = ["dnspython[doh]", "httpx", "httpx_retries", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "logfire[httpx]", "diskcache", "cachetools"]
+dhcp = ["httpx", "httpx_retries", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "logfire[httpx]"]
 patterns = ["regex"]
-http = ["httpx", "httpx_retries", "logfire", "logfire[httpx]"]
+http = ["httpx", "httpx_retries", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "logfire[httpx]"]
 setup = ["setuptools"]
-webhook = ["httpx", "httpx_retries", "logfire", "logfire[httpx]"]
+webhook = ["httpx", "httpx_retries", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "logfire[httpx]"]
 browsers = ["playwright==1.61.0"]
 db = []
 "db.document" = ["beanie"]
-"db.search" = ["qdrant-client", "pydantic", "pydantic-extra-types", "pycountry", "httpx", "httpx_retries", "logfire", "logfire[httpx]"]
-"db.search.compute" = ["qdrant-client", "pydantic", "pydantic-extra-types", "pycountry", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "torch>=2.12", "torchvision", "torchaudio", "qdrant-client[fastembed]", "flagembedding", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
+"db.search" = ["qdrant-client", "pydantic", "pydantic-extra-types", "pycountry", "httpx", "httpx_retries", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "logfire[httpx]"]
+"db.search.compute" = ["qdrant-client", "pydantic", "pydantic-extra-types", "pycountry", "httpx", "httpx_retries", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "logfire[httpx]", "torch>=2.12", "torchvision", "torchaudio", "qdrant-client[fastembed]", "flagembedding", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx"]
 mqtt = ["aiomqtt"]
 av = ["av"]
 env = []
@@ -66,14 +66,14 @@ ha = ["dotenv"]
 "ha.api" = ["dotenv", "homeassistant_api", "aiohasupervisor"]
 doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav"]
 youtube = ["pytubefix"]
-infra = ["logfire", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio"]
+infra = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio"]
 vcs = ["pygit2"]
 tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
-secrets = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
-sec = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
-cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "logfire"]
-all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "flet[all]>=1.1.0", "flet-video", "flet-webview", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "html2text", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "qdrant-client[fastembed]", "flagembedding", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+secrets = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
+sec = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
+cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk"]
+all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "flet[all]>=1.1.0", "flet-video", "flet-webview", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "html2text", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "qdrant-client[fastembed]", "flagembedding", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -104,14 +104,14 @@ test_envs = true
 [tool.corio.metadata.setup]
 
 [tool.corio.dependencies]
-install = ["cached-classproperty", "certifi>=2026.10.23", "semver"]
+install = ["cached-classproperty", "certifi>=2026.10.23", "semver", "logging"]
 "path.search" = ["ripgrep-rs"]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
 dev = ["logging", "debug", "sets", "yaml", "db.document", "infra", "db.search", "path.search", "interface"]
 test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript>=0.2.20", "pyyaml"]
 yaml = ["yml"]
-logging = ["logfire"]
+logging = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk"]
 parallel = ["dask[bag]", "distributed", "bokeh"]
 tokenization = ["tokenizers"]
 augmentation = ["faker", "sre_yield"]
@@ -170,7 +170,7 @@ sec = ["secrets"]
 cli = ["sets", "logging"]
 
 [tool.corio.test-envs]
-dev = ["api.dev", "caching.dev", "datatype.dev", "db.dev", "dhcp.dev", "dm.dev", "dns.dev", "dt.dev", "encrypt.dev", "enums.dev", "env.dev", "hash.dev", "hook.dev", "infra.dev", "inherit.dev", "interface.dev", "iterator.dev", "jsn.dev", "name.dev", "path.dev", "patterns.dev", "rand.dev", "sec.dev", "sets.dev", "shell.dev", "strings.dev", "tasmota.dev", "toml.dev", "tools.dev", "version.dev", "yml.dev", "youtube.dev"]
+dev = ["api.dev", "caching.dev", "datatype.dev", "db.dev", "dhcp.dev", "dm.dev", "dns.dev", "dt.dev", "encrypt.dev", "enums.dev", "env.dev", "hash.dev", "hook.dev", "infra.dev", "inherit.dev", "interface.dev", "iterator.dev", "jsn.dev", "logs.dev", "name.dev", "path.dev", "patterns.dev", "rand.dev", "sec.dev", "sets.dev", "shell.dev", "strings.dev", "tasmota.dev", "toml.dev", "tools.dev", "version.dev", "yml.dev", "youtube.dev"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
@@ -191,203 +191,209 @@ corio = ["pyproject.package.toml", "assets/**"]
 
 [tool.tox]
 requires = ["tox>=4.22", "tox-uv>=1"]
-env_list = ["api.prod", "caching.prod", "datatype.prod", "db.prod", "dhcp.prod", "dm.prod", "dns.prod", "dt.prod", "encrypt.prod", "enums.prod", "env.prod", "hash.prod", "hook.prod", "infra.prod", "inherit.prod", "interface.prod", "iterator.prod", "jsn.prod", "name.prod", "path.prod", "patterns.prod", "rand.prod", "sec.prod", "sets.prod", "shell.prod", "strings.prod", "tasmota.prod", "toml.prod", "tools.prod", "version.prod", "yml.prod", "youtube.prod"]
+env_list = ["api.prod", "caching.prod", "datatype.prod", "db.prod", "dhcp.prod", "dm.prod", "dns.prod", "dt.prod", "encrypt.prod", "enums.prod", "env.prod", "hash.prod", "hook.prod", "infra.prod", "inherit.prod", "interface.prod", "iterator.prod", "jsn.prod", "logs.prod", "name.prod", "path.prod", "patterns.prod", "rand.prod", "sec.prod", "sets.prod", "shell.prod", "strings.prod", "tasmota.prod", "toml.prod", "tools.prod", "version.prod", "yml.prod", "youtube.prod"]
 
 [tool.tox.env."api.dev"]
 description = "Run api tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "fastapi", "fastmcp", "httpx", "logfire", "logfire[fastapi]", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver", "uvicorn[standard]"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "fastapi", "fastmcp", "httpx", "logfire", "logfire[fastapi]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver", "uvicorn[standard]"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/api}"]]
 skip_install = true
 
 [tool.tox.env."caching.dev"]
 description = "Run caching tests."
-deps = ["cached-classproperty", "cachetools", "certifi>=2026.10.23", "diskcache", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "cachetools", "certifi>=2026.10.23", "diskcache", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/caching}"]]
 skip_install = true
 
 [tool.tox.env."datatype.dev"]
 description = "Run datatype tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/datatype}"]]
 skip_install = true
 
 [tool.tox.env."db.dev"]
 description = "Run db tests."
-deps = ["beanie", "cached-classproperty", "certifi>=2026.10.23", "deepdiff", "flagembedding", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "odfpy", "openpyxl", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client", "qdrant-client[fastembed]", "ranx", "semver", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
+deps = ["beanie", "cached-classproperty", "certifi>=2026.10.23", "deepdiff", "flagembedding", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "odfpy", "openpyxl", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client", "qdrant-client[fastembed]", "ranx", "semver", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/db}"]]
 skip_install = true
 
 [tool.tox.env."dhcp.dev"]
 description = "Run dhcp tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dhcp}"]]
 skip_install = true
 
 [tool.tox.env."dm.dev"]
 description = "Run dm tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dm}"]]
 skip_install = true
 
 [tool.tox.env."dns.dev"]
 description = "Run dns tests."
-deps = ["cached-classproperty", "cachetools", "certifi>=2026.10.23", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "cachetools", "certifi>=2026.10.23", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dns}"]]
 skip_install = true
 
 [tool.tox.env."dt.dev"]
 description = "Run dt tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dt}"]]
 skip_install = true
 
 [tool.tox.env."encrypt.dev"]
 description = "Run encrypt tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/encrypt}"]]
 skip_install = true
 
 [tool.tox.env."enums.dev"]
 description = "Run enums tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/enums}"]]
 skip_install = true
 
 [tool.tox.env."env.dev"]
 description = "Run env tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "dotenv", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "dotenv", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/env}"]]
 skip_install = true
 
 [tool.tox.env."hash.dev"]
 description = "Run hash tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/hash}"]]
 skip_install = true
 
 [tool.tox.env."hook.dev"]
 description = "Run hook tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/hook}"]]
 skip_install = true
 
 [tool.tox.env."infra.dev"]
 description = "Run infra tests."
-deps = ["build", "cached-classproperty", "certifi>=2026.10.23", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "semver", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
+deps = ["build", "cached-classproperty", "certifi>=2026.10.23", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "semver", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/infra}"]]
 skip_install = true
 
 [tool.tox.env."inherit.dev"]
 description = "Run inherit tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/inherit}"]]
 skip_install = true
 
 [tool.tox.env."interface.dev"]
 description = "Run interface tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "flet-video", "flet-webview", "flet[all]>=1.1.0", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "flet-video", "flet-webview", "flet[all]>=1.1.0", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/interface}"]]
 skip_install = true
 
 [tool.tox.env."iterator.dev"]
 description = "Run iterator tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/iterator}"]]
 skip_install = true
 
 [tool.tox.env."jsn.dev"]
 description = "Run jsn tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/jsn}"]]
+skip_install = true
+
+[tool.tox.env."logs.dev"]
+description = "Run logs tests."
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/logs}"]]
 skip_install = true
 
 [tool.tox.env."name.dev"]
 description = "Run name tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/name}"]]
 skip_install = true
 
 [tool.tox.env."path.dev"]
 description = "Run path tests."
-deps = ["appdirs", "cached-classproperty", "certifi>=2026.10.23", "filetype", "pytest", "pytest-asyncio", "pytest-cov", "ripgrep-rs", "semver"]
+deps = ["appdirs", "cached-classproperty", "certifi>=2026.10.23", "filetype", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "ripgrep-rs", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/path}"]]
 skip_install = true
 
 [tool.tox.env."patterns.dev"]
 description = "Run patterns tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "regex", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "regex", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/patterns}"]]
 skip_install = true
 
 [tool.tox.env."rand.dev"]
 description = "Run rand tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/rand}"]]
 skip_install = true
 
 [tool.tox.env."sec.dev"]
 description = "Run sec tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "dotenv", "logfire", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "dotenv", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/sec}"]]
 skip_install = true
 
 [tool.tox.env."sets.dev"]
 description = "Run sets tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/sets}"]]
 skip_install = true
 
 [tool.tox.env."shell.dev"]
 description = "Run shell tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/shell}"]]
 skip_install = true
 
 [tool.tox.env."strings.dev"]
 description = "Run strings tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/strings}"]]
 skip_install = true
 
 [tool.tox.env."tasmota.dev"]
 description = "Run tasmota tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "decode-config", "esptool", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "decode-config", "esptool", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/tasmota}"]]
 skip_install = true
 
 [tool.tox.env."toml.dev"]
 description = "Run toml tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver", "tomlkit"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver", "tomlkit"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/toml}"]]
 skip_install = true
 
 [tool.tox.env."tools.dev"]
 description = "Run tools tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/tools}"]]
 skip_install = true
 
 [tool.tox.env."version.dev"]
 description = "Run version tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/version}"]]
 skip_install = true
 
 [tool.tox.env."yml.dev"]
 description = "Run yml tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "semver", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/yml}"]]
 skip_install = true
 
 [tool.tox.env."youtube.dev"]
 description = "Run youtube tests."
-deps = ["cached-classproperty", "certifi>=2026.10.23", "pytest", "pytest-asyncio", "pytest-cov", "pytubefix", "semver"]
+deps = ["cached-classproperty", "certifi>=2026.10.23", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov", "pytubefix", "semver"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/youtube}"]]
 skip_install = true
 
 [tool.tox.env."api.prod"]
 description = "Run api tests."
-deps = ["fastapi", "fastmcp", "httpx", "logfire", "logfire[fastapi]", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "uvicorn[standard]"]
+deps = ["fastapi", "fastmcp", "httpx", "logfire", "logfire[fastapi]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "uvicorn[standard]"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/api}"]]
 
 [tool.tox.env."caching.prod"]
@@ -402,12 +408,12 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/datatype}"]]
 
 [tool.tox.env."db.prod"]
 description = "Run db tests."
-deps = ["beanie", "deepdiff", "flagembedding", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "odfpy", "openpyxl", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client", "qdrant-client[fastembed]", "ranx", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
+deps = ["beanie", "deepdiff", "flagembedding", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "odfpy", "openpyxl", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pandas", "pycountry", "pydantic", "pydantic-extra-types", "pytest", "pytest-asyncio", "pytest-cov", "qdrant-client", "qdrant-client[fastembed]", "ranx", "tabulate", "torch>=2.12", "torchaudio", "torchvision"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/db}"]]
 
 [tool.tox.env."dhcp.prod"]
 description = "Run dhcp tests."
-deps = ["httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
+deps = ["httpx", "httpx_retries", "logfire", "logfire[httpx]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dhcp}"]]
 
 [tool.tox.env."dm.prod"]
@@ -417,7 +423,7 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dm}"]]
 
 [tool.tox.env."dns.prod"]
 description = "Run dns tests."
-deps = ["cachetools", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "pytest", "pytest-asyncio", "pytest-cov"]
+deps = ["cachetools", "diskcache", "dnspython[doh]", "httpx", "httpx_retries", "logfire", "logfire[httpx]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/dns}"]]
 
 [tool.tox.env."dt.prod"]
@@ -452,7 +458,7 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/hook}"]]
 
 [tool.tox.env."infra.prod"]
 description = "Run infra tests."
-deps = ["build", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
+deps = ["build", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "setuptools", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/infra}"]]
 
 [tool.tox.env."inherit.prod"]
@@ -474,6 +480,11 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/iterator}"]]
 description = "Run jsn tests."
 deps = ["pytest", "pytest-asyncio", "pytest-cov"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/jsn}"]]
+
+[tool.tox.env."logs.prod"]
+description = "Run logs tests."
+deps = ["pytest", "pytest-asyncio", "pytest-cov"]
+commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/logs}"]]
 
 [tool.tox.env."name.prod"]
 description = "Run name tests."
@@ -497,7 +508,7 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/rand}"]]
 
 [tool.tox.env."sec.prod"]
 description = "Run sec tests."
-deps = ["dotenv", "logfire", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "yamlscript>=0.2.20"]
+deps = ["dotenv", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "pyyaml", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/sec}"]]
 
 [tool.tox.env."sets.prod"]
@@ -550,4 +561,4 @@ requires = ["setuptools>=82", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = ["logfire", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]
+dev = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]

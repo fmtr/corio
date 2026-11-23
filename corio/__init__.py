@@ -4,7 +4,7 @@ IMPORT_HOOK = ImportHook()
 
 from corio.constants import Constants
 from corio.path.path import Path, PackagePaths
-from corio.logs import logger
+from corio.logs import Configurer, logger
 
 
 try:
