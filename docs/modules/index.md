@@ -71,7 +71,7 @@ This table maps friendly imports from `corio.__init__` to docs pages and require
 ## Shared Top-Level Exports
 
 - `from corio import Path, PackagePaths, AppPaths` -> [path](path.md)
-- `from corio import logger` -> [logs](logs.md)
+- `from corio import logger, Configurer` -> [logs](logs.md)
 - `from corio import Constants` -> [path](path.md)
 - `from corio import Client` -> [https](https.md)
 - `from corio import Timer` -> [profiling](profiling.md)
