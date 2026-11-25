@@ -1,10 +1,12 @@
 import asyncio
+import zipfile
 from types import SimpleNamespace
 from typing import get_args, get_type_hints
 
 import pygit2 as vcs
 import pytest
 from packaging.requirements import Requirement
+from setuptools import build_meta
 
 from corio import entrypoint
 from corio import strings
@@ -105,6 +107,106 @@ def test_pyproject_is_restored_when_tester_incrementor_fails(tmp_path, monkeypat
 
     assert result.value is failure
     assert path_pyproject.read_bytes() == original
+
+
+def test_package_data_includes_assets_at_any_depth_in_wheel(tmp_path, monkeypatch):
+    path_repo = Path(tmp_path)
+    incrementor = _make_incrementor(path_repo)
+    path_package = incrementor.paths.path
+    main_source = strings.trim("""
+        def main():
+            return 0
+    """)
+    (path_package / "__init__.py").write_text(main_source, encoding="utf-8")
+    path_script = path_repo / "scripts" / "sample-script"
+    path_script.parent.mkdir()
+    script_source = strings.trim("""
+        #!/bin/sh
+        exit 0
+    """)
+    path_script.write_text(script_source, encoding="utf-8")
+
+    asset_files = {
+        "assets/root.txt": "root asset",
+        "a/b/c/assets/deep.txt": "deep asset",
+    }
+    for relative_path, content in asset_files.items():
+        asset_path = path_package / relative_path
+        asset_path.parent.mkdir(parents=True, exist_ok=True)
+        asset_path.write_text(content, encoding="utf-8")
+
+    (path_repo / "pyproject.toml").write_toml({
+        "build-system": {
+            "requires": ["setuptools>=82", "wheel"],
+            "build-backend": "setuptools.build_meta",
+        },
+        "project": {
+            "name": "sample-assets",
+            "version": "1.0.0",
+            "scripts": {"sample-cli": "corio:main"},
+        },
+        "tool": {
+            "setuptools": {
+                "include-package-data": False,
+                "script-files": ["scripts/sample-script"],
+                "packages": {
+                    "find": {
+                        "where": ["."],
+                        "include": ["corio*"],
+                        "namespaces": False,
+                    },
+                },
+                "package-data": incrementor._package_data,
+            },
+        },
+    })
+    path_wheels = path_repo / "dist"
+    path_wheels.mkdir()
+    monkeypatch.chdir(path_repo)
+
+    wheel_name = build_meta.build_wheel(str(path_wheels))
+
+    with zipfile.ZipFile(path_wheels / wheel_name) as wheel:
+        wheel_files = set(wheel.namelist())
+        entry_points_file = next(
+            path for path in wheel_files if path.endswith(".dist-info/entry_points.txt")
+        )
+        entry_points = wheel.read(entry_points_file).decode("utf-8")
+        script_file = next(path for path in wheel_files if path.endswith(".data/scripts/sample-script"))
+        packaged_script = wheel.read(script_file).decode("utf-8")
+
+    assert "corio/assets/root.txt" in wheel_files
+    assert "corio/a/b/c/assets/deep.txt" in wheel_files
+    assert packaged_script == script_source
+    assert "sample-cli = corio:main" in entry_points
+
+
+def test_pyproject_generator_preserves_console_and_file_scripts(release_repo_factory):
+    scenario = release_repo_factory(with_tests=False, with_changelog=False, with_addon=False)
+    path_entrypoint = scenario.project.paths.entrypoint
+    path_entrypoint.write_text(
+        strings.trim("""
+            def main():
+                return 0
+        """),
+        encoding="utf-8",
+    )
+    path_script = scenario.project.paths.scripts / "sample-script"
+    path_script.parent.mkdir()
+    path_script.write_text(
+        strings.trim("""
+            #!/bin/sh
+            exit 0
+        """),
+        encoding="utf-8",
+    )
+
+    incrementor = IncrementorPyproject(scenario.project.releaser)
+    data = incrementor._enrich_toml((scenario.path_repo / "pyproject.toml").read_toml())
+
+    assert data["project"]["scripts"] == {"release_target": "release_target.entrypoint:main"}
+    assert data["tool"]["setuptools"]["script-files"] == ["scripts/sample-script"]
+    assert data["tool"]["setuptools"]["include-package-data"] is False
 
 
 def test_release_github_body_without_previous_version(tmp_path):
@@ -248,6 +350,11 @@ def test_release_updates_real_repo_history_and_files(
     assert data["tool"]["corio"]["test-envs"]["dev"] == ["dev"]
     assert data["tool"]["pytest"]["ini_options"]["asyncio_default_fixture_loop_scope"] == "function"
     assert data["tool"]["setuptools"]["packages"]["find"]["namespaces"] is False
+    assert data["tool"]["setuptools"]["include-package-data"] is False
+    assert data["tool"]["setuptools"]["package-data"]["release_target"] == [
+        "pyproject.package.toml",
+        "**/assets/**",
+    ]
     dev_env = data["tool"]["tox"]["env"]["dev"]
     prod_env = data["tool"]["tox"]["env"]["prod"]
     assert dev_env["skip_install"] is True

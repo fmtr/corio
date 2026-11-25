@@ -124,7 +124,7 @@ class IncrementorPyproject(Incrementor):
         return {
             self.paths.name: [
                 Constants.FILENAME_PYPROJECT_PACKAGE,
-                "assets/**",
+                "**/assets/**",
             ]
         }
 
@@ -274,6 +274,7 @@ class IncrementorPyproject(Incrementor):
         project["scripts"] = scripts
 
         setuptools = ensure_table(data, ("tool", "setuptools"))
+        setuptools["include-package-data"] = False
         package_find = ensure_table(data, ("tool", "setuptools", "packages", "find"))
         package_find["where"] = ["."]
         package_find["include"] = [f"{self.paths.name}*"]
