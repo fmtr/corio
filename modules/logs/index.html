@@ -372,6 +372,8 @@
       
         
       
+        
+      
     
     
     
@@ -1623,6 +1625,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../changelog/2.20.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.20.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../changelog/2.6.1/" class="md-nav__link">
         
   
@@ -2639,6 +2669,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -2655,6 +2703,47 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#default-logger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default logger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-a-logger-for-your-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure a logger for your package
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -3612,6 +3701,36 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#default-logger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default logger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-a-logger-for-your-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure a logger for your package
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -3632,9 +3751,17 @@
 
 <h1 id="logs">logs</h1>
 <p><code>from corio import logs</code></p>
-<p>Logging setup and instrumentation helpers.</p>
-<p>Install: <code>pip install "corio[logging]" --upgrade</code></p>
-<p>Also exported at top level: <code>from corio import logger</code>.</p>
+<p>Logging setup and instrumentation helpers. Logfire and OpenTelemetry are included in Corio's base dependencies, so the <code>logging</code> extra is not required.</p>
+<h2 id="default-logger">Default logger</h2>
+<p><code>from corio import logger</code> returns Corio's configured Logfire logger. Its service name and version come from Corio's package metadata.</p>
+<h2 id="configure-a-logger-for-your-package">Configure a logger for your package</h2>
+<p>Pass your package's <code>PackagePaths</code> to <code>from_paths</code> to derive the logger's service identity and version from its metadata instead of hard-coding them:</p>
+<div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio.logs</span><span class="w"> </span><span class="kn">import</span> <span class="n">from_paths</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">corio.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">PackagePaths</span><span class="p">,</span> <span class="n">Path</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">from_paths</span><span class="p">(</span><span class="n">PackagePaths</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span>
+</code></pre></div>
+<p>Set <code>FMTR_OBS_API_KEY</code> to enable Corio's OTLP exporters for traces, metrics, and logs. Without the key, those custom exporters are not configured.</p>
 
 
 
