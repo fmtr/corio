@@ -3,11 +3,22 @@ from __future__ import annotations
 from typing import Literal
 
 from corio import api as api
-from corio.infra.project import Project
 from corio.infra.releaser import ReleaseDocumentation
 from corio.paths import paths
 
 ProjectName = Literal[*sorted(path.name for path in paths.dev_repo.iterdir() if path.is_dir())]
+
+
+def project_for_name(name, *, pinned=None, pre=False):
+    path = paths.dev_repo / name
+    if (path / "pyproject.toml").is_file():
+        from corio.infra.project import Project
+
+        return Project(name, pinned=pinned, pre=pre, path=path)
+
+    from corio.infra.project_berry import ProjectBerry
+
+    return ProjectBerry(path, pinned=pinned, pre=pre)
 
 
 class Api(api.Base):
@@ -46,7 +57,7 @@ class Release(api.endpoint.API):
         Run a project's release workflow.
 
         """
-        project = Project(name, pinned=pinned, pre=pre)
+        project = project_for_name(name, pinned=pinned, pre=pre)
         project.releaser.run(release=release)
 
 
@@ -65,7 +76,7 @@ class DocumentationRelease(api.endpoint.API):
         Release only a project's documentation.
 
         """
-        project = Project(name)
+        project = project_for_name(name)
         ReleaseDocumentation(project.releaser).release()
 
 
@@ -84,7 +95,7 @@ class PreVersion(api.endpoint.API):
         Return the next pre-release version string, or None if already pre-release.
 
         """
-        project = Project(name)
+        project = project_for_name(name)
         version = project.versions.next_pre
         if version is None:
             return None

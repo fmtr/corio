@@ -19,7 +19,7 @@ serve = cli.commands["serve"].callback
 from corio import env as env
 from corio import https as https
 from corio.constants import Constants
-from corio.infra.project import Project
+from corio.infra.project import ProjectBase
 from corio.inherit import Inherit
 from corio.logs import logger, sanitize
 from corio.path import Path
@@ -38,7 +38,7 @@ class InvalidVersion(RuntimeError):
     pass
 
 
-class Releaser(Inherit[Project]):
+class Releaser(Inherit[ProjectBase]):
     """
 
     Manages the release process for a project.
@@ -81,11 +81,10 @@ class Releaser(Inherit[Project]):
         self.repo.push()
         self.repo.fetch()
 
-        should_build_image = self.paths.metadata.container_host is not None or self.paths.metadata.is_dockerhub
-        if release or should_build_image:
+        if release or self.should_build_image:
             self.package()
 
-        if should_build_image:
+        if self.should_build_image:
             stack = self.stacks.cls[Production]
             stack.build()
             if self.paths.metadata.is_dockerhub:
@@ -221,6 +220,16 @@ class Releaser(Inherit[Project]):
     def token(self):
         return env.get(Constants.GITHUB_TOKEN_KEY)
 
+    @property
+    def should_build_image(self) -> bool:
+        has_container_host = self.paths.metadata.container_host is not None
+        is_dockerhub = self.paths.metadata.is_dockerhub
+        return has_container_host or is_dockerhub
+
+    @property
+    def assets(self) -> dict[str, bytes]:
+        return {}
+
     @cached_property
     def incrementors(self):
         from corio.infra.incrementor_pyproject import IncrementorPyproject
@@ -264,6 +273,9 @@ class Releaser(Inherit[Project]):
 
 
     def package(self):
+        if not self.packagers:
+            return
+
         if self.path.exists():
             logger.info(f"Package directory already exists: {self.path}. Will be removed.")
             shutil.rmtree(self.path)
@@ -343,8 +355,8 @@ class IncrementorVersion(Incrementor):
         self.paths.metadata.version = str(self.new)
         return None
 
-
-
+    def rollback(self) -> None:
+        self.paths.metadata.version = str(self.old)
 
 
 class IncrementorHomeAssistantAddon(Incrementor):
@@ -523,32 +535,51 @@ class ReleaseGithub(Release):
         return f'**Full Changelog**: [{self.previous_tag} {Constants.ARROW_RIGHT} {self.tag}]({self.url})'
 
     def release(self):
-        url = f"{self.repo_api_url}/releases"
-        name = f'Release {self.tag}'
+        data = self.create_release()
+        logger.info(f"Release created: {data['html_url']} Changes: {self.url}")
+        self.upload_assets(data)
 
+    def create_release(self) -> dict:
+        url = f"{self.repo_api_url}/releases"
+        name = f"Release {self.tag}"
         headers = {
             "Authorization": f"Bearer {self.token}",
-            "Accept": "application/vnd.github+json"
+            "Accept": "application/vnd.github+json",
         }
-
-
-
         payload = {
             "tag_name": self.tag,
             "name": name,
             "body": self.body,
             "draft": False,
-            "prerelease": self.versions.pre_current
+            "prerelease": self.versions.pre_current,
         }
 
         with logger.span(f'Creating release "{name}"...'):
             response = https.client.post(url, json=payload, headers=headers)
 
         response.raise_for_status()
+        return response.json()
 
-        data = response.json()
-        url = data['html_url']
-        logger.info(f"Release created: {url} Changes: {self.url}")
+    def upload_assets(self, release: dict) -> None:
+        if not self.assets:
+            return
+
+        upload_url = release["upload_url"].split("{", maxsplit=1)[0]
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/octet-stream",
+        }
+
+        for name, content in self.assets.items():
+            with logger.span(f'Uploading release asset "{name}"...'):
+                response = https.client.post(
+                    upload_url,
+                    params={"name": name},
+                    content=content,
+                    headers=headers,
+                )
+            response.raise_for_status()
 
 
 class ReleasePackageIndex(Release):

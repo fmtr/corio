@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import cached_property
 
 from corio import version
@@ -11,39 +13,10 @@ class InvalidPinnedVersion(Exception):
     """A pinned release version contains a pre-release suffix."""
 
 
-class Project:
-    """
-
-    Represents a canonical project with associated settings, runtime configuration, and paths.
-
-    """
-
-    def __init__(
-        self,
-        name=None,
-        context='gex',
-        channel='dev',
-        extras=None,
-        pinned=None,
-        pre=False,
-        path=None,
-    ):
-        self.paths = PackagePaths(path or PackagePaths.dev_repo / name)
-
-        # project settings:
-        self.services = self.paths.metadata.services
-        self.scripts = self.paths.metadata.scripts
-        self.base = self.paths.metadata.base
-        self.port = self.paths.metadata.port
-        self.entrypoint = self.paths.metadata.entrypoint
-
-        # runtime:
-        self.context = context
-        self.channel = channel
-        self.extras = extras or ['all']
-
-        self.name = self.paths.name if name is None else name
-
+class ProjectBase:
+    def __init__(self, paths, name=None, pinned=None, pre=False):
+        self.paths = paths
+        self.name = paths.name if name is None else name
         self.versions = Versions(self, pinned=pinned, pre=pre)
 
     @cached_property
@@ -52,13 +25,11 @@ class Project:
 
     @property
     def version(self):
-
         return self.versions.new
 
     @property
     def tag(self):
         return f'v{self.version}'
-
 
     @cached_property
     def package(self):
@@ -77,16 +48,6 @@ class Project:
         return f"https://api.github.com/repos/{self.repo_name}"
 
     @cached_property
-    def stacks(self):
-        from corio.infra.stack import Production, Stack
-        return ilist[Stack]([Production(self)])
-
-    @cached_property
-    def releaser(self):
-        from corio.infra.releaser import Releaser
-        return Releaser(self)
-
-    @cached_property
     def name_components(self):
         return self.name.split('.')
 
@@ -97,18 +58,62 @@ class Project:
     def name_dash(self):
         return self.join_name('-')
 
+
+class Project(ProjectBase):
+    """
+
+    Represents a Python project with associated settings, runtime configuration, and paths.
+
+    """
+
+    def __init__(
+        self,
+        name=None,
+        context='gex',
+        channel='dev',
+        extras=None,
+        pinned=None,
+        pre=False,
+        path=None,
+    ):
+        paths = PackagePaths(path or PackagePaths.dev_repo / name)
+        self.services = paths.metadata.services
+        self.scripts = paths.metadata.scripts
+        self.base = paths.metadata.base
+        self.port = paths.metadata.port
+        self.entrypoint = paths.metadata.entrypoint
+        self.context = context
+        self.channel = channel
+        self.extras = extras or ['all']
+        super().__init__(paths, name=name, pinned=pinned, pre=pre)
+
+    @property
+    def docs_port(self) -> int:
+        return 8180 + self.port
+
     @cached_property
+    def stacks(self):
+        from corio.infra.stack import Production, Stack
+
+        return ilist[Stack]([Production(self)])
+
+    @cached_property
+    def releaser(self):
+        from corio.infra.releaser import Releaser
+
+        return Releaser(self)
+
+    @property
     def extras_str(self):
         return ','.join(self.extras)
 
-    @cached_property
+    @property
     def scripts_str(self):
         return ' && '.join(self.scripts)
 
 
-class Versions(Inherit[Project]):
-
-    def __init__(self, project: Project, pinned: str | None = None, pre: bool | None = False):
+class Versions(Inherit[ProjectBase]):
+    def __init__(self, project: ProjectBase, pinned: str | None = None, pre: bool | None = False):
         super().__init__(project)
         self.pre_next = pre
         self.pinned = None

@@ -836,7 +836,10 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
             assert kwargs == {"release": True}
             raise failure
 
-    monkeypatch.setattr("corio.infra.api.Project", DummyProject)
+    monkeypatch.setattr(
+        "corio.infra.api.project_for_name",
+        lambda name, **kwargs: DummyProject(name, **kwargs),
+    )
 
     endpoint = Release(SimpleNamespace())
 
@@ -849,12 +852,13 @@ def test_release_endpoint_propagates_release_failure(monkeypatch):
 def test_infra_release_cli_runs_project_release(monkeypatch):
     events = []
 
-    class _Project:
-        def __init__(self, name, pinned=None, pre=None):
-            events.append(("project", name, pinned, pre))
-            self.releaser = SimpleNamespace(run=lambda **kwargs: events.append(("run", kwargs)))
+    def project_for_path(path, *, name=None, pinned=None, pre=False):
+        events.append(("project", name, pinned, pre))
+        return SimpleNamespace(
+            releaser=SimpleNamespace(run=lambda **kwargs: events.append(("run", kwargs)))
+        )
 
-    monkeypatch.setattr("corio.infra.project.Project", _Project)
+    monkeypatch.setattr("corio.entrypoint.project_for_path", project_for_path)
     command = entrypoint.Release(name="synthetic_target", pinned="1.2.3", pre=True, release=False)
 
     command.run()
@@ -877,10 +881,9 @@ def test_documentation_release_endpoint_only_releases_documentation(monkeypatch)
     releaser = SimpleNamespace()
     events = []
 
-    class DummyProject:
-        def __init__(self, name):
-            assert name == "demo"
-            self.releaser = releaser
+    def project_for_name(name):
+        assert name == "demo"
+        return SimpleNamespace(releaser=releaser)
 
     class DummyDocumentationRelease:
         def __init__(self, parent):
@@ -889,7 +892,7 @@ def test_documentation_release_endpoint_only_releases_documentation(monkeypatch)
         def release(self):
             events.append("documentation")
 
-    monkeypatch.setattr("corio.infra.api.Project", DummyProject)
+    monkeypatch.setattr("corio.infra.api.project_for_name", project_for_name)
     monkeypatch.setattr("corio.infra.api.ReleaseDocumentation", DummyDocumentationRelease)
 
     endpoint = DocumentationRelease(SimpleNamespace())
@@ -900,12 +903,13 @@ def test_documentation_release_endpoint_only_releases_documentation(monkeypatch)
 
 
 def test_pre_version_endpoint_returns_next_pre_release(monkeypatch):
-    class DummyProject:
-        def __init__(self, name):
-            assert name == "demo"
-            self.versions = SimpleNamespace(next_pre=version.parse("0.1.1-alpha.0"))
+    def project_for_name(name):
+        assert name == "demo"
+        return SimpleNamespace(
+            versions=SimpleNamespace(next_pre=version.parse("0.1.1-alpha.0"))
+        )
 
-    monkeypatch.setattr("corio.infra.api.Project", DummyProject)
+    monkeypatch.setattr("corio.infra.api.project_for_name", project_for_name)
 
     endpoint = PreVersion(SimpleNamespace())
 

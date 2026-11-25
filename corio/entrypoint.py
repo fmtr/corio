@@ -3,23 +3,33 @@ from pydantic_settings import CliSubCommand
 from corio import dm
 from corio import sec
 from corio import sets
-from corio.path import Path
+from corio.path import PackagePaths, Path
+
+
+def project_for_path(path, *, name=None, pinned=None, pre=False):
+    from corio.infra.project import Project
+
+    path = Path(path)
+    if (path / "pyproject.toml").is_file():
+        return Project(name, pinned=pinned, pre=pre, path=path)
+
+    from corio.infra.project_berry import ProjectBerry
+
+    return ProjectBerry(path, pinned=pinned, pre=pre)
 
 
 class DocServe(dm.Base):
     def run(self):
-        from corio.infra.project import Project
         from corio.infra.releaser import ReleaseDocumentation
-        from corio.path import PackagePaths, Path
 
-        paths = PackagePaths(Path.cwd())
-        project = Project(paths.name)
+        path_repo = Path.cwd()
+        project = project_for_path(path_repo, name=path_repo.name)
         release = ReleaseDocumentation(project.releaser)
 
-        with paths.repo.chdir:
+        with project.paths.repo.chdir:
             return release.serve(
                 host="0.0.0.0",
-                port=8180 + paths.metadata.port,
+                port=project.docs_port,
             )
 
 
@@ -84,9 +94,13 @@ class Release(dm.Base):
     release: bool = True
 
     def run(self):
-        from corio.infra.project import Project
-
-        project = Project(self.name, pinned=self.pinned, pre=self.pre)
+        path = PackagePaths.dev_repo / self.name
+        project = project_for_path(
+            path,
+            name=self.name,
+            pinned=self.pinned,
+            pre=self.pre,
+        )
         project.releaser.run(release=self.release)
 
 

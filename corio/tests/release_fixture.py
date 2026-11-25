@@ -3,13 +3,65 @@ from typing import Any
 
 import pygit2 as vcs
 
-from corio import strings
+from corio import strings, yml
 from corio.infra.project import Project
+from corio.infra.project_berry import ProjectBerry
 from corio.path import Path
 
 
+class ReleaseRepoBase:
+    @staticmethod
+    def _init_repository(path: Path) -> Any:
+        repository = vcs.init_repository(str(path), bare=False)
+        repository.set_head("refs/heads/main")
+        repository.config["user.name"] = "Fixture Author"
+        repository.config["user.email"] = "fixture@example.invalid"
+        return repository
+
+    @staticmethod
+    def _commit(repository: Any, signature: Any, message: str, parent: Any | None) -> Any:
+        index = repository.index
+        index.add_all()
+        index.write()
+        tree = index.write_tree()
+        parents = [] if parent is None else [parent.id]
+        commit_id = repository.create_commit(
+            "refs/heads/main",
+            signature,
+            signature,
+            message,
+            tree,
+            parents,
+        )
+        return repository[commit_id]
+
+    @staticmethod
+    def _tag(repository: Any, signature: Any, name: str, commit: Any) -> None:
+        repository.create_tag(
+            name,
+            commit.id,
+            vcs.GIT_OBJECT_COMMIT,
+            signature,
+            f"Release {name}",
+        )
+
+    @staticmethod
+    def _push_remote(repository: Any, path_remote: Path, tags: set[str]) -> None:
+        bare = vcs.init_repository(str(path_remote), bare=True)
+        origin = repository.remotes.create("origin", str(path_remote))
+        push_specs = [
+            "refs/heads/main:refs/heads/main",
+            "refs/heads/release:refs/heads/release",
+            *(f"refs/tags/{tag}:refs/tags/{tag}" for tag in sorted(tags)),
+        ]
+        origin.push(push_specs)
+        bare.set_head("refs/heads/main")
+        repository.config["branch.main.remote"] = "origin"
+        repository.config["branch.main.merge"] = "refs/heads/main"
+
+
 @dataclass
-class ReleaseRepoFixture:
+class ReleaseRepoFixture(ReleaseRepoBase):
     project: Project
     path_repo: Path
     path_remote: Path
@@ -83,17 +135,7 @@ class ReleaseRepoFixture:
             cls._tag(repository, signature, "v8.3.2", main_head)
             tags.add("v8.3.2")
 
-        bare = vcs.init_repository(str(path_remote), bare=True)
-        origin = repository.remotes.create("origin", str(path_remote))
-        push_specs = [
-            "refs/heads/main:refs/heads/main",
-            "refs/heads/release:refs/heads/release",
-            *(f"refs/tags/{tag}:refs/tags/{tag}" for tag in sorted(tags)),
-        ]
-        origin.push(push_specs)
-        bare.set_head("refs/heads/main")
-        repository.config["branch.main.remote"] = "origin"
-        repository.config["branch.main.merge"] = "refs/heads/main"
+        cls._push_remote(repository, path_remote, tags)
 
         return cls(
             project=Project(path=path_repo, pre=pre, pinned=pinned),
@@ -103,41 +145,6 @@ class ReleaseRepoFixture:
             main_head=str(main_head.id),
             release_head=str(latest_release.id),
             tags=tags,
-        )
-
-    @staticmethod
-    def _init_repository(path: Path) -> Any:
-        repository = vcs.init_repository(str(path), bare=False)
-        repository.set_head("refs/heads/main")
-        repository.config["user.name"] = "Fixture Author"
-        repository.config["user.email"] = "fixture@example.invalid"
-        return repository
-
-    @staticmethod
-    def _commit(repository: Any, signature: Any, message: str, parent: Any | None) -> Any:
-        index = repository.index
-        index.add_all()
-        index.write()
-        tree = index.write_tree()
-        parents = [] if parent is None else [parent.id]
-        commit_id = repository.create_commit(
-            "refs/heads/main",
-            signature,
-            signature,
-            message,
-            tree,
-            parents,
-        )
-        return repository[commit_id]
-
-    @staticmethod
-    def _tag(repository: Any, signature: Any, name: str, commit: Any) -> None:
-        repository.create_tag(
-            name,
-            commit.id,
-            vcs.GIT_OBJECT_COMMIT,
-            signature,
-            f"Release {name}",
         )
 
     @classmethod
@@ -271,3 +278,148 @@ class ReleaseRepoFixture:
             encoding="utf-8",
         )
         (root / "README.md").write_text("# Editable fixture\n", encoding="utf-8")
+
+
+@dataclass
+class BerryReleaseRepoFixture(ReleaseRepoBase):
+    project: ProjectBerry
+    path_repo: Path
+    path_remote: Path
+    main_head: str
+    release_head: str
+    tags: set[str]
+
+    @classmethod
+    def create(
+        cls,
+        root: Path,
+        *,
+        current_version: str = "2.5.1",
+        with_changelog: bool = True,
+        pre: bool | None = False,
+        pinned: str | None = None,
+    ) -> BerryReleaseRepoFixture:
+        path_repo = root / "release-target"
+        path_remote = root / "origin.git"
+        path_repo.mkdir()
+        signature = vcs.Signature("Fixture Author", "fixture@example.invalid")
+        repository = cls._init_repository(path_repo)
+        cls._write_target(path_repo, "2.5.0", with_changelog)
+        base_release = cls._commit(repository, signature, "Initial package release", None)
+        cls._tag(repository, signature, "v2.5.0", base_release)
+
+        (path_repo / "module" / "version.be").write_text(
+            "var VERSION = '0.1.0'\n",
+            encoding="utf-8",
+        )
+        first_history = cls._commit(repository, signature, "Update Berry source", base_release)
+
+        cls._write_target(path_repo, current_version, with_changelog)
+        latest_release = cls._commit(
+            repository,
+            signature,
+            f"Release version {current_version}",
+            first_history,
+        )
+        cls._tag(repository, signature, f"v{current_version}", latest_release)
+        repository.create_branch("release", latest_release)
+        (path_repo / "module" / "version.be").write_text(
+            "var VERSION = '0.2.0'\n",
+            encoding="utf-8",
+        )
+        if with_changelog:
+            (path_repo / "docs" / "changelog" / "changelog.md").write_text(
+                "- A synthetic unreleased change.\n",
+                encoding="utf-8",
+            )
+        main_head = cls._commit(repository, signature, "Add another Berry feature", latest_release)
+        tags = {"v2.5.0", f"v{current_version}"}
+        cls._push_remote(repository, path_remote, tags)
+
+        return cls(
+            project=ProjectBerry(path_repo, pinned=pinned, pre=pre),
+            path_repo=path_repo,
+            path_remote=path_remote,
+            main_head=str(main_head.id),
+            release_head=str(latest_release.id),
+            tags=tags,
+        )
+
+    @staticmethod
+    def _write_target(root: Path, project_version: str, with_changelog: bool) -> None:
+        module = root / "module"
+        module.mkdir(parents=True, exist_ok=True)
+        (root / "README.md").write_text("# Berry release fixture\n", encoding="utf-8")
+        development_helpers = module / "development_helpers"
+        development_helpers.mkdir(exist_ok=True)
+        manifest_data = {
+            "name": "release_bundle",
+            "metadata": {
+                "version": project_version,
+                "org_github": "synthetic-org",
+                "org_friendly": "Synthetic Organization",
+                "description": "Synthetic Berry release fixture",
+                "docs": {
+                    "site_name": "Synthetic Berry Docs",
+                    "theme": {"features": ["navigation.indexes"]},
+                },
+                "link_id": "synthetic-release-asset",
+            },
+            "autoexec": {
+                "import": False,
+                ".channels": [
+                    {"channel": "development", "import": True},
+                ],
+            },
+            "dependencies": [
+                {
+                    "name": "development_helpers",
+                    "source": {
+                        ".channels": [
+                            {
+                                "channel": "development",
+                                "dependency": {
+                                    ".type": "LocalPath",
+                                    "path": str(development_helpers),
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+            "patches": [
+                {
+                    ".type": "Version",
+                    "path": "version.be",
+                    "pattern": "var VERSION = '{version}'",
+                },
+                {
+                    ".channels": [
+                        {
+                            "channel": "development",
+                            ".type": "Version",
+                            "path": "development_version.be",
+                            "pattern": "var VERSION = '{version}'",
+                        },
+                    ],
+                },
+            ],
+        }
+        (module / "manifest.yml").write_text(yml.to_yaml(manifest_data), encoding="utf-8")
+        (module / "version.be").write_text("var VERSION = '0.1.0'\n", encoding="utf-8")
+        (module / "development_version.be").write_text(
+            "var VERSION = '0.1.0'\n",
+            encoding="utf-8",
+        )
+        if not with_changelog:
+            return
+
+        path_changelog = root / "docs" / "changelog"
+        path_changelog.mkdir(parents=True, exist_ok=True)
+        (path_changelog / f"{project_version}.md").write_text(
+            "- A synthetic release history.\n",
+            encoding="utf-8",
+        )
+        path_latest = root / "CHANGELOG.md"
+        path_latest.unlink(missing_ok=True)
+        path_latest.symlink_to(f"docs/changelog/{project_version}.md")
