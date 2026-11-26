@@ -376,6 +376,8 @@
       
         
       
+        
+      
     
     
     
@@ -1683,6 +1685,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../changelog/2.21.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.21.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../changelog/2.6.1/" class="md-nav__link">
         
   
@@ -2614,6 +2644,17 @@
     <span class="md-ellipsis">
       
         Typical Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#berry-project-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Berry Project Releases
       
     </span>
   </a>
@@ -3782,6 +3823,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#berry-project-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Berry Project Releases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#api-usage" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3847,13 +3899,13 @@
 
 <h1 id="infra">infra</h1>
 <p><code>from corio import infra</code></p>
-<p><code>infra</code> is the release/build orchestration layer used by <code>corio</code> projects.</p>
+<p><code>infra</code> is the release/build orchestration layer for Python and Tasmota Berry projects.</p>
 <p>Core objects:</p>
 <ul>
-<li><code>Project</code>: package metadata + runtime release context</li>
+<li><code>Project</code> and <code>ProjectBerry</code>: Python package or Berry manifest metadata + runtime release context</li>
 <li><code>Repository</code>: git operations (<code>fetch</code>, tagging, push flow)</li>
 <li><code>Stack</code>: container build/deploy definitions (development and production variants)</li>
-<li><code>Releaser</code>: version increment, package build/upload, docs deploy flow</li>
+<li><code>Releaser</code>: version increment, package build/upload, docs deploy flow; Berry releases attach a generated <code>.tapp</code> package</li>
 <li><code>infrastructure.api.Api</code>: FastAPI surface for release/build/recreate operations</li>
 </ul>
 <p>Production images built by <code>Stack</code> run their entrypoint as the unprivileged <code>user</code> account (UID 1000). Files accessed by the process must be readable or writable by that UID as needed.</p>
@@ -3875,6 +3927,9 @@
 <p>The same release flow is available from the command line:</p>
 <div class="language-bash highlight"><pre><span></span><code>corio<span class="w"> </span>infra<span class="w"> </span>release<span class="w"> </span>--name<span class="w"> </span>corio
 </code></pre></div>
+<h2 id="berry-project-releases">Berry Project Releases</h2>
+<p>For a Berry project, Corio selects <code>ProjectBerry</code> when the repository contains a <code>manifest.yml</code> instead of a Python <code>pyproject.toml</code>. The release command is the same; set <code>--name</code> to the repository directory under Corio's development repository.</p>
+<p>The release increments <code>metadata.version</code> in <code>manifest.yml</code>, builds a <code>.tapp</code> package from the manifest and project files, publishes the documentation when present, and attaches the package to the GitHub release. Berry documentation settings are read from <code>metadata.docs</code> in the manifest.</p>
 <h2 id="api-usage">API Usage</h2>
 <p><code>infra.Api</code> exposes release/build/recreate endpoints and is used by infra wrapper repos:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">infra</span>
@@ -3882,12 +3937,8 @@
 <span class="n">infra</span><span class="o">.</span><span class="n">Api</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
 </code></pre></div>
 <h2 id="docs-release-expectations">Docs Release Expectations</h2>
-<p>Docs release expects:</p>
-<ul>
-<li><code>docs/</code> content in repo root</li>
-<li><code>tool.corio.metadata.docs.nav</code> in <code>pyproject.toml</code></li>
-</ul>
-<p><code>ReleaseDocumentation</code> builds MkDocs configuration dynamically from project metadata, so nav structure in <code>pyproject</code> is part of the release contract.</p>
+<p>Docs release expects <code>docs/</code> content in the repository root. Python projects configure navigation under <code>tool.corio.metadata.docs.nav</code> in <code>pyproject.toml</code>; Berry projects provide docs settings under <code>metadata.docs</code> in <code>manifest.yml</code>.</p>
+<p><code>ReleaseDocumentation</code> builds MkDocs configuration dynamically from the project metadata, so the navigation structure in the metadata file is part of the release contract.</p>
 <h2 id="generated-test-environments">Generated Test Environments</h2>
 <p>Before running tests, the release workflow generates tox environments from the test package layout and dependency metadata. By default, it creates one development environment (<code>dev</code>) and one production environment (<code>prod</code>) for the full test suite; flat <code>test_*.py</code> files directly under <code>tests/</code> run in that single environment. Set <code>test_envs = true</code> under <code>[tool.corio.metadata]</code> to generate environments for each package module with a matching <code>tests/&lt;module&gt;/</code> package instead:</p>
 <div class="language-toml highlight"><pre><span></span><code><span class="k">[tool.corio.metadata]</span>
@@ -3898,7 +3949,7 @@
 <h2 id="release-flow-high-level">Release Flow (high-level)</h2>
 <p><code>releaser.run(...)</code> orchestrates:</p>
 <ol>
-<li>increment the version and generate <code>pyproject.toml</code> release metadata used by tests</li>
+<li>increment the version and update release metadata in <code>pyproject.toml</code> (Python) or <code>manifest.yml</code> (Berry)</li>
 <li>run configured tox tests, retrying dependency-resolution failures for up to 10 minutes</li>
 <li>after tests pass, update add-on and changelog release metadata</li>
 <li>commit, tag, and push</li>
@@ -3907,7 +3958,7 @@
 <li>docs deploy</li>
 <li>remove generated release artifacts from the worktree, including build/test caches, coverage data, and Python bytecode caches; coverage configuration is preserved</li>
 </ol>
-<p>Test failures block both stable and pre-releases. On failure, the generated <code>pyproject.toml</code> is restored; add-on and changelog updates have not yet run. The release changes are staged only after all incrementors succeed.</p>
+<p>Test failures block both stable and pre-releases. On failure, generated release metadata is restored; add-on and changelog updates have not yet run. The release changes are staged only after all incrementors succeed.</p>
 <p>The release-start log message names the project and the Corio runtime version used.</p>
 <p>If tox fails with <code>No solution found when resolving dependencies</code>, the release retries tox every 10 seconds for up to 10 minutes. Other dependency-installation failures and test failures stop the release immediately.</p>
 <p>When a current pre-release version has no matching Git tag, the release flow stops rather than assuming that version can be safely reused. Resolve the release state or pin the intended stable base explicitly before retrying.</p>
