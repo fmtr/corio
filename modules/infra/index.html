@@ -380,6 +380,8 @@
       
         
       
+        
+      
     
     
     
@@ -1723,6 +1725,34 @@
     
   
     2.21.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/2.21.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.21.2
   
 
     
@@ -3959,7 +3989,7 @@
 </code></pre></div>
 <h2 id="berry-project-releases">Berry Project Releases</h2>
 <p>For a Berry project, Corio selects <code>ProjectBerry</code> when the repository contains a <code>manifest.yml</code> instead of a Python <code>pyproject.toml</code>. The release command is the same; set <code>--name</code> to the repository directory under Corio's development repository.</p>
-<p>The release increments <code>metadata.version</code> in <code>manifest.yml</code>, builds a <code>.tapp</code> package from the manifest and project files, publishes the documentation when present, and attaches the package to the GitHub release. Berry documentation settings are read from <code>metadata.docs</code> in the manifest.</p>
+<p>The release increments <code>metadata.version</code> in <code>manifest.yml</code>, generates and stages <code>autoexec.be</code> in the Berry module directory, then builds a <code>.tapp</code> package from the manifest and project files, publishes the documentation when present, and attaches the package to the GitHub release. Berry documentation settings are read from <code>metadata.docs</code> in the manifest.</p>
 <h2 id="api-usage">API Usage</h2>
 <p><code>infra.Api</code> exposes release/build/recreate endpoints and is used by infra wrapper repos:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">infra</span>
