@@ -19,6 +19,7 @@ from corio.infra.releaser_berry import (
     ReleaseShortlink,
 )
 from corio.path import Path
+from tappack.constants import FileName
 from corio.tests.release_fixture import BerryReleaseRepoFixture
 
 
@@ -38,7 +39,7 @@ def test_project_factory_finds_berry_manifest_below_repository_root(
     project = project_for_path(scenario.path_repo, name="release-target")
 
     assert isinstance(project, ProjectBerry)
-    assert project.paths.manifest_path == scenario.path_repo / "module" / "manifest.yml"
+    assert project.paths.manifest_path == scenario.path_repo / "module" / FileName.MANIFEST
     assert project.paths.metadata.version == "2.5.1"
 
 
@@ -46,7 +47,7 @@ def test_api_entrypoint_selects_berry_projects(tmp_path, monkeypatch):
     project_root = tmp_path / "api_target"
     module = project_root / "module"
     module.mkdir(parents=True)
-    (module / "manifest.yml").write_text(
+    (module / FileName.MANIFEST).write_text(
         yml.to_yaml({
             "name": "api_bundle",
             "metadata": {"version": "3.7.2"},
@@ -61,12 +62,12 @@ def test_api_entrypoint_selects_berry_projects(tmp_path, monkeypatch):
     project = project_for_name(project_root.name)
 
     assert isinstance(project, ProjectBerry)
-    assert project.paths.manifest_path == module / "manifest.yml"
+    assert project.paths.manifest_path == module / FileName.MANIFEST
 
 
 def test_project_factory_rejects_multiple_berry_manifests(berry_release_repo_factory):
     scenario = berry_release_repo_factory()
-    nested_manifest = scenario.path_repo / "examples" / "manifest.yml"
+    nested_manifest = scenario.path_repo / "examples" / FileName.MANIFEST
     nested_manifest.parent.mkdir()
     nested_manifest.write_text(
         yml.to_yaml({"name": "secondary"}),
@@ -115,22 +116,28 @@ def test_berry_increment_updates_manifest_and_builds_archive_in_memory(
         "metadata": {**original_manifest["metadata"], "version": "2.5.2"},
     }
 
-    scenario.project.releaser.increment()
+    releaser = scenario.project.releaser
+    releaser.increment()
 
     assert manifest_path.read_data() == expected_manifest
     assert scenario.project.paths.metadata.version == "2.5.2"
     assert source_archive.exists() is False
-    assert scenario.project.releaser.assets.keys() == {"release_bundle.tapp"}
+    assert releaser.assets.keys() == {"release_bundle.tapp"}
 
-    archive = io.BytesIO(scenario.project.releaser.assets["release_bundle.tapp"])
+    archive = io.BytesIO(releaser.assets["release_bundle.tapp"])
     with zipfile.ZipFile(archive) as package:
-        assert package.read("version.be") == b"var VERSION = '2.5.2'\n"
-        manifest_data = yml.from_yaml(package.read("manifest.yml").decode())
+        assert package.read("version.be") == b"var VERSION = '0.2.0'\n"
+        autoexec = package.read(FileName.AUTOEXEC).decode()
+        assert "'version': '2.5.2'" in autoexec
+        manifest_data = yml.from_yaml(package.read(FileName.MANIFEST).decode())
         assert manifest_data == expected_manifest
 
-    assert scenario.project.releaser.incrementors.cls[IncrementorTappack].asset[0] == (
-        "release_bundle.tapp"
-    )
+    autoexec_path = scenario.path_repo / "module" / FileName.AUTOEXEC
+    assert autoexec_path.read_text(encoding="utf-8") == autoexec
+    assert autoexec_path.relative_to(scenario.path_repo).as_posix() in {
+        entry.path for entry in releaser.index
+    }
+    assert releaser.incrementors.cls[IncrementorTappack].asset[0] == "release_bundle.tapp"
 
 
 def test_manifest_incrementor_restores_original_file_on_rollback(

@@ -48,7 +48,7 @@ corio infra release --name corio
 
 For a Berry project, Corio selects `ProjectBerry` when the repository contains a `manifest.yml` instead of a Python `pyproject.toml`. The release command is the same; set `--name` to the repository directory under Corio's development repository.
 
-The release increments `metadata.version` in `manifest.yml`, builds a `.tapp` package from the manifest and project files, publishes the documentation when present, and attaches the package to the GitHub release. Berry documentation settings are read from `metadata.docs` in the manifest.
+The release increments `metadata.version` in `manifest.yml`, generates and stages `autoexec.be` in the Berry module directory, then builds a `.tapp` package from the manifest and project files, publishes the documentation when present, and attaches the package to the GitHub release. Berry documentation settings are read from `metadata.docs` in the manifest.
 
 ## API Usage
 

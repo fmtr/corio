@@ -7,6 +7,7 @@ from corio import strings, yml
 from corio.infra.project import Project
 from corio.infra.project_berry import ProjectBerry
 from corio.path import Path
+from tappack.constants import FileName
 
 
 class ReleaseRepoBase:
@@ -387,25 +388,8 @@ class BerryReleaseRepoFixture(ReleaseRepoBase):
                     },
                 },
             ],
-            "patches": [
-                {
-                    ".type": "Version",
-                    "path": "version.be",
-                    "pattern": "var VERSION = '{version}'",
-                },
-                {
-                    ".channels": [
-                        {
-                            "channel": "development",
-                            ".type": "Version",
-                            "path": "development_version.be",
-                            "pattern": "var VERSION = '{version}'",
-                        },
-                    ],
-                },
-            ],
         }
-        (module / "manifest.yml").write_text(yml.to_yaml(manifest_data), encoding="utf-8")
+        (module / FileName.MANIFEST).write_text(yml.to_yaml(manifest_data), encoding="utf-8")
         (module / "version.be").write_text("var VERSION = '0.1.0'\n", encoding="utf-8")
         (module / "development_version.be").write_text(
             "var VERSION = '0.1.0'\n",

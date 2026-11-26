@@ -3,15 +3,16 @@ from functools import cached_property
 
 from corio.infra.project import ProjectBase
 from corio.path import Path
+from tappack.constants import FileName
 from tappack.dm import manifest
 
 
 class BerryPaths:
     def __init__(self, repo: Path):
         self.repo = Path(repo).resolve()
-        manifests = sorted(self.repo.rglob(manifest.MANIFEST_FILENAME), key=str)
+        manifests = sorted(self.repo.rglob(FileName.MANIFEST), key=str)
         if not manifests:
-            raise ValueError(f'Berry project has no "{manifest.MANIFEST_FILENAME}" in {self.repo}.')
+            raise ValueError(f'Berry project has no "{FileName.MANIFEST}" in {self.repo}.')
         if len(manifests) > 1:
             paths = ", ".join(str(path) for path in manifests)
             raise ValueError(f'Berry project has multiple manifests: {paths}.')

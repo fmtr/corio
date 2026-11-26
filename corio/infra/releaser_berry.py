@@ -1,6 +1,6 @@
 from functools import cached_property
 
-from corio import env, https, iterator
+from corio import Path, env, https, iterator
 from corio.infra.releaser import (
     Incrementor,
     IncrementorChangelog,
@@ -39,12 +39,13 @@ class IncrementorManifest(Incrementor):
 
 
 class IncrementorTappack(Incrementor):
-    def apply(self) -> None:
+    def apply(self) -> Path:
         package = tappack_package.Package(
             self.paths.path,
             version=str(self.version),
         )
         self.asset = (f"{package.name}.tapp", package.build_archive().getvalue())
+        return package.autoexec_path
 
 
 class ReleaseShortlink(Release):
