@@ -12,7 +12,7 @@ keywords = []
 [project.optional-dependencies]
 "path.search" = ["ripgrep-rs"]
 compute = ["torch>=2.12", "torchvision", "torchaudio"]
-dev = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "tappack>=1.0.0a5", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]
+dev = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "tappack>=1.0.0a6", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]
 test = ["pytest", "pytest-cov", "pytest-asyncio"]
 yml = ["yamlscript>=0.2.20", "pyyaml"]
 yaml = ["yamlscript>=0.2.20", "pyyaml"]
@@ -66,14 +66,14 @@ ha = ["dotenv"]
 "ha.api" = ["dotenv", "homeassistant_api", "aiohasupervisor"]
 doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav"]
 youtube = ["pytubefix"]
-infra = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "tappack>=1.0.0a5"]
+infra = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "tappack>=1.0.0a6"]
 vcs = ["pygit2"]
 tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
 secrets = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 sec = ["pyrage", "dotenv", "yamlscript>=0.2.20", "pyyaml", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "pygit2"]
 cli = ["pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk"]
-all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "tappack>=1.0.0a5", "qdrant-client", "flet[all]>=1.1.0", "flet-video", "flet-webview", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "html2text", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "qdrant-client[fastembed]", "flagembedding", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
+all = ["ripgrep-rs", "torch>=2.12", "torchvision", "torchaudio", "logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "tappack>=1.0.0a6", "qdrant-client", "flet[all]>=1.1.0", "flet-video", "flet-webview", "dask[bag]", "distributed", "bokeh", "tokenizers", "faker", "sre_yield", "contexttimer", "Unidecode", "tinynetrc", "huggingface_hub", "fastmcp", "peft", "transformers[sentencepiece]", "openai", "sentence_transformers", "pandas", "tabulate", "openpyxl", "odfpy", "deepdiff", "ranx", "html2text", "google-auth", "google-auth-oauthlib", "google-auth-httplib2", "google-api-python-client", "diskcache", "cachetools", "pymupdf", "pymupdf4llm", "appdirs", "filetype", "dnspython[doh]", "regex", "playwright==1.61.0", "qdrant-client[fastembed]", "flagembedding", "aiomqtt", "av", "homeassistant_api", "aiohasupervisor", "pytubefix", "decode-config", "esptool"]
 
 [[project.authors]]
 name = "Frontmatter AI"
@@ -161,7 +161,7 @@ ha = ["env.io"]
 "ha.api" = ["ha", "homeassistant_api", "aiohasupervisor"]
 doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav"]
 youtube = ["pytubefix"]
-infra = ["logging", "setup", "doc", "sets", "build", "twine", "packaging", "vcs", "docker.client", "merging", "http", "api", "toml.write", "secrets", "cli", "test", "tappack>=1.0.0a5"]
+infra = ["logging", "setup", "doc", "sets", "build", "twine", "packaging", "vcs", "docker.client", "merging", "http", "api", "toml.write", "secrets", "cli", "test", "tappack>=1.0.0a6"]
 vcs = ["pygit2"]
 tasmota = ["decode-config", "esptool"]
 encrypt = ["pyrage"]
@@ -280,7 +280,7 @@ skip_install = true
 
 [tool.tox.env."infra.dev"]
 description = "Run infra tests."
-deps = ["build", "cached-classproperty", "certifi>=2026.10.23", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "semver", "setuptools", "tappack>=1.0.0a5", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
+deps = ["build", "cached-classproperty", "certifi>=2026.10.23", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "semver", "setuptools", "tappack>=1.0.0a6", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/infra}"]]
 skip_install = true
 
@@ -465,7 +465,7 @@ commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/hook}"]]
 
 [tool.tox.env."infra.prod"]
 description = "Run infra tests."
-deps = ["build", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "setuptools", "tappack>=1.0.0a5", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
+deps = ["build", "deepmerge", "dotenv", "fastapi", "httpx", "httpx_retries", "logfire", "logfire[fastapi]", "logfire[httpx]", "mike", "mkdocs", "mkdocs-include-dir-to-nav", "mkdocs-material", "mkdocstrings[python]", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "packaging", "pycountry", "pydantic", "pydantic-extra-types", "pydantic-settings", "pygit2", "pyrage", "pytest", "pytest-asyncio", "pytest-cov", "python-on-whales", "pyyaml", "setuptools", "tappack>=1.0.0a6", "tomlkit", "twine", "uvicorn[standard]", "yamlscript>=0.2.20"]
 commands = [["python", "-m", "pytest", "-q", "{posargs:corio/tests/infra}"]]
 
 [tool.tox.env."inherit.prod"]
@@ -568,4 +568,4 @@ requires = ["setuptools>=82", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "tappack>=1.0.0a5", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]
+dev = ["logfire", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pydevd-pycharm~=261.26222.68", "pydantic-settings", "pydantic", "pydantic-extra-types", "pycountry", "yamlscript>=0.2.20", "pyyaml", "beanie", "setuptools", "mkdocs", "mkdocs-material", "mkdocstrings[python]", "mike", "mkdocs-include-dir-to-nav", "build", "twine", "packaging", "pygit2", "python-on-whales", "deepmerge", "httpx", "httpx_retries", "logfire[httpx]", "fastapi", "uvicorn[standard]", "logfire[fastapi]", "tomlkit", "pyrage", "dotenv", "pytest", "pytest-cov", "pytest-asyncio", "tappack>=1.0.0a6", "qdrant-client", "ripgrep-rs", "flet[all]>=1.1.0", "flet-video", "flet-webview"]
